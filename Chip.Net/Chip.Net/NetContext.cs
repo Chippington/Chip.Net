@@ -7,12 +7,13 @@ namespace Chip.Net {
 	public class NetContext {
 		public string ApplicationName { get; set; }
 		public string IPAddress { get; set; }
+		public int MaxConnections { get; set; }
 		public int Port { get; set; }
 
 		#region Providers
-		private Func<NetContext, INetProvider> clientFactory { get; set; }
-		private Func<NetContext, INetProvider> serverFactory { get; set; }
-		public void UseProvider<TProvider>() where TProvider : INetProvider {
+		private Func<NetContext, INetClientProvider> clientFactory { get; set; }
+		private Func<NetContext, INetClientProvider> serverFactory { get; set; }
+		public void UseProvider<TProvider>() where TProvider : INetClientProvider {
 			clientFactory = (ctx) => {
 				return Activator.CreateInstance<TProvider>();
 			};
@@ -23,8 +24,8 @@ namespace Chip.Net {
 		}
 
 		public void UseProvider<TServer, TClient>() 
-			where TServer : INetProvider 
-			where TClient : INetProvider {
+			where TServer : INetClientProvider 
+			where TClient : INetClientProvider {
 
 			clientFactory = (ctx) => {
 				return Activator.CreateInstance<TClient>();
@@ -35,12 +36,12 @@ namespace Chip.Net {
 			};
 		}
 
-		public void UseProvider(Func<NetContext, INetProvider> providerFactory) {
+		public void UseProvider(Func<NetContext, INetClientProvider> providerFactory) {
 			clientFactory = providerFactory;
 			serverFactory = providerFactory;
 		}
 
-		public void UseProvider(Func<NetContext, INetProvider> clientFactory, Func<NetContext, INetProvider> serverFactory) {
+		public void UseProvider(Func<NetContext, INetClientProvider> clientFactory, Func<NetContext, INetClientProvider> serverFactory) {
 			this.serverFactory = serverFactory;
 			this.clientFactory = clientFactory;
 		}

@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Chip.Net.Providers
+namespace Chip.Net.Data
 {
-    public class INetProvider
+    class Packet
     {
     }
 }
