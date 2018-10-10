@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Chip.Net.Data
 {
-    class Packet
+    public class Packet
     {
     }
 }

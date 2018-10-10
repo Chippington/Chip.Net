@@ -1,10 +1,23 @@
-﻿using System;
+﻿using Chip.Net.Data;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace Chip.Net.Providers {
-	public interface INetServerProvider {
-		void StartServer();
+	public interface INetServerProvider : IDisposable {
+		ProviderEvent OnUserConnected { get; set; }
+		ProviderEvent OnUserDisconnected { get; set; }
 
+		bool IsActive { get; }
+		bool AcceptIncomingConnections { get; set; }
+
+		void StartServer(NetContext context);
+		void StopServer();
+
+		IEnumerable<User> GetClients();
+		void DisconnectUser(User user);
+
+		IEnumerable<DataBuffer> GetIncomingMessages();
+		void SendMessage(User recipient, Packet packet);
 	}
 }
