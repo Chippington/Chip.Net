@@ -37,33 +37,32 @@ namespace Chip.Net.Data {
 			serverRouteMap = new Dictionary<Type, List<Callback>>();
 		}
 
-		void Route<T>(Action<T> callback) where T : Packet {
+		public void Route<T>(Action<T> callback) where T : Packet {
 			GetList(clientRouteMap, typeof(T)).Add(new Callback<T>(callback));
 			GetList(serverRouteMap, typeof(T)).Add(new Callback<T>(callback));
 		}
 
-		void RouteClient<T>(Action<T> callback) where T : Packet {
+		public void RouteClient<T>(Action<T> callback) where T : Packet {
 			GetList(clientRouteMap, typeof(T)).Add(new Callback<T>(callback));
 		}
 
-		void RouteServer<T>(Action<T> callback) where T : Packet {
+		public void RouteServer<T>(Action<T> callback) where T : Packet {
 			GetList(serverRouteMap, typeof(T)).Add(new Callback<T>(callback));
 		}
 
-		void OnReceive(Packet packet) {
+		public void InvokeClient(Packet packet) {
 			var cl = GetList(clientRouteMap, packet.GetType(), false);
-			var sv = GetList(serverRouteMap, packet.GetType(), false);
-
 			if (cl != null) {
-				for (int i = 0; i < cl.Count; i++) {
+				for (int i = 0; i < cl.Count; i++)
 					cl[i].Invoke(packet);
-				}
 			}
+		}
 
+		public void InvokeServer(Packet packet) {
+			var sv = GetList(serverRouteMap, packet.GetType(), false);
 			if (sv != null) {
-				for (int i = 0; i < sv.Count; i++) {
+				for (int i = 0; i < sv.Count; i++)
 					sv[i].Invoke(packet);
-				}
 			}
 		}
 
