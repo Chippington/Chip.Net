@@ -7,7 +7,6 @@
   <ItemGroup>
     <Folder Include="Debug\" />
     <Folder Include="Providers\UDP\" />
-    <Folder Include="Providers\TCP\" />
   </ItemGroup>
 
 </Project>

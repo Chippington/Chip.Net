@@ -18,6 +18,8 @@ namespace Chip.Net.Providers {
 		void DisconnectUser(User user);
 
 		IEnumerable<DataBuffer> GetIncomingMessages();
+
+		void SendMessage(Packet packet);
 		void SendMessage(User recipient, Packet packet);
 	}
 }
