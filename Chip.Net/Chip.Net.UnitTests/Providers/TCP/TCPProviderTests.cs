@@ -11,6 +11,9 @@ namespace Chip.Net.UnitTests.Providers.TCP {
 	[TestClass]
 	public class TCPProviderTests {
 		public static int portDiff = 0;
+		public static int active = 0;
+		public static int max = 4;
+
 		public NetContext context { get; set; }
 		public INetClientProvider client { get; set; }
 		public INetServerProvider server { get; set; }
@@ -24,6 +27,89 @@ namespace Chip.Net.UnitTests.Providers.TCP {
 
 			client = new TCPClientProvider();
 			server = new TCPServerProvider();
+
+			while (active >= max)
+				System.Threading.Thread.Sleep(10);
+
+			active++;
+		}
+
+		[TestCleanup]
+		public void Cleanup() {
+			active--;
+		}
+
+		[TestMethod]
+		public void Server_StartServer_IsActive() {
+			server.StartServer(context);
+			Assert.IsTrue(server.IsActive);
+		}
+
+		[TestMethod]
+		public void Server_StopServer_IsNotActive() {
+			server.StartServer(context);
+			Assert.IsTrue(server.IsActive);
+			server.StopServer();
+			Assert.IsTrue(server.IsActive == false);
+		}
+
+		[TestMethod]
+		public void Client_Connect_IsConnected() {
+			server.StartServer(context);
+			client.Connect(context);
+
+			int tick = Environment.TickCount;
+			while (client.IsConnected == false && Environment.TickCount - tick < 1000) {
+				server.UpdateServer();
+				client.UpdateClient();
+			}
+
+			Assert.IsTrue(client.IsConnected);
+		}
+
+		[TestMethod]
+		public void Client_Disconnect_IsNotConnected() {
+
+			server.StartServer(context);
+			client.Connect(context);
+
+			int tick = Environment.TickCount;
+			while (client.IsConnected == false && Environment.TickCount - tick < 1000) {
+				server.UpdateServer();
+				client.UpdateClient();
+			}
+
+			Assert.IsTrue(client.IsConnected);
+			client.Disconnect();
+			Assert.IsTrue(client.IsConnected == false);
+		}
+
+		[TestMethod]
+		public void Server_Dispose_ClientDisconnected() {
+			server.StartServer(context);
+
+			int disconnects = 0;
+			server.OnUserDisconnected += i => {
+				disconnects++;
+			};
+
+			client.OnDisconnected += i => {
+				disconnects++;
+			};
+
+			server.OnUserConnected += i => {
+				server.Dispose();
+			};
+
+			client.Connect(context);
+
+			int tick = Environment.TickCount;
+			while (disconnects != 2 && Environment.TickCount - tick < 1000) {
+				server.UpdateServer();
+				client.UpdateClient();
+			}
+
+			Assert.IsTrue(disconnects == 2);
 		}
 
 		[TestMethod]
@@ -38,15 +124,19 @@ namespace Chip.Net.UnitTests.Providers.TCP {
 				connections++;
 			};
 
+			client.OnDisconnected += i => {
+				connections++;
+			};
+
 			client.Connect(context);
 			int tick = Environment.TickCount;
-			while (connections != 1 && Environment.TickCount - tick < 1000) {
+			while (connections != 2 && Environment.TickCount - tick < 1000) {
 				System.Threading.Thread.Sleep(10);
 				server.UpdateServer();
 				client.UpdateClient();
 			}
 
-			Assert.IsTrue(connections == 1);
+			Assert.IsTrue(connections == 2);
 		}
 
 		[TestMethod]

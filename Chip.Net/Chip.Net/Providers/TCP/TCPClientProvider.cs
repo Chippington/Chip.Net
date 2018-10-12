@@ -66,6 +66,11 @@ namespace Chip.Net.Providers.TCP {
 					buff.ReadBytes(d, 0, d.Length);
 
 					d = Decompress(d);
+					if(d.Length == 1 && d[0] == 0) {
+						Disconnect();
+						break;
+					}
+
 					DataBuffer msgBuffer = new DataBuffer(d);
 					msgBuffer.Seek(0);
 
@@ -96,8 +101,11 @@ namespace Chip.Net.Providers.TCP {
 
 		public void Dispose() {
 			if (client != null) {
-				byte[] arr = new byte[3] { 0, 0, 0 };
-				SendMessage(new DataBuffer(arr));
+				byte[] arr = new byte[1] { 0 };
+				try {
+					SendMessage(new DataBuffer(arr));
+				} catch { }
+
 				client.Close();
 
 				OnDisconnected?.Invoke(new ProviderEventArgs());

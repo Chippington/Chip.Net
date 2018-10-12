@@ -29,9 +29,14 @@ namespace Chip.Net.Providers.TCP
 			clientList = new List<TcpClient>();
 			incoming = new Queue<Tuple<object, DataBuffer>>();
 			connected = new HashSet<TcpClient>();
+
+			IsActive = true;
 		}
 
 		public void UpdateServer() {
+			if (IsActive == false)
+				return;
+
 			//If any clients are waiting to connect
 			if (clientListener.Pending()) {
 				TcpClient newClient = clientListener.AcceptTcpClient();
@@ -46,6 +51,9 @@ namespace Chip.Net.Providers.TCP
 					UserKey = newClient,
 				});
 			}
+
+			if (clientList == null)
+				return;
 
 			//Update each client, listening for any incoming data.
 			for (int i = clientList.Count - 1; i >= 0; i--) {
@@ -80,7 +88,7 @@ namespace Chip.Net.Providers.TCP
 						buff.ReadBytes(d, 0, d.Length);
 
 						d = Decompress(d);
-						if (d.Length == 3 && d[0] == 0 && d[1] == 0 && d[2] == 0) {
+						if (d.Length == 1 && d[0] == 0) {
 							DisconnectUser(tcpClient);
 							break;
 						}
@@ -107,6 +115,11 @@ namespace Chip.Net.Providers.TCP
 		public void DisconnectUser(object userKey) {
 			var tcpClient = userKey as TcpClient;
 			if(tcpClient != null && connected.Contains(tcpClient)) {
+				byte[] arr = new byte[1] { 0 };
+				try {
+					SendMessage(tcpClient, new DataBuffer(arr));
+				} catch { }
+
 				OnUserDisconnected?.Invoke(new ProviderEventArgs() {
 					UserKey = tcpClient,
 				});
@@ -151,6 +164,7 @@ namespace Chip.Net.Providers.TCP
 			clientList = null;
 			connected = null;
 			message = null;
+			IsActive = false;
 		}
 	}
 }
