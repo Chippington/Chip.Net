@@ -12,6 +12,12 @@ namespace Chip.Net.Services {
 			serviceList = new List<INetService>();
 		}
 
+		public void InitializeServices(NetContext context) {
+			for (int i = 0; i < serviceList.Count; i++) {
+				serviceList[i].InitializeService(context);
+			}
+		}
+
 		public T Register<T>() where T : INetService {
 			var inst = Activator.CreateInstance<T>();
 			return Register(inst);
