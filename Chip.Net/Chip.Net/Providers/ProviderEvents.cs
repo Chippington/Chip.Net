@@ -6,7 +6,7 @@ using System.Text;
 namespace Chip.Net.Providers
 {
 	public class ProviderEventArgs {
-		public User UserData { get; set; }
+		public object UserKey { get; set; }
 	}
 
 	public delegate void ProviderEvent(ProviderEventArgs args);

@@ -16,12 +16,12 @@ namespace Chip.Net.Providers {
 
 		void UpdateServer();
 
-		IEnumerable<User> GetClients();
-		void DisconnectUser(User user);
+		IEnumerable<object> GetClientKeys();
+		void DisconnectUser(object userKey);
 
-		IEnumerable<DataBuffer> GetIncomingMessages();
+		IEnumerable<Tuple<object, DataBuffer>> GetIncomingMessages();
 
-		void SendMessage(Packet packet);
-		void SendMessage(User recipient, Packet packet);
+		void SendMessage(DataBuffer data);
+		void SendMessage(object recipientKey, DataBuffer data);
 	}
 }

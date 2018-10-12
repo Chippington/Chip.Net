@@ -4,7 +4,13 @@ using System.Text;
 
 namespace Chip.Net.Data
 {
-    public class Packet
-    {
-    }
+	public class Packet : ISerializable {
+		public void ReadFrom(DataBuffer buffer) {
+			throw new NotImplementedException();
+		}
+
+		public void WriteTo(DataBuffer buffer) {
+			throw new NotImplementedException();
+		}
+	}
 }

@@ -4,20 +4,16 @@ using System.Collections.Generic;
 using System.Text;
 
 namespace Chip.Net.Providers {
-	public interface INetClientProvider {
+	public interface INetClientProvider : IDisposable {
 		ProviderEvent OnConnected { get; set; }
 		ProviderEvent OnDisconnected { get; set; }
 
 		bool IsConnected { get; }
 
-		void StartClient(NetContext context);
-		void StopClient();
-
-		void UpdateClient();
-
+		void Connect(NetContext context);
 		void Disconnect();
-
+		void UpdateClient();
 		IEnumerable<DataBuffer> GetIncomingMessages();
-		void SendMessage(Packet packet);
+		void SendMessage(DataBuffer data);
 	}
 }
