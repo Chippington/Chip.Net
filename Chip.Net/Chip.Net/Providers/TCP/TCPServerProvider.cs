@@ -115,6 +115,7 @@ namespace Chip.Net.Providers.TCP
 		public void DisconnectUser(object userKey) {
 			var tcpClient = userKey as TcpClient;
 			if(tcpClient != null && connected.Contains(tcpClient)) {
+				connected.Remove(tcpClient);
 				byte[] arr = new byte[1] { 0 };
 				try {
 					SendMessage(tcpClient, new DataBuffer(arr));
@@ -125,7 +126,6 @@ namespace Chip.Net.Providers.TCP
 				});
 
 				tcpClient.Close();
-				connected.Remove(tcpClient);
 				clientList.Remove(tcpClient);
 			}
 		}
@@ -150,7 +150,8 @@ namespace Chip.Net.Providers.TCP
 				tcpClient.GetStream().Write(msg, 0, msg.Length);
 				tcpClient.GetStream().Flush();
 			} catch {
-				DisconnectUser(recipientKey);
+				if(connected.Contains(recipientKey as TcpClient))
+					DisconnectUser(recipientKey);
 			}
 		}
 

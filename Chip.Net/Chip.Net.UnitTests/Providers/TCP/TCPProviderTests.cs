@@ -12,7 +12,7 @@ namespace Chip.Net.UnitTests.Providers.TCP {
 	public class TCPProviderTests {
 		public static int portDiff = 0;
 		public static int active = 0;
-		public static int max = 4;
+		public static int max = 5;
 
 		public NetContext context { get; set; }
 		public INetClientProvider client { get; set; }
