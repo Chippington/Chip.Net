@@ -14,6 +14,8 @@ namespace Chip.Net.Providers {
 		void StartServer(NetContext context);
 		void StopServer();
 
+		void UpdateServer();
+
 		IEnumerable<User> GetClients();
 		void DisconnectUser(User user);
 

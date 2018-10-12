@@ -13,7 +13,9 @@ namespace Chip.Net.Providers {
 		void StartClient(NetContext context);
 		void StopClient();
 
-		void Disconnect(User user);
+		void UpdateClient();
+
+		void Disconnect();
 
 		IEnumerable<DataBuffer> GetIncomingMessages();
 		void SendMessage(Packet packet);

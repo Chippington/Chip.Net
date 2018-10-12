@@ -44,5 +44,9 @@ namespace Chip.Net.Providers.TCP
 		public void StopServer() {
 			throw new NotImplementedException();
 		}
+
+		public void UpdateServer() {
+			throw new NotImplementedException();
+		}
 	}
 }

@@ -10,7 +10,7 @@ namespace Chip.Net.Providers.TCP {
 
 		public bool IsConnected { get; private set; }
 
-		public void Disconnect(User user) {
+		public void Disconnect() {
 			throw new NotImplementedException();
 		}
 
@@ -27,6 +27,10 @@ namespace Chip.Net.Providers.TCP {
 		}
 
 		public void StopClient() {
+			throw new NotImplementedException();
+		}
+
+		public void UpdateClient() {
 			throw new NotImplementedException();
 		}
 	}
