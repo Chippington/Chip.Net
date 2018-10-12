@@ -1,8 +1,9 @@
-﻿using System;
+﻿using Chip.Net.Data;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Chip.Net.Data
+namespace Chip.Net
 {
 	public interface ISerializable {
 		void WriteTo(DataBuffer buffer);
