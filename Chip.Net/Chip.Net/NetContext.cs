@@ -1,4 +1,5 @@
 ﻿using Chip.Net.Providers;
+using Chip.Net.Services;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -9,6 +10,12 @@ namespace Chip.Net {
 		public string IPAddress { get; set; }
 		public int MaxConnections { get; set; }
 		public int Port { get; set; }
+
+		public NetServiceCollection Services { get; private set; }
+
+		public NetContext() {
+			Services = new NetServiceCollection();
+		}
 
 		#region Providers
 		private Func<NetContext, INetClientProvider> clientFactory { get; set; }
