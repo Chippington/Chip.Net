@@ -19,8 +19,9 @@ namespace Chip.Net {
 
 		#region Providers
 		private Func<NetContext, INetClientProvider> clientFactory { get; set; }
-		private Func<NetContext, INetClientProvider> serverFactory { get; set; }
-		public void UseProvider<TProvider>() where TProvider : INetClientProvider {
+		private Func<NetContext, INetServerProvider> serverFactory { get; set; }
+		public void UseProvider<TProvider>() 
+			where TProvider : INetClientProvider, INetServerProvider {
 			clientFactory = (ctx) => {
 				return Activator.CreateInstance<TProvider>();
 			};
@@ -31,7 +32,7 @@ namespace Chip.Net {
 		}
 
 		public void UseProvider<TServer, TClient>() 
-			where TServer : INetClientProvider 
+			where TServer : INetServerProvider 
 			where TClient : INetClientProvider {
 
 			clientFactory = (ctx) => {
@@ -43,12 +44,7 @@ namespace Chip.Net {
 			};
 		}
 
-		public void UseProvider(Func<NetContext, INetClientProvider> providerFactory) {
-			clientFactory = providerFactory;
-			serverFactory = providerFactory;
-		}
-
-		public void UseProvider(Func<NetContext, INetClientProvider> clientFactory, Func<NetContext, INetClientProvider> serverFactory) {
+		public void UseProvider(Func<NetContext, INetClientProvider> clientFactory, Func<NetContext, INetServerProvider> serverFactory) {
 			this.serverFactory = serverFactory;
 			this.clientFactory = clientFactory;
 		}
