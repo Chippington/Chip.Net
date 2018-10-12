@@ -22,7 +22,7 @@ namespace Chip.Net.UnitTests.Providers.TCP {
 		public void Initialize() {
 			context = new NetContext();
 			context.IPAddress = "127.0.0.1";
-			context.Port = 11111 + portDiff++;
+			context.Port = Common.Port++;
 			context.MaxConnections = 10;
 
 			client = new TCPClientProvider();
