@@ -8,12 +8,14 @@ namespace Chip.Net
 {
 	public interface INetServer : IDisposable
 	{
+		PacketRouter Router { get; }
 		NetEvent OnUserConnected { get; set; }
 		NetEvent OnUserDisconnected { get; set; }
 		NetEvent OnPacketReceived { get; set; }
 		NetEvent OnPacketSent { get; set; }
 
-		void StartServer(NetContext context, INetServerProvider provider);
+		void InitializeServer(NetContext context);
+		void StartServer(INetServerProvider provider);
 		void StopServer();
 		void UpdateServer();
 

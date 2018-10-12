@@ -5,6 +5,9 @@ using System.Text;
 namespace Chip.Net.Data
 {
 	public class Packet : ISerializable {
+		public NetUser Sender { get; set; }
+		public NetUser Recipient { get; set; }
+
 		public void ReadFrom(DataBuffer buffer) {
 			throw new NotImplementedException();
 		}
