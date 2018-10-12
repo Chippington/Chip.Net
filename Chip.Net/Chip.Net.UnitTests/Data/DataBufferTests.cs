@@ -11,7 +11,7 @@ namespace Chip.Net.UnitTests.Data
     {
 
 		[TestMethod]
-		public void WriteReadPrimitives() {
+		public void DataBuffer_WriteReadPrimitives() {
 			string str = "hello world";
 			Random r = new Random();
 			Int16 int16 = (Int16)r.Next(Int16.MaxValue);
@@ -51,7 +51,7 @@ namespace Chip.Net.UnitTests.Data
 		}
 
 		[TestMethod]
-		public void WritePeekPrimitives() {
+		public void DataBuffer_WritePeekPrimitives() {
 			string str = "hello world";
 			Random r = new Random();
 			Int16 int16 = (Int16)r.Next(Int16.MaxValue);
@@ -91,7 +91,7 @@ namespace Chip.Net.UnitTests.Data
 		}
 
 		[TestMethod]
-		public void WriteReadBuffers() {
+		public void DataBuffer_WriteReadBuffers() {
 			string data = "datastring";
 			DataBuffer outer = new DataBuffer();
 			DataBuffer inner = new DataBuffer();
@@ -110,7 +110,7 @@ namespace Chip.Net.UnitTests.Data
 
 
 		[TestMethod]
-		public void WritePeekBuffers() {
+		public void DataBuffer_WritePeekBuffers() {
 			string data = "datastring";
 			DataBuffer outer = new DataBuffer();
 			DataBuffer inner = new DataBuffer();
@@ -128,7 +128,7 @@ namespace Chip.Net.UnitTests.Data
 		}
 
 		[TestMethod]
-		public void WriteReadByteArrays() {
+		public void DataBuffer_WriteReadByteArrays() {
 			byte[] data = new byte[100];
 			Random r = new Random();
 			r.NextBytes(data);
@@ -146,7 +146,7 @@ namespace Chip.Net.UnitTests.Data
 		}
 
 		[TestMethod]
-		public void StringToBytes_IsEqual() {
+		public void DataBuffer_StringToBytes_IsEqual() {
 			var buff = new DataBuffer();
 			string data = "data string value";
 			buff.StringToBytes(data);
@@ -156,7 +156,7 @@ namespace Chip.Net.UnitTests.Data
 		}
 
 		[TestMethod]
-		public void BufferToBytes_IsEqual() {
+		public void DataBuffer_BufferToBytes_IsEqual() {
 			var buff = new DataBuffer();
 			string data = "data string value";
 			buff.Write((string)data);
