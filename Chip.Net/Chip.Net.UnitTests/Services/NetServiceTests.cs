@@ -6,31 +6,13 @@ using System.Linq;
 using System.Text;
 
 namespace Chip.Net.UnitTests.Services {
-	public class TestService : INetService {
-		public bool initialized = false;
-		public bool disposed = false;
-		public bool updated = false;
-
-		public void InitializeService(NetContext context) {
-			initialized = true;
-		}
-
-		public void Dispose() {
-			disposed = true;
-		}
-
-		public void UpdateService() {
-			updated = true;
-		}
-	}
-
 	[TestClass]
 	public class NetServiceTests {
 		[TestMethod]
 		public void NetServiceCollection_RegisterService_HasService() {
 			NetServiceCollection c = new NetServiceCollection();
-			c.Register<TestService>();
-			var result = c.Get<TestService>();
+			c.Register<TestNetService>();
+			var result = c.Get<TestNetService>();
 
 			Assert.IsNotNull(result);
 		}
@@ -38,9 +20,9 @@ namespace Chip.Net.UnitTests.Services {
 		[TestMethod]
 		public void NetServiceCollection_RegisterServiceInstance_HasService() {
 			NetServiceCollection c = new NetServiceCollection();
-			var real = new TestService();
-			var first = c.Register<TestService>(real);
-			var second = c.Get<TestService>();
+			var real = new TestNetService();
+			var first = c.Register<TestNetService>(real);
+			var second = c.Get<TestNetService>();
 
 			Assert.IsNotNull(real);
 			Assert.IsNotNull(first);
@@ -52,37 +34,37 @@ namespace Chip.Net.UnitTests.Services {
 		[TestMethod]
 		public void NetServiceCollection_UpdateServices_ServiceUpdated() {
 			NetServiceCollection c = new NetServiceCollection();
-			c.Register<TestService>();
+			c.Register<TestNetService>();
 			c.UpdateServices();
 
-			Assert.IsTrue(c.Get<TestService>().updated == true);
+			Assert.IsTrue(c.Get<TestNetService>().Updated == true);
 		}
 
 		[TestMethod]
 		public void NetServiceCollection_GetServices_HasServices() {
 			NetServiceCollection c = new NetServiceCollection();
-			c.Register<TestService>();
+			c.Register<TestNetService>();
 
 			Assert.IsTrue(c.Get().Count() == 1);
-			Assert.IsTrue(c.Get().First() == c.Get<TestService>());
+			Assert.IsTrue(c.Get().First() == c.Get<TestNetService>());
 		}
 
 		[TestMethod]
 		public void NetServiceCollection_Initialized_ServiceInitialized() {
 			NetServiceCollection c = new NetServiceCollection();
-			c.Register<TestService>();
+			c.Register<TestNetService>();
 			c.InitializeServices(new NetContext());
 
-			Assert.IsTrue(c.Get<TestService>().initialized == true);
+			Assert.IsTrue(c.Get<TestNetService>().Initialized == true);
 		}
 
 		[TestMethod]
 		public void NetServiceCollection_Disposed_ServiceDisposed() {
 			NetServiceCollection c = new NetServiceCollection();
-			var svc = c.Register<TestService>();
+			var svc = c.Register<TestNetService>();
 			c.Dispose();
 
-			Assert.IsTrue(svc.disposed == true);
+			Assert.IsTrue(svc.Disposed == true);
 		}
 	}
 }

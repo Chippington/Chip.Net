@@ -1,8 +1,10 @@
-﻿using Chip.Net.Default.Basic;
+﻿using Chip.Net.Data;
+using Chip.Net.Default.Basic;
 using Chip.Net.Providers.TCP;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace Chip.Net.UnitTests.Default
@@ -13,20 +15,23 @@ namespace Chip.Net.UnitTests.Default
 		private NetContext _context;
 		public NetContext Context {
 			get {
-				if (_context == null) {
-					_context = new NetContext();
-					_context.IPAddress = "127.0.0.1";
-					_context.Port = Common.Port;
-				}
-
+				_context = new NetContext();
+				_context.IPAddress = "127.0.0.1";
+				_context.Port = Common.Port;
+				_context.Services.Register<TestNetService>();
 				return _context;
 			}
 		}
 
 		INetServer StartNewServer() {
+			var sv = NewServer();
+			sv.StartServer(new TCPServerProvider());
+			return sv;
+		}
+
+		INetServer NewServer() {
 			var sv = new BasicServer();
 			sv.InitializeServer(Context);
-			sv.StartServer(new TCPServerProvider());
 			return sv;
 		}
 
@@ -73,6 +78,8 @@ namespace Chip.Net.UnitTests.Default
 			var cl = StartNewClient();
 
 			Wait(() => {
+				sv.UpdateServer();
+				cl.UpdateClient();
 				return cl.IsConnected;
 			});
 
@@ -83,17 +90,24 @@ namespace Chip.Net.UnitTests.Default
 		public void Server_ClientConnects_EventInvoked() {
 			var sv = StartNewServer();
 			bool eventInvoked = false;
-			sv.OnUserConnected += i => { eventInvoked = true; };
+			NetUser user = null;
+			sv.OnUserConnected += i => { user = i.User; eventInvoked = true; };
+
 
 			var cl = StartNewClient();
 			Wait(() => {
+				sv.UpdateServer();
+				cl.UpdateClient();
 				return cl.IsConnected;
 			});
 
 			Wait(() => {
+				sv.UpdateServer();
+				cl.UpdateClient();
 				return eventInvoked;
 			});
 
+			Assert.IsNotNull(user);
 			Assert.IsTrue(cl.IsConnected);
 			Assert.IsTrue(eventInvoked);
 		}
@@ -102,19 +116,28 @@ namespace Chip.Net.UnitTests.Default
 		public void Server_ClientDisconnects_EventInvoked() {
 			var sv = StartNewServer();
 			bool eventInvoked = false;
-			sv.OnUserConnected += i => { eventInvoked = true; };
+			NetUser user1 = null;
+			NetUser user2 = null;
+			sv.OnUserConnected += i => { user1 = i.User; };
+			sv.OnUserDisconnected += i => { user2 = i.User; eventInvoked = true; };
 
 			var cl = StartNewClient();
 			Wait(() => {
+				sv.UpdateServer();
+				cl.UpdateClient();
 				return cl.IsConnected;
 			});
 
 			cl.StopClient();
 
 			Wait(() => {
+				sv.UpdateServer();
+				cl.UpdateClient();
 				return eventInvoked;
 			});
 
+			Assert.IsNotNull(user1);
+			Assert.AreEqual(user1, user2);
 			Assert.IsTrue(cl.IsConnected);
 			Assert.IsTrue(eventInvoked);
 		}
@@ -127,10 +150,14 @@ namespace Chip.Net.UnitTests.Default
 			cl.OnConnected += i => { eventInvoked = true; };
 
 			Wait(() => {
+				sv.UpdateServer();
+				cl.UpdateClient();
 				return cl.IsConnected;
 			});
 
 			Wait(() => {
+				sv.UpdateServer();
+				cl.UpdateClient();
 				return eventInvoked;
 			});
 
@@ -146,17 +173,135 @@ namespace Chip.Net.UnitTests.Default
 			cl.OnDisconnected += i => { eventInvoked = true; };
 
 			Wait(() => {
+				sv.UpdateServer();
+				cl.UpdateClient();
 				return cl.IsConnected;
 			});
 
 			cl.StopClient();
 
 			Wait(() => {
+				sv.UpdateServer();
+				cl.UpdateClient();
 				return eventInvoked;
 			});
 
 			Assert.IsTrue(cl.IsConnected);
 			Assert.IsTrue(eventInvoked);
+		}
+
+		[TestMethod]
+		public void Server_ClientConnected_HasUser() {
+			var sv = StartNewServer();
+			NetUser user = null;
+			sv.OnUserConnected += i => {
+				user = i.User;
+			};
+
+			var cl = StartNewClient();
+
+			Wait(() => {
+				sv.UpdateServer();
+				cl.UpdateClient();
+				return cl.IsConnected;
+			});
+
+			Assert.IsNotNull(user);
+			Assert.IsTrue(sv.GetUsers().Count() == 1);
+			Assert.AreEqual(sv.GetUsers().First(), user);
+		}
+
+		[TestMethod]
+		public void Server_InitializeServer_HasContext() {
+			var sv = NewServer();
+			Assert.IsNotNull(sv.Context);
+		}
+
+		[TestMethod]
+		public void Client_InitializeClient_HasContext() {
+			var cl = NewClient();
+			Assert.IsNotNull(cl.Context);
+		}
+
+		[TestMethod]
+		public void Server_InitializeServer_ContextInitialized() {
+			var sv = NewServer();
+			Assert.IsTrue(Context.Initialized);
+		}
+
+		[TestMethod]
+		public void Server_StartServer_ServicesStarted() {
+			var sv = NewServer();
+			sv.StartServer(new TCPServerProvider());
+			Assert.IsTrue(sv.Context.Services.Get<TestNetService>().Started);
+		}
+
+		[TestMethod]
+		public void Server_UpdateServer_ServicesUpdated() {
+			var sv = NewServer();
+			sv.StartServer(new TCPServerProvider());
+			sv.UpdateServer();
+			Assert.IsTrue(sv.Context.Services.Get<TestNetService>().Updated);
+
+		}
+
+		[TestMethod]
+		public void Server_StopServer_ServicesStopped() {
+			var sv = NewServer();
+			sv.StartServer(new TCPServerProvider());
+			sv.UpdateServer();
+			sv.StopServer();
+			Assert.IsTrue(sv.Context.Services.Get<TestNetService>().Stopped);
+		}
+
+		[TestMethod]
+		public void Server_DisposeServer_ServicesDisposed() {
+			var sv = NewServer();
+			sv.StartServer(new TCPServerProvider());
+			sv.UpdateServer();
+			sv.StopServer();
+			sv.Dispose();
+			Assert.IsTrue(sv.Context.Services.Get<TestNetService>().Disposed);
+		}
+
+		[TestMethod]
+		public void Client_InitializeClient_ContextInitialized() {
+			var cl = NewClient();
+			Assert.IsTrue(cl.Context.Initialized);
+		}
+
+		[TestMethod]
+		public void Client_StartClient_ServicesStarted() {
+			var sv = StartNewServer();
+			var cl = StartNewClient();
+			Assert.IsTrue(cl.Context.Services.Get<TestNetService>().Started);
+		}
+
+		[TestMethod]
+		public void Client_UpdateClient_ServicesUpdated() {
+			var sv = StartNewServer();
+			var cl = StartNewClient();
+			cl.UpdateClient();
+			Assert.IsTrue(cl.Context.Services.Get<TestNetService>().Updated);
+		}
+
+		[TestMethod]
+		public void Client_StopClient_ServicesStopped() {
+			var sv = StartNewServer();
+			var cl = StartNewClient();
+			cl.UpdateClient();
+			cl.StopClient();
+			Assert.IsTrue(cl.Context.Services.Get<TestNetService>().Stopped);
+		}
+
+		[TestMethod]
+		public void Client_DisposeClient_ServicesDisposed() {
+			var sv = StartNewServer();
+			var cl = StartNewClient();
+			cl.UpdateClient();
+			cl.StopClient();
+			cl.Dispose();
+			Assert.IsTrue(cl.Context.Services.Get<TestNetService>().Disposed);
 		}
 	}
 }

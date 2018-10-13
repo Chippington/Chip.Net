@@ -14,6 +14,10 @@ namespace Chip.Net.Default.Basic
 		public NetEvent OnPacketReceived { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 		public NetEvent OnPacketSent { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
+		public NetContext Context => throw new NotImplementedException();
+
+		public bool IsConnected => throw new NotImplementedException();
+
 		public void Dispose() {
 			throw new NotImplementedException();
 		}

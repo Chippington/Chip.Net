@@ -10,11 +10,21 @@ namespace Chip.Net {
 		public string IPAddress { get; set; }
 		public int MaxConnections { get; set; }
 		public int Port { get; set; }
+		public bool Initialized { get; private set; }
 
 		public NetServiceCollection Services { get; private set; }
 
 		public NetContext() {
 			Services = new NetServiceCollection();
+			Initialized = false;
+		}
+
+		public void InitializeContext() {
+			if (Initialized == true)
+				throw new Exception("NetContext can only be initialized once.");
+
+			Services.InitializeServices(this);
+			Initialized = true;
 		}
 
 		#region Providers

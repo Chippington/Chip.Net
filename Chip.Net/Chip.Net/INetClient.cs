@@ -14,6 +14,7 @@ namespace Chip.Net
 		NetEvent OnPacketReceived { get; set; }
 		NetEvent OnPacketSent { get; set; }
 
+		NetContext Context { get; }
 		bool IsConnected { get; }
 
 		void InitializeClient(NetContext context);
