@@ -4,6 +4,7 @@ using System.Text;
 
 namespace Chip.Net.UnitTests {
 	public static class Common {
-		public static int Port { get; set; } = 11111;
+		private static int port = 11111;
+		public static int Port { get { return port++; } }
 	}
 }

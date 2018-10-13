@@ -14,6 +14,8 @@ namespace Chip.Net
 		NetEvent OnPacketReceived { get; set; }
 		NetEvent OnPacketSent { get; set; }
 
+		bool IsActive { get; }
+
 		void InitializeServer(NetContext context);
 		void StartServer(INetServerProvider provider);
 		void StopServer();
