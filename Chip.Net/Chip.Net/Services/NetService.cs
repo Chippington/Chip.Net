@@ -39,6 +39,7 @@ namespace Chip.Net.Services
 		}
 
 		public void SendPacketToClients(Packet packet) {
+			packet.Recipient = null;
 			clientOutQueue.Enqueue(packet);
 		}
 
