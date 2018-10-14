@@ -25,6 +25,6 @@ namespace Chip.Net
 		IEnumerable<NetUser> GetUsers();
 
 		void SendPacket(Packet packet);
-		void SendPacket();
+		void SendPacket(NetUser user, Packet packet);
 	}
 }

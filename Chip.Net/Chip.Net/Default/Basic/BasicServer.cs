@@ -34,7 +34,7 @@ namespace Chip.Net.Default.Basic
 			throw new NotImplementedException();
 		}
 
-		public void SendPacket() {
+		public void SendPacket(NetUser user, Packet packet) {
 			throw new NotImplementedException();
 		}
 

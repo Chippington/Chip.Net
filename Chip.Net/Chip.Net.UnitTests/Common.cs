@@ -46,6 +46,11 @@ namespace Chip.Net.UnitTests {
 		}
 	}
 
+	public class TestPacket : Packet {
+		public TestPacket() {
+		}
+	}
+
 	public static class Common {
 		private static int port = 11111;
 		public static int Port { get { return port++; } }

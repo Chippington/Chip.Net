@@ -12,12 +12,21 @@ namespace Chip.Net.UnitTests.Default
 	[TestClass]
     public class BasicTests
     {
+		private int _port = 0;
+		private int Port {
+			get {
+				if (_port == 0)
+					_port = Common.Port;
+
+				return _port;
+			}
+		}
 		private NetContext _context;
 		public NetContext Context {
 			get {
 				_context = new NetContext();
 				_context.IPAddress = "127.0.0.1";
-				_context.Port = Common.Port;
+				_context.Port = Port;
 				_context.Services.Register<TestNetService>();
 				return _context;
 			}
@@ -302,6 +311,144 @@ namespace Chip.Net.UnitTests.Default
 			cl.StopClient();
 			cl.Dispose();
 			Assert.IsTrue(cl.Context.Services.Get<TestNetService>().Disposed);
+		}
+
+		[TestMethod]
+		public void Server_SendPacket_ClientReceivesPacket() {
+			var sv = StartNewServer();
+			var cl = StartNewClient();
+			bool received = false;
+
+			cl.Router.RouteClient<TestPacket>(i => {
+				received = true;
+			});
+
+			Wait(() => {
+				sv.UpdateServer();
+				cl.UpdateClient();
+				return cl.IsConnected;
+			});
+
+			sv.SendPacket(new TestPacket());
+
+			Wait(() => {
+				sv.UpdateServer();
+				cl.UpdateClient();
+				return received;
+			});
+
+			Assert.IsTrue(received);
+		}
+
+		[TestMethod]
+		public void Server_SendPacketToUser_ClientReceivesPacket() {
+			var sv = StartNewServer();
+			NetUser user = null;
+			sv.OnUserConnected += i => {
+				user = i.User;
+			};
+
+			var cl = StartNewClient();
+			bool received = false;
+
+			cl.Router.RouteClient<TestPacket>(i => {
+				received = true;
+			});
+
+			Wait(() => {
+				sv.UpdateServer();
+				cl.UpdateClient();
+				return cl.IsConnected;
+			});
+
+			Assert.IsNotNull(user);
+			sv.SendPacket(user, new TestPacket());
+
+			Wait(() => {
+				sv.UpdateServer();
+				cl.UpdateClient();
+				return received;
+			});
+
+			Assert.IsTrue(received);
+		}
+
+		[TestMethod]
+		public void Client_SendPacket_ServerReceivesPacket() {
+			var sv = StartNewServer();
+			var cl = StartNewClient();
+			bool received = false;
+
+			sv.Router.RouteClient<TestPacket>(i => {
+				received = true;
+			});
+
+			Wait(() => {
+				sv.UpdateServer();
+				cl.UpdateClient();
+				return cl.IsConnected;
+			});
+
+			cl.SendPacket(new TestPacket());
+
+			Wait(() => {
+				sv.UpdateServer();
+				cl.UpdateClient();
+				return received;
+			});
+
+			Assert.IsTrue(received);
+		}
+
+		[TestMethod]
+		public void Client_SendPacket_PacketHasRecipient() {
+			var sv = StartNewServer();
+			NetUser user = null;
+			sv.OnUserConnected += i => {
+				user = i.User;
+			};
+
+			var cl = StartNewClient();
+			bool received = false;
+			NetUser user2 = null;
+
+			sv.Router.RouteClient<TestPacket>(i => {
+				received = true;
+				user2 = i.Sender;
+			});
+
+			Wait(() => {
+				sv.UpdateServer();
+				cl.UpdateClient();
+				return cl.IsConnected;
+			});
+
+			sv.SendPacket(new TestPacket());
+
+			Wait(() => {
+				sv.UpdateServer();
+				cl.UpdateClient();
+				return received;
+			});
+
+			Assert.IsTrue(received);
+			Assert.IsNotNull(user);
+			Assert.AreEqual(user, user2);
+		}
+
+		[TestMethod]
+		public void Server_ServiceSendPacket_ClientServiceReceivesPacket() {
+
+		}
+
+		[TestMethod]
+		public void Server_ServiceSendPacketToUser_ClientServiceReceivesPacket() {
+
+		}
+
+		[TestMethod]
+		public void Client_ServiceSendsPacket_ServerServiceReceivesPacket() {
+
 		}
 	}
 }
