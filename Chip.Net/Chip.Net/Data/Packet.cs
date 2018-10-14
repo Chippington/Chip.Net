@@ -8,12 +8,8 @@ namespace Chip.Net.Data
 		public NetUser Sender { get; set; }
 		public NetUser Recipient { get; set; }
 
-		public void ReadFrom(DataBuffer buffer) {
-			throw new NotImplementedException();
-		}
+		public virtual void ReadFrom(DataBuffer buffer) { }
 
-		public void WriteTo(DataBuffer buffer) {
-			throw new NotImplementedException();
-		}
+		public virtual void WriteTo(DataBuffer buffer) { }
 	}
 }

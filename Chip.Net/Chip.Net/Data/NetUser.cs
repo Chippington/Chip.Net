@@ -6,19 +6,19 @@ namespace Chip.Net.Data
 {
 	public class NetUser
 	{
-		public object ClientKey { get; private set; }
+		public object UserKey { get; private set; }
 
 		private Dictionary<string, object> localDataMap;
 
-		public NetUser(object clientKey)
+		public NetUser(object userKey)
 		{
-			this.ClientKey = clientKey;
+			this.UserKey = userKey;
 			localDataMap = new Dictionary<string, object>();
 		}
 
 		public override int GetHashCode()
 		{
-			return ClientKey.GetHashCode();
+			return UserKey.GetHashCode();
 		}
 
 		public void SetLocal(string key, object data)

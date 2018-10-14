@@ -28,6 +28,7 @@ namespace Chip.Net.UnitTests.Default
 				_context.IPAddress = "127.0.0.1";
 				_context.Port = Port;
 				_context.Services.Register<TestNetService>();
+				_context.Packets.Register<TestPacket>();
 				return _context;
 			}
 		}
@@ -147,7 +148,7 @@ namespace Chip.Net.UnitTests.Default
 
 			Assert.IsNotNull(user1);
 			Assert.AreEqual(user1, user2);
-			Assert.IsTrue(cl.IsConnected);
+			Assert.IsTrue(cl.IsConnected == false);
 			Assert.IsTrue(eventInvoked);
 		}
 
@@ -157,6 +158,7 @@ namespace Chip.Net.UnitTests.Default
 			var cl = NewClient();
 			bool eventInvoked = false;
 			cl.OnConnected += i => { eventInvoked = true; };
+			cl.StartClient(new TCPClientProvider());
 
 			Wait(() => {
 				sv.UpdateServer();
@@ -180,6 +182,7 @@ namespace Chip.Net.UnitTests.Default
 			var cl = NewClient();
 			bool eventInvoked = false;
 			cl.OnDisconnected += i => { eventInvoked = true; };
+			cl.StartClient(new TCPClientProvider());
 
 			Wait(() => {
 				sv.UpdateServer();
@@ -195,7 +198,7 @@ namespace Chip.Net.UnitTests.Default
 				return eventInvoked;
 			});
 
-			Assert.IsTrue(cl.IsConnected);
+			Assert.IsTrue(cl.IsConnected == false);
 			Assert.IsTrue(eventInvoked);
 		}
 
@@ -233,9 +236,9 @@ namespace Chip.Net.UnitTests.Default
 		}
 
 		[TestMethod]
-		public void Server_InitializeServer_ContextInitialized() {
+		public void Server_InitializeServer_ContextLocked() {
 			var sv = NewServer();
-			Assert.IsTrue(Context.Initialized);
+			Assert.IsTrue(sv.Context.Locked);
 		}
 
 		[TestMethod]
@@ -266,17 +269,32 @@ namespace Chip.Net.UnitTests.Default
 		[TestMethod]
 		public void Server_DisposeServer_ServicesDisposed() {
 			var sv = NewServer();
+			var svc = sv.Context.Services.Get<TestNetService>();
 			sv.StartServer(new TCPServerProvider());
 			sv.UpdateServer();
 			sv.StopServer();
 			sv.Dispose();
-			Assert.IsTrue(sv.Context.Services.Get<TestNetService>().Disposed);
+			Assert.IsTrue(svc.Disposed);
 		}
 
 		[TestMethod]
-		public void Client_InitializeClient_ContextInitialized() {
+		public void Client_InitializeClient_ContextLocked() {
 			var cl = NewClient();
-			Assert.IsTrue(cl.Context.Initialized);
+			Assert.IsTrue(cl.Context.Locked);
+		}
+
+		[TestMethod]
+		public void Server_InitializeServer_ServicesInitialized() {
+			var sv = NewServer();
+			var cl = NewClient();
+			Assert.IsTrue(sv.Context.Services.Get<TestNetService>().Initialized);
+		}
+
+		[TestMethod]
+		public void Client_InitializeClient_ServicesInitialized() {
+			var sv = NewServer();
+			var cl = NewClient();
+			Assert.IsTrue(cl.Context.Services.Get<TestNetService>().Initialized);
 		}
 
 		[TestMethod]
@@ -307,10 +325,11 @@ namespace Chip.Net.UnitTests.Default
 		public void Client_DisposeClient_ServicesDisposed() {
 			var sv = StartNewServer();
 			var cl = StartNewClient();
+			var svc = cl.Context.Services.Get<TestNetService>();
 			cl.UpdateClient();
 			cl.StopClient();
 			cl.Dispose();
-			Assert.IsTrue(cl.Context.Services.Get<TestNetService>().Disposed);
+			Assert.IsTrue(svc.Disposed);
 		}
 
 		[TestMethod]
@@ -379,7 +398,7 @@ namespace Chip.Net.UnitTests.Default
 			var cl = StartNewClient();
 			bool received = false;
 
-			sv.Router.RouteClient<TestPacket>(i => {
+			sv.Router.RouteServer<TestPacket>(i => {
 				received = true;
 			});
 
@@ -412,7 +431,7 @@ namespace Chip.Net.UnitTests.Default
 			bool received = false;
 			NetUser user2 = null;
 
-			sv.Router.RouteClient<TestPacket>(i => {
+			sv.Router.RouteServer<TestPacket>(i => {
 				received = true;
 				user2 = i.Sender;
 			});
@@ -423,7 +442,7 @@ namespace Chip.Net.UnitTests.Default
 				return cl.IsConnected;
 			});
 
-			sv.SendPacket(new TestPacket());
+			cl.SendPacket(new TestPacket());
 
 			Wait(() => {
 				sv.UpdateServer();

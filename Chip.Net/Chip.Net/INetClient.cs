@@ -24,6 +24,5 @@ namespace Chip.Net
 
 
 		void SendPacket(Packet packet);
-		void SendPacket(NetUser user, Packet packet);
     }
 }

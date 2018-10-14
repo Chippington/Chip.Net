@@ -1,4 +1,5 @@
-﻿using Chip.Net.Providers;
+﻿using Chip.Net.Data;
+using Chip.Net.Providers;
 using Chip.Net.Services;
 using System;
 using System.Collections.Generic;
@@ -10,21 +11,24 @@ namespace Chip.Net {
 		public string IPAddress { get; set; }
 		public int MaxConnections { get; set; }
 		public int Port { get; set; }
-		public bool Initialized { get; private set; }
+		public bool Locked { get; private set; }
 
 		public NetServiceCollection Services { get; private set; }
+		public PacketRegistry Packets { get; private set; }
 
 		public NetContext() {
+			Packets = new PacketRegistry();
 			Services = new NetServiceCollection();
-			Initialized = false;
+			Locked = false;
 		}
 
-		public void InitializeContext() {
-			if (Initialized == true)
+		public void LockContext() {
+			if (Locked == true)
 				throw new Exception("NetContext can only be initialized once.");
 
-			Services.InitializeServices(this);
-			Initialized = true;
+			Services.LockServices();
+			Packets.LockPackets();
+			Locked = true;
 		}
 
 		#region Providers
