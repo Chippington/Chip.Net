@@ -7,7 +7,7 @@ using Chip.Net.Services;
 
 namespace Chip.Net.Default.Basic
 {
-	public class BasicClient : INetClient, INetService {
+	public class BasicClient : INetClient {
 		#region INetClient
 		public NetEvent OnConnected { get; set; }
 		public NetEvent OnDisconnected { get; set; }
@@ -29,7 +29,7 @@ namespace Chip.Net.Default.Basic
 			this.Context = context;
 			disposed = false;
 
-			context.Services.Register<INetService>(this);
+			context.Services.Register<INetClient>(this);
 			context.Services.InitializeServices(context);
 			context.LockContext();
 		}

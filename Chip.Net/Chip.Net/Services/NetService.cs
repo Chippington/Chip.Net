@@ -58,6 +58,17 @@ namespace Chip.Net.Services
 			serverOutQueue.Enqueue(packet);
 		}
 
+		public void SendPacket(Packet packet) {
+			if (IsServer) serverOutQueue.Enqueue(packet);
+			if (IsClient) clientOutQueue.Enqueue(packet);
+		}
+
+		public void SendPacket(NetUser user, Packet packet) {
+			packet.Recipient = user;
+			if (IsServer) serverOutQueue.Enqueue(packet);
+			if (IsClient) clientOutQueue.Enqueue(packet);
+		}
+
 		public void Dispose() {
 			if (clientOutQueue != null) clientOutQueue.Clear();
 			if (serverOutQueue != null) serverOutQueue.Clear();

@@ -7,7 +7,7 @@ using Chip.Net.Services;
 
 namespace Chip.Net.Default.Basic
 {
-	public class BasicServer : INetServer, INetService {
+	public class BasicServer : INetServer {
 		#region INetServer
 		public NetEvent OnUserConnected { get; set; }
 		public NetEvent OnUserDisconnected { get; set; }
@@ -35,7 +35,7 @@ namespace Chip.Net.Default.Basic
 			userMap = new Dictionary<object, NetUser>();
 			userList = new List<NetUser>();
 
-			Context.Services.Register<INetService>(this);
+			Context.Services.Register<INetServer>(this);
 			Context.Services.InitializeServices(Context);
 			Context.LockContext();
 		}
