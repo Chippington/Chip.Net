@@ -29,6 +29,14 @@ namespace Chip.Net {
 			Services.LockServices();
 			Packets.LockPackets();
 			Locked = true;
+
+			var manager = Services.Get<INetService>();
+			if (manager != null) {
+				foreach (var svc in Services.Get()) {
+					svc.IsClient = manager.IsClient;
+					svc.IsServer = manager.IsServer;
+				}
+			}
 		}
 
 		#region Providers

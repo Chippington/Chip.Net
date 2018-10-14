@@ -18,6 +18,8 @@ namespace Chip.Net.Default.Basic
 		public PacketRouter Router { get; protected set; }
 
 		public bool IsActive { get; protected set; }
+		public bool IsServer { get; set; } = true;
+		public bool IsClient { get; set; } = false;
 
 		private INetServerProvider provider;
 		private Dictionary<object, NetUser> userMap;

@@ -6,6 +6,8 @@ using System.Text;
 namespace Chip.Net.Services {
 	public interface INetService : IDisposable {
 		PacketRouter Router { get; }
+		bool IsServer { get; set; }
+		bool IsClient { get; set; }
 
 		void InitializeService(NetContext context);
 		void StartService();

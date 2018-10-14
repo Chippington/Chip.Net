@@ -17,6 +17,8 @@ namespace Chip.Net.Default.Basic
 		public PacketRouter Router { get; protected set; }
 		public NetContext Context { get; protected set; }
 		public bool IsConnected { get; protected set; }
+		public bool IsServer { get; set; } = false;
+		public bool IsClient { get; set; } = true;
 
 		private INetClientProvider provider;
 		private bool disposed;

@@ -539,5 +539,19 @@ namespace Chip.Net.UnitTests.Default
 			Assert.IsTrue(sv_svc.Received);
 			Assert.AreEqual(sv_svc.ReceivedData, data);
 		}
+
+		[TestMethod]
+		public void Server_InitializeServer_ServiceIsServerTrue() {
+			var sv = NewServer();
+			Assert.IsTrue(sv.Context.Services.Get<TestNetService>().IsServer);
+			Assert.IsFalse(sv.Context.Services.Get<TestNetService>().IsClient);
+		}
+
+		[TestMethod]
+		public void Client_InitializeClient_ServiceIsServerTrue() {
+			var cl = NewClient();
+			Assert.IsTrue(cl.Context.Services.Get<TestNetService>().IsClient);
+			Assert.IsFalse(cl.Context.Services.Get<TestNetService>().IsServer);
+		}
 	}
 }

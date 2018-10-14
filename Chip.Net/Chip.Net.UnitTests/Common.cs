@@ -17,6 +17,8 @@ namespace Chip.Net.UnitTests {
 		public bool Disposed { get; private set; } = false;
 		public bool Received { get; private set; } = false;
 		public string ReceivedData { get; private set; } = null;
+		public bool IsServer { get; set; }
+		public bool IsClient { get; set; }
 
 		private Queue<Packet> outQueue;
 

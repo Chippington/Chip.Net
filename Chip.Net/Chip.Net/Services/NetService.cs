@@ -8,10 +8,16 @@ namespace Chip.Net.Services
 	public class NetService : INetService {
 		public PacketRouter Router { get; private set; }
 
+		public bool IsServer { get; set; } = false;
+		public bool IsClient { get; set; } = false;
+
+		protected NetContext Context { get; private set; }
+
 		private Queue<Packet> clientOutQueue;
 		private Queue<Packet> serverOutQueue;
 
-		public void InitializeService(NetContext context) {
+		public virtual void InitializeService(NetContext context) {
+			Context = context;
 			Router = new PacketRouter();
 			clientOutQueue = new Queue<Packet>();
 			serverOutQueue = new Queue<Packet>();

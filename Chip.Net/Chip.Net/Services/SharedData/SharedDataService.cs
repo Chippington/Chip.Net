@@ -4,7 +4,10 @@ using System.Text;
 
 namespace Chip.Net.Services.SharedData
 {
-    class SharedDataService
+    public class SharedDataService : NetService
     {
-    }
+		public override void InitializeService(NetContext context) {
+			base.InitializeService(context);
+		}
+	}
 }
