@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Chip.Net.UnitTests {
 	public class TestNetService : INetService {
-		public PacketRouter Router => throw new NotImplementedException();
+		public PacketRouter Router { get; private set; }
 
 		public NetContext Context { get; private set; }
 
@@ -15,25 +15,42 @@ namespace Chip.Net.UnitTests {
 		public bool Initialized { get; private set; } = false;
 		public bool Stopped { get; private set; } = false;
 		public bool Disposed { get; private set; } = false;
+		public bool Received { get; private set; } = false;
+		public string ReceivedData { get; private set; } = null;
+
+		private Queue<Packet> outQueue;
 
 		public void Dispose() {
 			Disposed = true;
 		}
 
 		public IEnumerable<Packet> GetOutgoingClientPackets() {
-			return null;
+			var ret = outQueue;
+			outQueue = new Queue<Packet>();
+			return ret;
 		}
 
 		public IEnumerable<Packet> GetOutgoingServerPackets() {
-			return null;
+			var ret = outQueue;
+			outQueue = new Queue<Packet>();
+			return ret;
 		}
 
 		public void InitializeService(NetContext context) {
+			outQueue = new Queue<Packet>();
+			Router = new PacketRouter();
 			this.Context = context;
 			Initialized = true;
+
+			context.Packets.Register<TestPacket>();
+			Router.Route<TestPacket>(i => {
+				Received = true;
+				ReceivedData = i.data;
+			});
 		}
 
 		public void StartService() {
+			outQueue.Clear();
 			Started = true;
 		}
 
@@ -44,10 +61,25 @@ namespace Chip.Net.UnitTests {
 		public void UpdateService() {
 			Updated = true;
 		}
+
+		public void Send(TestPacket p) {
+			outQueue.Enqueue(p);
+		}
 	}
 
 	public class TestPacket : Packet {
+		public string data { get; set; }
+
 		public TestPacket() {
+			data = "";
+		}
+
+		public override void WriteTo(DataBuffer buffer) {
+			buffer.Write((string)data);
+		}
+
+		public override void ReadFrom(DataBuffer buffer) {
+			data = buffer.ReadString();
 		}
 	}
 

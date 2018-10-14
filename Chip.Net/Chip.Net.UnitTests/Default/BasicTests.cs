@@ -457,17 +457,87 @@ namespace Chip.Net.UnitTests.Default
 
 		[TestMethod]
 		public void Server_ServiceSendPacket_ClientServiceReceivesPacket() {
+			var sv = StartNewServer();
+			var cl = StartNewClient();
+			string data = "Hello world" + Port;
 
+			Wait(() => {
+				sv.UpdateServer();
+				cl.UpdateClient();
+				return cl.IsConnected;
+			});
+
+			var cl_svc = cl.Context.Services.Get<TestNetService>();
+			var sv_svc = sv.Context.Services.Get<TestNetService>();
+			sv_svc.Send(new TestPacket() {
+				data = data,
+			});
+
+			Wait(() => {
+				sv.UpdateServer();
+				cl.UpdateClient();
+				return cl_svc.Received;
+			});
+
+			Assert.IsTrue(cl_svc.Received);
+			Assert.AreEqual(cl_svc.ReceivedData, data);
 		}
 
 		[TestMethod]
 		public void Server_ServiceSendPacketToUser_ClientServiceReceivesPacket() {
+			var sv = StartNewServer();
+			var cl = StartNewClient();
+			string data = "Hello world" + Port;
 
+			Wait(() => {
+				sv.UpdateServer();
+				cl.UpdateClient();
+				return cl.IsConnected;
+			});
+
+			var cl_svc = cl.Context.Services.Get<TestNetService>();
+			var sv_svc = sv.Context.Services.Get<TestNetService>();
+			sv_svc.Send(new TestPacket() {
+				data = data,
+				Recipient = sv.GetUsers().First(),
+			});
+
+			Wait(() => {
+				sv.UpdateServer();
+				cl.UpdateClient();
+				return cl_svc.Received;
+			});
+
+			Assert.IsTrue(cl_svc.Received);
+			Assert.AreEqual(cl_svc.ReceivedData, data);
 		}
 
 		[TestMethod]
 		public void Client_ServiceSendsPacket_ServerServiceReceivesPacket() {
+			var sv = StartNewServer();
+			var cl = StartNewClient();
+			string data = "Hello world" + Port;
 
+			Wait(() => {
+				sv.UpdateServer();
+				cl.UpdateClient();
+				return cl.IsConnected;
+			});
+
+			var cl_svc = cl.Context.Services.Get<TestNetService>();
+			var sv_svc = sv.Context.Services.Get<TestNetService>();
+			cl_svc.Send(new TestPacket() {
+				data = data,
+			});
+
+			Wait(() => {
+				sv.UpdateServer();
+				cl.UpdateClient();
+				return sv_svc.Received;
+			});
+
+			Assert.IsTrue(sv_svc.Received);
+			Assert.AreEqual(sv_svc.ReceivedData, data);
 		}
 	}
 }

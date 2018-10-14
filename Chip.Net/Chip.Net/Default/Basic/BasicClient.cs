@@ -28,8 +28,8 @@ namespace Chip.Net.Default.Basic
 			disposed = false;
 
 			context.Services.Register<INetService>(this);
-			context.LockContext();
 			context.Services.InitializeServices(context);
+			context.LockContext();
 		}
 
 		public void StartClient(INetClientProvider provider) {

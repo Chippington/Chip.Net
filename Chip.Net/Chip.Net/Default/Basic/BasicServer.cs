@@ -34,9 +34,8 @@ namespace Chip.Net.Default.Basic
 			userList = new List<NetUser>();
 
 			Context.Services.Register<INetService>(this);
-
-			Context.LockContext();
 			Context.Services.InitializeServices(Context);
+			Context.LockContext();
 		}
 
 		public virtual void StartServer(INetServerProvider provider) {
