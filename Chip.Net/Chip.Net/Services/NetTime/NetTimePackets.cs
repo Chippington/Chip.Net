@@ -5,8 +5,7 @@ using System.Text;
 
 namespace Chip.Net.Services.NetTime
 {
-	public class P_GetNetTime : Packet {
-	}
+	public class P_GetNetTime : Packet { }
 
 	public class P_SetNetTime : Packet {
 		public double NetTime { get; set; }

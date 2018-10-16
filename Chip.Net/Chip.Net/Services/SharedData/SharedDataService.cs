@@ -63,7 +63,11 @@ namespace Chip.Net.Services.SharedData
 		}
 
 		public void SetShared<T>(NetUser user, int key, T data) where T : ISerializable {
+			buffer.Seek(0);
+			data.WriteTo(buffer);
 
+			P_SetData msg = new P_SetData();
+			msg.WriteTo(buffer);
 		}
 
 		public T GetShared<T>(NetUser user, int key) where T : ISerializable {

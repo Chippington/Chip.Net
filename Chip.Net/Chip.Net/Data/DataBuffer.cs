@@ -169,6 +169,16 @@ namespace Chip.Net.Data
 
 			length = ms.Position;
 		}
+
+		/// <summary>
+		/// Writes an array of bytes
+		/// </summary>
+		/// <param name="source"></param>
+		public void Write(byte[] source) {
+			Write((short)source.Length);
+			for (int i = 0; i < source.Length; i++)
+				Write((byte)source[i]);
+		}
 		#endregion
 
 		#region Reading
@@ -205,6 +215,19 @@ namespace Chip.Net.Data
 		/// <returns></returns>
 		public byte ReadByte() {
 			return reader.ReadByte();
+		}
+
+		/// <summary>
+		/// Reads an array of bytes
+		/// </summary>
+		/// <returns></returns>
+		public byte[] ReadByteArray() {
+			var length = ReadByte();
+			byte[] ret = new byte[length];
+			for (int i = 0; i < length; i++)
+				ret[i] = ReadByte();
+
+			return ret;
 		}
 
 		/// <summary>
