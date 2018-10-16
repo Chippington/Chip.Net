@@ -67,7 +67,7 @@ namespace Chip.Net.Services.SharedData
 		}
 
 		public T GetShared<T>(NetUser user, int key) where T : ISerializable {
-
+			return default(T);
 		}
 	}
 

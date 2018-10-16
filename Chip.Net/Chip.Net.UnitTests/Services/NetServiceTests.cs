@@ -66,5 +66,22 @@ namespace Chip.Net.UnitTests.Services {
 
 			Assert.IsTrue(svc.Disposed == true);
 		}
+
+		[TestMethod]
+		public void NetService_ScheduleEvent_EventInvoked() {
+			NetService svc = new NetService();
+			bool invoked = false;
+
+			svc.InitializeService(new NetContext());
+			svc.StartService();
+			svc.ScheduleEvent(new TimeSpan(0, 0, 0, 0, 100), () => { invoked = true; });
+
+			int tick = Environment.TickCount;
+			while(Environment.TickCount - tick < 1000 && invoked == false) {
+				svc.UpdateService();
+			}
+
+			Assert.IsTrue(invoked);
+		}
 	}
 }

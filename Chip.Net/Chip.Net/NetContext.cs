@@ -30,12 +30,11 @@ namespace Chip.Net {
 			Packets.LockPackets();
 			Locked = true;
 
-			var manager = Services.Get<INetService>();
-			if (manager != null) {
-				foreach (var svc in Services.Get()) {
-					svc.IsClient = manager.IsClient;
-					svc.IsServer = manager.IsServer;
-				}
+			var isServer = Services.Get<INetServer>() != null;
+			var isClient = Services.Get<INetClient>() != null;
+			foreach (var svc in Services.Get()) {
+				svc.IsClient = isClient;
+				svc.IsServer = isServer;
 			}
 		}
 

@@ -548,7 +548,7 @@ namespace Chip.Net.UnitTests.Default
 		}
 
 		[TestMethod]
-		public void Client_InitializeClient_ServiceIsServerTrue() {
+		public void Client_InitializeClient_ServiceIsServerFalse() {
 			var cl = NewClient();
 			Assert.IsTrue(cl.Context.Services.Get<TestNetService>().IsClient);
 			Assert.IsFalse(cl.Context.Services.Get<TestNetService>().IsServer);

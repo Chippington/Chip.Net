@@ -15,20 +15,33 @@ namespace Chip.Net.Services
 
 		private Queue<Packet> clientOutQueue;
 		private Queue<Packet> serverOutQueue;
+		private List<Tuple<DateTime, Action>> scheduledEvents;
 
 		public virtual void InitializeService(NetContext context) {
 			Context = context;
 			Router = new PacketRouter();
 			clientOutQueue = new Queue<Packet>();
 			serverOutQueue = new Queue<Packet>();
+			scheduledEvents = new List<Tuple<DateTime, Action>>();
 		}
 
 		public virtual void StartService() {
 			clientOutQueue.Clear();
 			serverOutQueue.Clear();
+			scheduledEvents.Clear();
 		}
 
-		public virtual void UpdateService() { }
+		public virtual void UpdateService() {
+			for(int i = scheduledEvents.Count - 1; i >= 0; i--) {
+				var time = scheduledEvents[i].Item1;
+				var ev = scheduledEvents[i].Item2;
+
+				if(DateTime.Now > time) {
+					ev.Invoke();
+					scheduledEvents.RemoveAt(i);
+				}
+			}
+		}
 
 		public virtual void StopService() { }
 
@@ -72,6 +85,11 @@ namespace Chip.Net.Services
 		public void Dispose() {
 			if (clientOutQueue != null) clientOutQueue.Clear();
 			if (serverOutQueue != null) serverOutQueue.Clear();
+		}
+
+		public void ScheduleEvent(TimeSpan time, Action action) {
+			var endt = DateTime.Now.Add(time);
+			scheduledEvents.Add(new Tuple<DateTime, Action>(endt, action));
 		}
 	}
 }
