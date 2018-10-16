@@ -5,4 +5,8 @@
     <TargetFramework>netcoreapp2.1</TargetFramework>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Chip.Net\Chip.Net.csproj" />
+  </ItemGroup>
+
 </Project>

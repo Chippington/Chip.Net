@@ -6,6 +6,8 @@ using System.Text;
 
 namespace Chip.Net.Services.Ping {
 	public class PingService : NetService {
+		public int PingSendDelay { get; set; } = 1000;
+
 		private readonly string TimerKey = "pingtimer";
 		private readonly string LatencyKey = "pinglatency";
 
@@ -35,13 +37,10 @@ namespace Chip.Net.Services.Ping {
 				var timer = GetTimer(obj.Sender);
 				obj.Sender.SetLocal<double>(LatencyKey, timer.Elapsed.TotalSeconds);
 				timer.Stop();
-
-				P_SetPing msg = new P_SetPing();
-				msg.Ping = timer.Elapsed.TotalSeconds;
-				SendPacketToClient(obj.Sender, msg);
+				timer.Reset();
 
 				var user = obj.Sender;
-				ScheduleEvent(new TimeSpan(0, 0, 0, 1), () => {
+				ScheduleEvent(new TimeSpan(0, 0, 0, 0, PingSendDelay), () => {
 					P_Ping ping = new P_Ping();
 					SendPacketToClient(user, ping);
 					timer.Start();

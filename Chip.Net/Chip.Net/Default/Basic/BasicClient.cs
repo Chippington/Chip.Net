@@ -39,8 +39,8 @@ namespace Chip.Net.Default.Basic
 			provider.OnConnected += i => { OnConnected?.Invoke(new NetEventArgs()); };
 			provider.OnDisconnected += i => { OnDisconnected?.Invoke(new NetEventArgs()); };
 
-			provider.Connect(Context);
 			Context.Services.StartServices();
+			provider.Connect(Context);
 			IsConnected = provider.IsConnected;
 		}
 

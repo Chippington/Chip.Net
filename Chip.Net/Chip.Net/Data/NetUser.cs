@@ -36,12 +36,16 @@ namespace Chip.Net.Data
 
 		public void SetLocal<T>(string key, T data)
 		{
-			SetLocal(key, data);
+			SetLocal(key, (object)data);
 		}
 
 		public T GetLocal<T>(string key)
 		{
-			return (T)GetLocal(key);
+			var ret = GetLocal(key);
+			if (ret == null)
+				return default(T);
+
+			return (T)ret;
 		}
 	}
 }

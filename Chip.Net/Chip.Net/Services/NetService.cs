@@ -64,11 +64,11 @@ namespace Chip.Net.Services
 
 		public void SendPacketToClient(NetUser user, Packet packet) {
 			packet.Recipient = user;
-			clientOutQueue.Enqueue(packet);
+			serverOutQueue.Enqueue(packet);
 		}
 
 		public void SendPacketToServer(Packet packet) {
-			serverOutQueue.Enqueue(packet);
+			clientOutQueue.Enqueue(packet);
 		}
 
 		public void SendPacket(Packet packet) {
@@ -89,6 +89,11 @@ namespace Chip.Net.Services
 
 		public void ScheduleEvent(TimeSpan time, Action action) {
 			var endt = DateTime.Now.Add(time);
+			scheduledEvents.Add(new Tuple<DateTime, Action>(endt, action));
+		}
+
+		public void ScheduleEvent(int milliseconds, Action action) {
+			var endt = DateTime.Now.Add(new TimeSpan(0, 0, 0, 0, milliseconds));
 			scheduledEvents.Add(new Tuple<DateTime, Action>(endt, action));
 		}
 	}
