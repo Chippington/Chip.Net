@@ -8,13 +8,22 @@ namespace Chip.Net.Services.SharedData {
 		public double NetTime { get; set; }
 		public byte[] Data { get; set; }
 		public int Key { get; set; }
+		public int UserId { get; set; }
 
 		public override void WriteTo(DataBuffer buffer) {
 			base.WriteTo(buffer);
+			buffer.Write((double)NetTime);
+			buffer.Write((byte[])Data);
+			buffer.Write((int)Key);
+			buffer.Write((int)UserId);
 		}
 
 		public override void ReadFrom(DataBuffer buffer) {
 			base.ReadFrom(buffer);
+			NetTime = buffer.ReadDouble();
+			Data = buffer.ReadByteArray();
+			Key = buffer.ReadInt32();
+			UserId = buffer.ReadInt32();
 		}
 	}
 
