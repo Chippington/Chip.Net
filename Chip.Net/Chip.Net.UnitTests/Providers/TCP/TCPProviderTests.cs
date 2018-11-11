@@ -303,7 +303,7 @@ namespace Chip.Net.UnitTests.Providers.TCP {
 			server.OnUserConnected += i => {
 				if (server.GetClientKeys().Count() == 2) {
 					var keys = server.GetClientKeys();
-					server.SendMessage(keys.Last(), new DataBuffer(data));
+					server.SendMessage(keys.Last(), null, new DataBuffer(data));
 				}
 			};
 
