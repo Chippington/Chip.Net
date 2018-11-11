@@ -81,11 +81,7 @@ namespace Chip.Net.Default.Basic
 				var packet = Context.Packets.CreateFromId(pid);
 				packet.ReadFrom(buffer);
 
-				try {
-					service.Router.InvokeClient(packet);
-				} catch(Exception ex) {
-					Console.WriteLine(ex.Message);
-				}
+				service.Router.InvokeClient(packet);
 
 				OnPacketReceived?.Invoke(new NetEventArgs() {
 					Packet = packet,

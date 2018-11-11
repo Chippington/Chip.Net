@@ -93,11 +93,7 @@ namespace Chip.Net.Default.Basic
 					buffer.Write((byte)sid);
 					p.WriteTo(buffer);
 
-					if(p.Recipient != null) {
-						provider.SendMessage(p.Recipient.UserKey, buffer);
-					} else {
-						provider.SendMessage(buffer);
-					}
+					provider.SendMessage(p.Recipient?.UserKey, p.Exclude?.UserKey, buffer);
 				}
 			}
 

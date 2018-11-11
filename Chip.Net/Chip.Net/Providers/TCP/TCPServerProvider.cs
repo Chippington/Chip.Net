@@ -118,7 +118,7 @@ namespace Chip.Net.Providers.TCP
 				connected.Remove(tcpClient);
 				byte[] arr = new byte[1] { 0 };
 				try {
-					SendMessage(tcpClient, new DataBuffer(arr));
+					SendMessage(tcpClient, null, new DataBuffer(arr));
 				} catch { }
 
 				OnUserDisconnected?.Invoke(new ProviderEventArgs() {
@@ -136,12 +136,15 @@ namespace Chip.Net.Providers.TCP
 			return ret;
 		}
 
-		public void SendMessage(DataBuffer packet) {
+		public void SendMessage(DataBuffer packet, object excludeKey = null) {
 			for (int i = clientList.Count - 1; i >= 0; i--)
-				SendMessage(clientList[i], packet);
+				SendMessage(clientList[i], excludeKey, packet);
 		}
 
-		public void SendMessage(object recipientKey, DataBuffer buffer) {
+		public void SendMessage(object recipientKey, object excludeKey, DataBuffer buffer) {
+			if (recipientKey == excludeKey)
+				return;
+
 			var msg = Compress(buffer.ToBytes());
 
 			try {

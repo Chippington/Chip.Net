@@ -79,25 +79,34 @@ namespace Chip.Net.Providers.Lidgren {
 			return ret;
 		}
 
-		public void SendMessage(DataBuffer data) {
+		public void SendMessage(DataBuffer data, object excludeKey = null) {
 			if (server == null)
 				return;
 
 			var bytes = data.ToBytes();
 			foreach (var client in connections) {
+				if (client == excludeKey)
+					continue;
+
 				NetOutgoingMessage outmsg = server.CreateMessage();
 				outmsg.Write(bytes);
 				client.SendMessage(outmsg, NetDeliveryMethod.ReliableSequenced, 0);
 			}
 		}
 
-		public void SendMessage(object recipientKey, DataBuffer data) {
+		public void SendMessage(object recipientKey, object excludeKey, DataBuffer data) {
 			if (server == null)
 				return;
 
 			var client = recipientKey as NetConnection;
-			if (client == null)
+			var exclude = excludeKey as NetConnection;
+			if (recipientKey == exclude)
 				return;
+
+			if (client == null) {
+				SendMessage(data, exclude);
+				return;
+			}
 
 			var bytes = data.ToBytes();
 			NetOutgoingMessage outmsg = server.CreateMessage();

@@ -29,6 +29,8 @@ namespace Chip.Net.Data {
 
 
 	public class PacketRouter {
+		public bool UseParentTypes { get; set; } = false;
+
 		private Dictionary<Type, List<Callback>> clientRouteMap;
 		private Dictionary<Type, List<Callback>> serverRouteMap;
 
@@ -51,7 +53,13 @@ namespace Chip.Net.Data {
 		}
 
 		public void InvokeClient(Packet packet) {
+			var type = packet.GetType();
 			var cl = GetList(clientRouteMap, packet.GetType(), false);
+
+			while ((type = type.BaseType) != null && typeof(Packet).IsAssignableFrom(type) && cl == null) {
+				cl = GetList(clientRouteMap, type, false);
+			}
+
 			if (cl != null) {
 				for (int i = 0; i < cl.Count; i++)
 					cl[i].Invoke(packet);
@@ -59,7 +67,14 @@ namespace Chip.Net.Data {
 		}
 
 		public void InvokeServer(Packet packet) {
+			var type = packet.GetType();
 			var sv = GetList(serverRouteMap, packet.GetType(), false);
+
+			while ((type = type.BaseType) != null && typeof(Packet).IsAssignableFrom(type) && sv == null) {
+				sv = GetList(serverRouteMap, type, false);
+				type = type.BaseType;
+			}
+
 			if (sv != null) {
 				for (int i = 0; i < sv.Count; i++)
 					sv[i].Invoke(packet);
