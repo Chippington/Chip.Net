@@ -3,11 +3,13 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27703.2035
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Chip.Net", "Chip.Net\Chip.Net.csproj", "{1E43B65A-C119-4007-A4E2-D1FAC467DC92}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Chip.Net", "Chip.Net\Chip.Net.csproj", "{1E43B65A-C119-4007-A4E2-D1FAC467DC92}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Chip.Net.UnitTests", "Chip.Net.UnitTests\Chip.Net.UnitTests.csproj", "{9DC64EAC-C5A0-4F06-8C31-D16F81447E60}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Chip.Net.UnitTests", "Chip.Net.UnitTests\Chip.Net.UnitTests.csproj", "{9DC64EAC-C5A0-4F06-8C31-D16F81447E60}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Chip.Net.Testbed", "Chip.Net.Testbed\Chip.Net.Testbed.csproj", "{1BCBBC7A-DF64-4A65-88BE-1C02F56ADDBB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Chip.Net.Testbed", "Chip.Net.Testbed\Chip.Net.Testbed.csproj", "{1BCBBC7A-DF64-4A65-88BE-1C02F56ADDBB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Chip.Net.Providers.Lidgren", "Chip.Net.Providers.Lidgren\Chip.Net.Providers.Lidgren.csproj", "{D7B2CD75-888F-4E44-AC10-84134726BF78}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +29,10 @@ Global
 		{1BCBBC7A-DF64-4A65-88BE-1C02F56ADDBB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1BCBBC7A-DF64-4A65-88BE-1C02F56ADDBB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1BCBBC7A-DF64-4A65-88BE-1C02F56ADDBB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D7B2CD75-888F-4E44-AC10-84134726BF78}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D7B2CD75-888F-4E44-AC10-84134726BF78}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D7B2CD75-888F-4E44-AC10-84134726BF78}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D7B2CD75-888F-4E44-AC10-84134726BF78}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

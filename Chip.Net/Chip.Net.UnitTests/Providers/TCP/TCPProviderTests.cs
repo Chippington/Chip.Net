@@ -1,5 +1,6 @@
 ﻿using Chip.Net.Data;
 using Chip.Net.Providers;
+using Chip.Net.Providers.Lidgren;
 using Chip.Net.Providers.TCP;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
@@ -21,12 +22,13 @@ namespace Chip.Net.UnitTests.Providers.TCP {
 		[TestInitialize]
 		public void Initialize() {
 			context = new NetContext();
+			context.ApplicationName = "Test";
 			context.IPAddress = "127.0.0.1";
 			context.Port = Common.Port;
 			context.MaxConnections = 10;
 
-			client = new TCPClientProvider();
-			server = new TCPServerProvider();
+			client = new LidgrenClientProvider();
+			server = new LidgrenServerProvider();
 
 			while (active >= max)
 				System.Threading.Thread.Sleep(10);
@@ -214,7 +216,7 @@ namespace Chip.Net.UnitTests.Providers.TCP {
 
 			client.Connect(context);
 			int tick = Environment.TickCount;
-			while (connections != 1 && Environment.TickCount - tick < 1000) {
+			while (connections != 1 && Environment.TickCount - tick < 100000) {
 				System.Threading.Thread.Sleep(10);
 				server.UpdateServer();
 				client.UpdateClient();
@@ -292,7 +294,7 @@ namespace Chip.Net.UnitTests.Providers.TCP {
 
 			server.StartServer(context);
 
-			var clientTwo = new TCPClientProvider();
+			var clientTwo = new LidgrenClientProvider();
 
 			client.OnConnected += i => {
 				clientTwo.Connect(context);
@@ -343,7 +345,7 @@ namespace Chip.Net.UnitTests.Providers.TCP {
 
 			server.StartServer(context);
 
-			var clientTwo = new TCPClientProvider();
+			var clientTwo = new LidgrenClientProvider();
 
 			client.OnConnected += i => {
 				clientTwo.Connect(context);
@@ -358,7 +360,7 @@ namespace Chip.Net.UnitTests.Providers.TCP {
 
 			client.Connect(context);
 			int tick = Environment.TickCount;
-			while (Environment.TickCount - tick < 100000) {
+			while (Environment.TickCount - tick < 1000) {
 				server.UpdateServer();
 				client.UpdateClient();
 				clientTwo.UpdateClient();

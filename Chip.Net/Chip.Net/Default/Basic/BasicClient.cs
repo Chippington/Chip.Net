@@ -36,12 +36,11 @@ namespace Chip.Net.Default.Basic
 
 		public void StartClient(INetClientProvider provider) {
 			this.provider = provider;
-			provider.OnConnected += i => { OnConnected?.Invoke(new NetEventArgs()); };
-			provider.OnDisconnected += i => { OnDisconnected?.Invoke(new NetEventArgs()); };
+			provider.OnConnected += i => { IsConnected = true; OnConnected?.Invoke(new NetEventArgs()); };
+			provider.OnDisconnected += i => { IsConnected = false; OnDisconnected?.Invoke(new NetEventArgs()); };
 
 			Context.Services.StartServices();
 			provider.Connect(Context);
-			IsConnected = provider.IsConnected;
 		}
 
 		public void StopClient() {
@@ -72,6 +71,9 @@ namespace Chip.Net.Default.Basic
 			provider.UpdateClient();
 			var incoming = provider.GetIncomingMessages();
 			foreach (var msg in incoming) {
+				if (msg.GetLength() == 0)
+					continue;
+
 				var buffer = msg;
 				var pid = buffer.ReadInt16();
 				var sid = buffer.ReadByte();
@@ -79,7 +81,12 @@ namespace Chip.Net.Default.Basic
 				var packet = Context.Packets.CreateFromId(pid);
 				packet.ReadFrom(buffer);
 
-				service.Router.InvokeClient(packet);
+				try {
+					service.Router.InvokeClient(packet);
+				} catch(Exception ex) {
+					Console.WriteLine(ex.Message);
+				}
+
 				OnPacketReceived?.Invoke(new NetEventArgs() {
 					Packet = packet,
 				});

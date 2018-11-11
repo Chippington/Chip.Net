@@ -104,6 +104,9 @@ namespace Chip.Net.Default.Basic
 			provider.UpdateServer();
 			var incoming = provider.GetIncomingMessages();
 			foreach(var msg in incoming) {
+				if (msg.Item2.GetLength() == 0)
+					continue;
+
 				var user = userMap[msg.Item1];
 				var buffer = msg.Item2;
 				var pid = buffer.ReadInt16();
