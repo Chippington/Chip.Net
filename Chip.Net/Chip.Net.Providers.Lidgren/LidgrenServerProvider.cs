@@ -100,7 +100,7 @@ namespace Chip.Net.Providers.Lidgren {
 
 			var client = recipientKey as NetConnection;
 			var exclude = excludeKey as NetConnection;
-			if (recipientKey == exclude)
+			if ((recipientKey != null || exclude != null) && recipientKey == exclude)
 				return;
 
 			if (client == null) {
