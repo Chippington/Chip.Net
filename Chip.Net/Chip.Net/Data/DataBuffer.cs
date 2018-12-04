@@ -222,7 +222,7 @@ namespace Chip.Net.Data
 		/// </summary>
 		/// <returns></returns>
 		public byte[] ReadByteArray() {
-			var length = ReadByte();
+			var length = ReadInt16();
 			byte[] ret = new byte[length];
 			for (int i = 0; i < length; i++)
 				ret[i] = ReadByte();
