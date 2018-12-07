@@ -1,4 +1,5 @@
-﻿using Chip.Net.Default.Basic;
+﻿using Chip.Net.Data;
+using Chip.Net.Default.Basic;
 using Chip.Net.Providers.TCP;
 using Chip.Net.Services.NetTime;
 using Chip.Net.Services.Ping;
@@ -8,6 +9,18 @@ namespace Chip.Net.Testbed
 {
     class Program
     {
+		class TestPacket : SerializedPacket {
+			public int TestInt { get; set; }
+			public float TestFloat { get; set; }
+			public string TestString { get; set; }
+		}
+
+		class TestPacketTwo : TestPacket {
+			public int TestIntTwo { get; set; }
+			public float TestFloatTwo { get; set; }
+			public string TestStringTwo { get; set; }
+		}
+
 		static NetContext Context {
 			get {
 				var ctx = new NetContext();
@@ -22,6 +35,21 @@ namespace Chip.Net.Testbed
 
         static void Main(string[] args)
         {
+			TestPacketTwo t = new TestPacketTwo();
+			t.TestInt = 1;
+			t.TestIntTwo = 2;
+			t.TestFloat = 3f;
+			t.TestFloatTwo = 4f;
+			t.TestString = "Hello";
+			t.TestStringTwo = "World";
+
+			DataBuffer b = new DataBuffer();
+			t.WriteTo(b);
+
+			b.Seek(0);
+			TestPacketTwo result = new TestPacketTwo();
+			result.ReadFrom(b);
+
 			INetServer sv = new BasicServer();
 			sv.InitializeServer(Context);
 			sv.StartServer(new TCPServerProvider());
