@@ -27,6 +27,7 @@ namespace Chip.Net.Data {
 				{typeof(uint), (b) => b.ReadUInt32() },
 				{typeof(ushort), (b) => b.ReadUInt16() },
 				{typeof(long), (b) => b.ReadInt64() },
+				{typeof(ulong), (b) => b.ReadUInt64() },
 				{typeof(float), (b) => b.ReadFloat() },
 				{typeof(double), (b) => b.ReadDouble() },
 				{typeof(string), (b) => b.ReadString() },
