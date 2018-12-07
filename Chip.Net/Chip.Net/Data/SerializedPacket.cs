@@ -30,7 +30,10 @@ namespace Chip.Net.Data {
 			private Dictionary<Type, List<PropertyInfo>> propMap = new Dictionary<Type, List<PropertyInfo>>();
 
 			public PacketSerializer(Type type) {
-				var properties = type.GetProperties().Where(i => WriteFunctions.ContainsKey(i.PropertyType));
+				var properties = type.GetProperties()
+					.Where(i => WriteFunctions.ContainsKey(i.PropertyType))
+					.OrderBy(i => i.PropertyType.FullName);
+
 				propMap[GetType()] = properties.ToList();
 
 				var writes = properties.Select(i => WriteFunctions[i.PropertyType]).ToList();
@@ -74,17 +77,13 @@ namespace Chip.Net.Data {
 
 
 		public override void WriteTo(DataBuffer buffer) {
-			var l = packetMap[GetType()].Writes;
-			for(int i = 0; i < l.Count; i++) {
-				l[i].Invoke(buffer);
-			}
+			var p = packetMap[GetType()];
+			p.Write(buffer, this);
 		}
 
 		public override void ReadFrom(DataBuffer buffer) {
-			var l = packetMap[GetType()].Reads;
-			for (int i = 0; i < l.Count; i++) {
-				l[i].Invoke(buffer);
-			}
+			var p = packetMap[GetType()];
+			p.Read(buffer, this);
 		}
 	}
 }
