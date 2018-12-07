@@ -8,7 +8,6 @@ using System.Text;
 namespace Chip.Net
 {
     public interface INetClient : INetService, IDisposable {
-		PacketRouter Router { get; }
 		NetEvent OnConnected { get; set; }
 		NetEvent OnDisconnected { get; set; }
 		NetEvent OnPacketReceived { get; set; }
