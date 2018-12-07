@@ -10,8 +10,11 @@ namespace Chip.Net.Data {
 			private Dictionary<Type, Action<object, DataBuffer>> WriteFunctions = new Dictionary<Type, Action<object, DataBuffer>>() {
 				{ typeof(byte), (o, b) => b.Write((byte)o) },
 				{ typeof(int), (o, b) => b.Write((int)o) },
+				{ typeof(uint), (o, b) => b.Write((uint)o) },
 				{ typeof(short), (o, b) => b.Write((short)o) },
+				{ typeof(ushort), (o, b) => b.Write((ushort)o) },
 				{ typeof(long), (o, b) => b.Write((long)o) },
+				{ typeof(ulong), (o, b) => b.Write((ulong)o) },
 				{ typeof(float), (o, b) => b.Write((float)o) },
 				{ typeof(double), (o, b) => b.Write((double)o) },
 				{ typeof(string), (o, b) => b.Write((string)o) },
@@ -21,6 +24,8 @@ namespace Chip.Net.Data {
 				{typeof(byte), (b) => b.ReadByte() },
 				{typeof(int), (b) => b.ReadInt32() },
 				{typeof(short), (b) => b.ReadInt16() },
+				{typeof(uint), (b) => b.ReadUInt32() },
+				{typeof(ushort), (b) => b.ReadUInt16() },
 				{typeof(long), (b) => b.ReadInt64() },
 				{typeof(float), (b) => b.ReadFloat() },
 				{typeof(double), (b) => b.ReadDouble() },
@@ -72,7 +77,7 @@ namespace Chip.Net.Data {
 			}
 		}
 
-		private object lockObject;
+		private object lockObject = new object();
 		private static Dictionary<Type, PacketSerializer> packetMap = new Dictionary<Type, PacketSerializer>();
 
 
