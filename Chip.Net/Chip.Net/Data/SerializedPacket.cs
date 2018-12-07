@@ -32,14 +32,14 @@ namespace Chip.Net.Data {
 				{typeof(string), (b) => b.ReadString() },
 			};
 
-			private Dictionary<Type, List<PropertyInfo>> propMap = new Dictionary<Type, List<PropertyInfo>>();
+			private List<PropertyInfo> properties = new List<PropertyInfo>();
 
 			public PacketSerializer(Type type) {
-				var properties = type.GetProperties()
+				var propertiesTemp = type.GetProperties()
 					.Where(i => WriteFunctions.ContainsKey(i.PropertyType))
 					.OrderBy(i => i.PropertyType.FullName);
 
-				propMap[GetType()] = properties.ToList();
+				this.properties = propertiesTemp.ToList();
 
 				var writes = properties.Select(i => WriteFunctions[i.PropertyType]).ToList();
 				var reads = properties.Select(i => ReadFunctions[i.PropertyType]).ToList();
@@ -53,18 +53,16 @@ namespace Chip.Net.Data {
 			public List<Func<DataBuffer, object>> Reads { get; set; } = new List<Func<DataBuffer, object>>();
 
 			public void Write(DataBuffer buffer, object instance) {
-				var props = propMap[GetType()];
-				for(int i = 0; i < props.Count; i++) {
-					WriteFunctions[props[i].PropertyType].Invoke(
-						props[i].GetValue(instance), buffer);
+				for(int i = 0; i < properties.Count; i++) {
+					WriteFunctions[properties[i].PropertyType].Invoke(
+						properties[i].GetValue(instance), buffer);
 				}
 			}
 
 			public void Read(DataBuffer buffer, object instance) {
-				var props = propMap[GetType()];
-				for (int i = 0; i < props.Count; i++) {
-					var result = ReadFunctions[props[i].PropertyType].Invoke(buffer);
-					props[i].SetValue(instance, result);
+				for (int i = 0; i < properties.Count; i++) {
+					var result = ReadFunctions[properties[i].PropertyType].Invoke(buffer);
+					properties[i].SetValue(instance, result);
 				}
 			}
 		}
