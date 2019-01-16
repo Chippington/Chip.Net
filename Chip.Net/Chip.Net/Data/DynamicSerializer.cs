@@ -50,7 +50,7 @@ namespace Chip.Net.Data
 			this.Reads = reads;
 
 			var sProperties = type.GetProperties()
-				.Where(i => typeof(ISerializable).IsAssignableFrom(i.PropertyType))
+				.Where(i => typeof(ISerializable).IsAssignableFrom(i.PropertyType) && i.PropertyType.IsInterface == false)
 				.OrderBy(i => i.PropertyType.FullName);
 
 			var sWrites = sProperties.Select(i => new Action<object, DataBuffer>((o, b) => {
