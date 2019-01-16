@@ -48,6 +48,22 @@ namespace Chip.Net.Data
 
 			this.Writes = writes;
 			this.Reads = reads;
+
+			var sProperties = type.GetProperties()
+				.Where(i => typeof(ISerializable).IsAssignableFrom(i.PropertyType))
+				.OrderBy(i => i.PropertyType.FullName);
+
+			var sWrites = sProperties.Select(i => new Action<object, DataBuffer>((o, b) => {
+				var s = (ISerializable)o;
+				s.WriteTo(b);
+			}));
+
+			var sReads = sProperties.Select(i => new Func<DataBuffer, object>((b) => {
+				var propType = i.PropertyType;
+				var inst = (ISerializable)Activator.CreateInstance(propType);
+				inst.ReadFrom(b);
+				return inst;
+			}));
 		}
 
 		public Type PacketType { get; set; }
