@@ -64,6 +64,9 @@ namespace Chip.Net.Data
 				inst.ReadFrom(b);
 				return inst;
 			}));
+
+			this.Writes.AddRange(sWrites);
+			this.Reads.AddRange(sReads);
 		}
 
 		public Type PacketType { get; set; }
