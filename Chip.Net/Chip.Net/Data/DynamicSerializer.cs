@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Chip.Net.Data
 {
-	public class Serializer
+	public class DynamicSerializer
 	{
 		private static Dictionary<Type, Action<object, DataBuffer>> WriteFunctions = new Dictionary<Type, Action<object, DataBuffer>>() {
 				{ typeof(byte), (o, b) => b.Write((byte)o) },
@@ -36,7 +36,7 @@ namespace Chip.Net.Data
 
 		private List<PropertyInfo> properties = new List<PropertyInfo>();
 
-		public Serializer(Type type) {
+		public DynamicSerializer(Type type) {
 			var propertiesTemp = type.GetProperties()
 				.Where(i => WriteFunctions.ContainsKey(i.PropertyType))
 				.OrderBy(i => i.PropertyType.FullName);
