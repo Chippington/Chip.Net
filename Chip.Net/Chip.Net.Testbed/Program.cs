@@ -3,6 +3,7 @@ using Chip.Net.Default.Basic;
 using Chip.Net.Providers.TCP;
 using Chip.Net.Services.NetTime;
 using Chip.Net.Services.Ping;
+using Chip.Net.Services.RFC;
 using System;
 
 namespace Chip.Net.Testbed
@@ -29,7 +30,46 @@ namespace Chip.Net.Testbed
 
 				ctx.Services.Register<PingService>();
 				ctx.Services.Register<NetTimeService>();
+				ctx.Services.Register<TestRFCService>();
 				return ctx;
+			}
+		}
+
+		public class TestSerializable : ISerializable
+		{
+			public string data { get; set; }
+
+			public void ReadFrom(DataBuffer buffer) {
+				data = buffer.ReadString();
+			}
+
+			public void WriteTo(DataBuffer buffer) {
+				buffer.Write((string)data);
+			}
+		}
+
+		public class TestRFCService : RFCService
+		{
+			public Action<TestSerializable> ClientMethod { get; set; }
+			public Action<TestSerializable> ServerMethod { get; set; }
+
+			public override void InitializeService(NetContext context) {
+				base.InitializeService(context);
+
+				ClientMethod = ClientAction<TestSerializable>(clientMethod);
+				ServerMethod = ServerAction<TestSerializable>(serverMethod);
+			}
+
+			private void serverMethod(TestSerializable obj) {
+				var isClient = IsClient;
+				var isServer = IsServer;
+
+				ClientMethod.Invoke(obj);
+			}
+
+			private void clientMethod(TestSerializable obj) {
+				var isClient = IsClient;
+				var isServer = IsServer;
 			}
 		}
 
@@ -56,6 +96,13 @@ namespace Chip.Net.Testbed
 
 			INetClient cl = new BasicClient();
 			cl.InitializeClient(Context);
+			cl.OnConnected += (arg) => {
+				TestSerializable s = new TestSerializable();
+				s.data = "Hello world!";
+
+				cl.Context.Services.Get<TestRFCService>().ServerMethod(s);
+			};
+
 			cl.StartClient(new TCPClientProvider());
 
 			while(true) {
