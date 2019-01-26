@@ -65,11 +65,15 @@ namespace Chip.Net.Testbed
 				var isServer = IsServer;
 
 				ClientMethod.Invoke(obj);
+				Console.WriteLine("Sent to client");
 			}
 
 			private void clientMethod(TestSerializable obj) {
 				var isClient = IsClient;
 				var isServer = IsServer;
+
+				ServerMethod.Invoke(obj);
+				Console.WriteLine("Sent to server");
 			}
 		}
 
