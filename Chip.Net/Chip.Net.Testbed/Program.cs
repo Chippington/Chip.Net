@@ -44,6 +44,8 @@ namespace Chip.Net.Testbed
 			public string data1 { get; set; }
 			public string data2 { get; set; }
 			public string data { get; set; }
+
+			public TestSerializable Inner { get; set; }
 		}
 
 		public class TestRFCService : RFCService
@@ -103,6 +105,9 @@ namespace Chip.Net.Testbed
 				s.data = "Hello world!";
 				s.data1 = "Data 1";
 				//s.data2 = "Data 2";
+				s.Inner = new TestSerializable() {
+					data = "Hello inner world!",
+				};
 
 				cl.Context.Services.Get<TestRFCService>().ServerMethod(s);
 			};
