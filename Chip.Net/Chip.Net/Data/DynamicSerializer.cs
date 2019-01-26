@@ -22,6 +22,11 @@ namespace Chip.Net.Data
 			{ typeof(float), (inst, prop, buffer) => buffer.Write((float)prop.GetValue(inst)) },
 			{ typeof(double), (inst, prop, buffer) => buffer.Write((double)prop.GetValue(inst)) },
 			{ typeof(string), (inst, prop, buffer) => buffer.Write((string)prop.GetValue(inst)) },
+			{ typeof(ISerializable), (inst, prop, buffer) => {
+				ISerializable s = (ISerializable)prop.GetValue(inst);
+				s.WriteTo(buffer);
+			} },
+
 		};
 
 		private static Dictionary<Type, ReadFunc> ReadFunctions = new Dictionary<Type, ReadFunc>() {
@@ -35,6 +40,12 @@ namespace Chip.Net.Data
 			{typeof(float), (inst, prop, buffer) => prop.SetValue(inst, buffer.ReadFloat()) },
 			{typeof(double), (inst, prop, buffer) => prop.SetValue(inst, buffer.ReadDouble()) },
 			{typeof(string), (inst, prop, buffer) => prop.SetValue(inst, buffer.ReadString()) },
+			{typeof(ISerializable), (inst, prop, buffer) => {
+				var propType = prop.PropertyType;
+				var propInst = (ISerializable)Activator.CreateInstance(propType);
+				propInst.ReadFrom(buffer);
+				prop.SetValue(inst, propInst);
+			} },
 		};
 
 		private List<PropertyInfo> properties = new List<PropertyInfo>();
@@ -46,34 +57,41 @@ namespace Chip.Net.Data
 
 			this.properties = propertiesTemp.ToList();
 
-			var writes = properties.Select(i => new	Tuple<PropertyInfo, WriteFunc>(i, WriteFunctions[i.PropertyType])).ToList();
-			var reads = properties.Select(i => new Tuple<PropertyInfo, ReadFunc>(i, ReadFunctions[i.PropertyType])).ToList();
+			Func<Type, Type> SelectType = (tt) => {
+				if (typeof(ISerializable).IsAssignableFrom(tt))
+					return typeof(ISerializable);
+
+				return tt;
+			};
+
+			var writes = properties.Select(i => new	Tuple<PropertyInfo, WriteFunc>(i, WriteFunctions[SelectType(i.PropertyType)])).ToList();
+			var reads = properties.Select(i => new Tuple<PropertyInfo, ReadFunc>(i, ReadFunctions[SelectType(i.PropertyType)])).ToList();
 
 			this.Writes = writes;
 			this.Reads = reads;
 
-			var sProperties = type.GetProperties()
-				.Where(i => typeof(ISerializable).IsAssignableFrom(i.PropertyType) && i.PropertyType.IsInterface == false)
-				.OrderBy(i => i.PropertyType.FullName);
+			//var sProperties = type.GetProperties()
+			//	.Where(i => typeof(ISerializable).IsAssignableFrom(i.PropertyType) && i.PropertyType.IsInterface == false)
+			//	.OrderBy(i => i.PropertyType.FullName);
 
-			var sWrites = sProperties.Select(i => new Tuple<PropertyInfo, WriteFunc>(i, new WriteFunc((inst, prop, b) => {
-				var s = (ISerializable)prop.GetValue(inst);
-				s.WriteTo(b);
-			})));
+			//var sWrites = sProperties.Select(i => new Tuple<PropertyInfo, WriteFunc>(i, new WriteFunc((inst, prop, b) => {
+			//	var s = (ISerializable)prop.GetValue(inst);
+			//	s.WriteTo(b);
+			//})));
 
-			var sReads = sProperties.Select(i => new Tuple<PropertyInfo, ReadFunc>(i, new ReadFunc((inst, prop, b) => {
-				var s = (ISerializable)prop.GetValue(inst);
-				if (s == null) {
-					s = (ISerializable)Activator.CreateInstance(prop.PropertyType);
-					prop.SetValue(inst, s);
-				}
+			//var sReads = sProperties.Select(i => new Tuple<PropertyInfo, ReadFunc>(i, new ReadFunc((inst, prop, b) => {
+			//	var s = (ISerializable)prop.GetValue(inst);
+			//	if (s == null) {
+			//		s = (ISerializable)Activator.CreateInstance(prop.PropertyType);
+			//		prop.SetValue(inst, s);
+			//	}
 
-				s.ReadFrom(b);
-			})));
+			//	s.ReadFrom(b);
+			//})));
 
-			this.properties.AddRange(sProperties);
-			this.Writes.AddRange(sWrites);
-			this.Reads.AddRange(sReads);
+			//this.properties.AddRange(sProperties);
+			//this.Writes.AddRange(sWrites);
+			//this.Reads.AddRange(sReads);
 		}
 
 		public Type PacketType { get; set; }
@@ -81,14 +99,32 @@ namespace Chip.Net.Data
 		private List<Tuple<PropertyInfo, ReadFunc>> Reads { get; set; } = new List<Tuple<PropertyInfo, ReadFunc>>();
 
 		public void Write(DataBuffer buffer, object instance) {
+			byte flags = 0;
 			for (int i = 0; i < Writes.Count; i++) {
-				Writes[i].Item2.Invoke(instance, Writes[i].Item1, buffer);
+				var prop = Writes[i].Item1;
+				if(prop.GetValue(instance) != null) {
+					flags = (byte)(flags | 1);
+				}
+
+				flags = (byte)(flags << 1);
+			}
+
+			buffer.Write((Int16)flags);
+			for (int i = 0; i < Writes.Count; i++) {
+				if(Writes[i].Item1.GetValue(instance) != null)
+					Writes[i].Item2.Invoke(instance, Writes[i].Item1, buffer);
 			}
 		}
 
 		public void Read(DataBuffer buffer, object instance) {
-			for (int i = 0; i < Reads.Count; i++) {
-				Reads[i].Item2.Invoke(instance, Reads[i].Item1, buffer);
+			int flags = buffer.ReadInt16();
+
+			for (int i = Reads.Count; i >= 0; i--) {
+				if((flags & 1) == 1) {
+					Reads[i].Item2.Invoke(instance, Reads[i].Item1, buffer);
+				}
+
+				flags = flags >> 1;
 			}
 		}
 	}

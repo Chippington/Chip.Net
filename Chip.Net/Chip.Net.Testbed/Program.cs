@@ -35,17 +35,15 @@ namespace Chip.Net.Testbed
 			}
 		}
 
-		public class TestSerializable : ISerializable
+		public class TestSerializableTwo : Serializable {
+
+		}
+
+		public class TestSerializable : Serializable
 		{
+			public string data1 { get; set; }
+			public string data2 { get; set; }
 			public string data { get; set; }
-
-			public void ReadFrom(DataBuffer buffer) {
-				data = buffer.ReadString();
-			}
-
-			public void WriteTo(DataBuffer buffer) {
-				buffer.Write((string)data);
-			}
 		}
 
 		public class TestRFCService : RFCService
@@ -103,6 +101,8 @@ namespace Chip.Net.Testbed
 			cl.OnConnected += (arg) => {
 				TestSerializable s = new TestSerializable();
 				s.data = "Hello world!";
+				s.data1 = "Data 1";
+				//s.data2 = "Data 2";
 
 				cl.Context.Services.Get<TestRFCService>().ServerMethod(s);
 			};
