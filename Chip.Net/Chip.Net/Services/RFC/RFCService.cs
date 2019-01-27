@@ -16,11 +16,15 @@ namespace Chip.Net.Services.RFC
 		private Dictionary<byte, Type> svTypeMap;
 		private Dictionary<byte, Type> clTypeMap;
 
+		private Dictionary<Type, DynamicSerializer> serializerMap;
+
 		public override void InitializeService(NetContext context) {
 			base.InitializeService(context);
 
 			context.Packets.Register<RFCExecute>();
 			Router.Route<RFCExecute>(onExecute);
+
+			serializerMap = new Dictionary<Type, DynamicSerializer>();
 
 			svActionMap = new Dictionary<byte, Action<object>>();
 			clActionMap = new Dictionary<byte, Action<object>>();
@@ -29,11 +33,14 @@ namespace Chip.Net.Services.RFC
 			clTypeMap = new Dictionary<byte, Type>();
 		}
 
-		protected Action<T> ServerAction<T>(Action<T> real) where T : ISerializable {
+		protected Action<T> ServerAction<T>(Action<T> real) {
 			byte id = svActionId++;
 
+			var serializer = GetSerializer(typeof(T));
 			Action<T> action = (model) => {
 				byte _id = id;
+				var _ss = serializer;
+
 				if (IsServer) {
 					real.Invoke(model);
 				}
@@ -43,7 +50,7 @@ namespace Chip.Net.Services.RFC
 					RFCExecute msg = new RFCExecute();
 					msg.FunctionId = _id;
 					var buff = new DataBuffer();
-					model.WriteTo(buff);
+					_ss.WriteTo(buff, model);
 					msg.FunctionParameters = buff.ToBytes();
 					SendPacketToServer(msg);
 				}
@@ -55,17 +62,20 @@ namespace Chip.Net.Services.RFC
 			return action;
 		}
 
-		protected Action<T> ClientAction<T>(Action<T> real) where T : ISerializable {
+		protected Action<T> ClientAction<T>(Action<T> real) {
 			byte id = clActionId++;
 
+			var serializer = GetSerializer(typeof(T));
 			Action<T> action = (model) => {
 				byte _id = id;
+				var _ss = serializer;
+
 				if (IsServer) {
 					//send to current user
 					RFCExecute msg = new RFCExecute();
 					msg.FunctionId = _id;
 					var buff = new DataBuffer();
-					model.WriteTo(buff);
+					_ss.WriteTo(buff, model);
 					msg.FunctionParameters = buff.ToBytes();
 
 					var user = GetCurrentUser();
@@ -85,29 +95,30 @@ namespace Chip.Net.Services.RFC
 		}
 
 		private void onExecute(RFCExecute obj) {
-			ISerializable model = null;
+			object model = null;
 			Action<object> action = null;
-
 			if (IsServer) {
 				SetCurrentUser(obj.Sender);
 				action = svActionMap[obj.FunctionId];
 
 				var modelType = svTypeMap[obj.FunctionId];
-				model = (ISerializable)Activator.CreateInstance(modelType);
+				var serializer = GetSerializer(modelType);
+				model = Activator.CreateInstance(modelType);
 
 				var buff = new DataBuffer(obj.FunctionParameters);
 				buff.Seek(0);
-				model.ReadFrom(buff);
+				serializer.ReadFrom(buff, model);
 			}
 
 			if(IsClient) {
 				action = clActionMap[obj.FunctionId];
 				var modelType = clTypeMap[obj.FunctionId];
-				model = (ISerializable)Activator.CreateInstance(modelType);
+				var serializer = GetSerializer(modelType);
+				model = Activator.CreateInstance(modelType);
 
 				var buff = new DataBuffer(obj.FunctionParameters);
 				buff.Seek(0);
-				model.ReadFrom(buff);
+				serializer.ReadFrom(buff, model);
 			}
 
 			action.Invoke(model);
@@ -131,6 +142,15 @@ namespace Chip.Net.Services.RFC
 
 		public override void StopService() {
 			base.StopService();
+		}
+
+		private DynamicSerializer GetSerializer(Type type) {
+			if (serializerMap.ContainsKey(type) == false) {
+				serializerMap[type] = new DynamicSerializer(type);
+			}
+
+			var serializer = serializerMap[type];
+			return serializer;
 		}
 	}
 }

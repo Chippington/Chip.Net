@@ -53,16 +53,35 @@ namespace Chip.Net.Testbed
 			public IEnumerable<string> TestEnum { get; set; }
 		}
 
-		public class TestRFCService : RFCService
-		{
+		public class TestRFCService : RFCService {
 			public Action<TestSerializable> ClientMethod { get; set; }
 			public Action<TestSerializable> ServerMethod { get; set; }
+			public Action<TestNonSerializable> ClientMethodTwo { get; set; }
+			public Action<TestNonSerializable> ServerMethodTwo { get; set; }
 
 			public override void InitializeService(NetContext context) {
 				base.InitializeService(context);
 
 				ClientMethod = ClientAction<TestSerializable>(clientMethod);
 				ServerMethod = ServerAction<TestSerializable>(serverMethod);
+				ClientMethodTwo = ClientAction<TestNonSerializable>(clientMethodTwo);
+				ServerMethodTwo = ServerAction<TestNonSerializable>(serverMethodTwo);
+			}
+
+			private void clientMethodTwo(TestNonSerializable obj) {
+				var isClient = IsClient;
+				var isServer = IsServer;
+
+				ServerMethodTwo.Invoke(obj);
+				Console.WriteLine("Sent to server");
+			}
+
+			private void serverMethodTwo(TestNonSerializable obj) {
+				var isClient = IsClient;
+				var isServer = IsServer;
+
+				ClientMethodTwo.Invoke(obj);
+				Console.WriteLine("Sent to client");
 			}
 
 			private void serverMethod(TestSerializable obj) {
@@ -88,7 +107,7 @@ namespace Chip.Net.Testbed
 			sw.Start();
 
 			int iterations = 0;
-			while (sw.ElapsedMilliseconds < 1000) {
+			while (sw.ElapsedMilliseconds < 0) {
 				iterations++;
 				TestSerializable ss = new TestSerializable();
 				ss.data = "Hello world!";
@@ -158,7 +177,10 @@ namespace Chip.Net.Testbed
 					}
 				};
 
-				cl.Context.Services.Get<TestRFCService>().ServerMethod(s);
+				TestNonSerializable ns = new TestNonSerializable();
+				ns.data1 = "Hello world!";
+
+				cl.Context.Services.Get<TestRFCService>().ServerMethodTwo(ns);
 			};
 
 			cl.StartClient(new TCPClientProvider());
