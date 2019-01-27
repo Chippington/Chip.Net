@@ -43,6 +43,11 @@ namespace Chip.Net.Data
 				while(toWrite.Count > 0) {
 					Write(buffer, toWrite.Dequeue());
 				}
+			} },
+			{ typeof(System.Enum), (data, buffer) => {
+				var underlying = data.GetType().GetEnumUnderlyingType();
+				byte underlyingValue = (byte)((IConvertible)data).ToType(typeof(byte), null);
+				buffer.Write((byte)underlyingValue);
 			} }
 		};
 
@@ -75,6 +80,9 @@ namespace Chip.Net.Data
 				}
 
 				return list;
+			} },
+			{typeof(System.Enum), (type, buffer) => {
+				return Enum.ToObject(type, buffer.ReadByte());
 			} },
 		};
 
@@ -124,6 +132,9 @@ namespace Chip.Net.Data
 
 			if (typeof(IEnumerable).IsAssignableFrom(tt))
 				return typeof(IEnumerable);
+
+			if (typeof(System.Enum).IsAssignableFrom(tt))
+				return typeof(System.Enum);
 
 			if(tt.GetConstructors().Any(i => i.GetParameters().Count() == 0)) {
 				DynamicSerializer s = new DynamicSerializer(tt);

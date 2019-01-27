@@ -53,6 +53,7 @@ namespace Chip.Net.Testbed
 			public IEnumerable<string> TestEnum { get; set; }
 
 			public IEnumerable<IEnumerable<byte>> Intricate { get; set; }
+			public TestEnum Enum { get; set; }
 		}
 
 		public class TestRFCService : RFCService {
@@ -103,8 +104,14 @@ namespace Chip.Net.Testbed
 			}
 		}
 
+		public enum TestEnum {
+			One, Two, Three
+		}
+
         static void Main(string[] args)
         {
+			var tttt = typeof(TestEnum);
+
 			Stopwatch sw = new Stopwatch();
 			sw.Start();
 
@@ -117,6 +124,7 @@ namespace Chip.Net.Testbed
 				ss.NonSerializable = new TestNonSerializable() {
 					data1 = "This should be serialized too"
 				};
+				ss.Enum = TestEnum.Three;
 				ss.Intricate = new byte[2][] {
 					new byte[2] { 0, 1 },
 					new byte[2] { 2, 3 }
