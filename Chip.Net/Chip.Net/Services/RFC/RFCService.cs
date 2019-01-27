@@ -7,6 +7,18 @@ namespace Chip.Net.Services.RFC
 {
 	public class RFCService : NetService {
 		private NetUser currentUser;
+		public NetUser CurrentUser {
+			get {
+				return currentUser;
+			}
+		}
+
+		public IReadOnlyList<NetUser> AllUsers {
+			get {
+				return GetUsers();
+			}
+		}
+
 		private byte svActionId;
 		private byte clActionId;
 
@@ -17,8 +29,10 @@ namespace Chip.Net.Services.RFC
 		private Dictionary<byte, Type[]> clTypeMap;
 
 		private Dictionary<Type, DynamicSerializer> serializerMap;
+		private List<NetUser> userList;
 
 		public RFCService() {
+			userList = new List<NetUser>();
 			serializerMap = new Dictionary<Type, DynamicSerializer>();
 
 			svActionMap = new Dictionary<byte, Action<object[]>>();
@@ -33,6 +47,17 @@ namespace Chip.Net.Services.RFC
 
 			context.Packets.Register<RFCExecute>();
 			Router.Route<RFCExecute>(onExecute);
+
+			if(IsServer) {
+				var sv = context.Services.Get<INetServer>();
+				sv.OnUserConnected += (arg) => {
+					userList.Add(arg.User);
+				};
+
+				sv.OnUserDisconnected += (arg) => {
+					userList.Remove(arg.User);
+				};
+			}
 		}
 
 		protected Action<T> ServerAction<T>(Action<T> real) {
@@ -178,8 +203,23 @@ namespace Chip.Net.Services.RFC
 			action.Invoke(param);
 		}
 
+		public void Broadcast(Action<NetUser> userAction) {
+			this.Broadcast(GetUsers(), userAction);
+		}
+
+		public void Broadcast(IEnumerable<NetUser> recipients, Action<NetUser> userAction) {
+			if (recipients == null) recipients = GetUsers();
+			foreach(var user in recipients) {
+				userAction.Invoke(user);
+			}
+		}
+
 		public NetUser GetCurrentUser() {
 			return currentUser;
+		}
+
+		public IReadOnlyList<NetUser> GetUsers() {
+			return userList.AsReadOnly();
 		}
 
 		protected void SetCurrentUser(NetUser user) {
