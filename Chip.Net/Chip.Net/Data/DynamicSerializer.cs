@@ -83,6 +83,11 @@ namespace Chip.Net.Data
 			return ReadFunctions[SelectType(type)].Invoke(type, buffer);
 		}
 
+		public static bool HasType(Type type, bool selectProper = false) {
+			if (selectProper) type = SelectType(type);
+			return WriteFunctions.ContainsKey(type);
+		}
+
 		private List<PropertyInfo> properties = new List<PropertyInfo>();
 
 		public DynamicSerializer(Type type) {

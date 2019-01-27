@@ -56,31 +56,31 @@ namespace Chip.Net.Testbed
 		public class TestRFCService : RFCService {
 			public Action<TestSerializable> ClientMethod { get; set; }
 			public Action<TestSerializable> ServerMethod { get; set; }
-			public Action<TestNonSerializable> ClientMethodTwo { get; set; }
-			public Action<TestNonSerializable> ServerMethodTwo { get; set; }
+			public Action<TestNonSerializable, string> ClientMethodTwo { get; set; }
+			public Action<TestNonSerializable, string> ServerMethodTwo { get; set; }
 
 			public override void InitializeService(NetContext context) {
 				base.InitializeService(context);
 
 				ClientMethod = ClientAction<TestSerializable>(clientMethod);
 				ServerMethod = ServerAction<TestSerializable>(serverMethod);
-				ClientMethodTwo = ClientAction<TestNonSerializable>(clientMethodTwo);
-				ServerMethodTwo = ServerAction<TestNonSerializable>(serverMethodTwo);
+				ClientMethodTwo = ClientAction<TestNonSerializable, string>(clientMethodTwo);
+				ServerMethodTwo = ServerAction<TestNonSerializable, string>(serverMethodTwo);
 			}
 
-			private void clientMethodTwo(TestNonSerializable obj) {
+			private void clientMethodTwo(TestNonSerializable obj, string data) {
 				var isClient = IsClient;
 				var isServer = IsServer;
 
-				ServerMethodTwo.Invoke(obj);
+				ServerMethodTwo.Invoke(obj, data);
 				Console.WriteLine("Sent to server");
 			}
 
-			private void serverMethodTwo(TestNonSerializable obj) {
+			private void serverMethodTwo(TestNonSerializable obj, string data) {
 				var isClient = IsClient;
 				var isServer = IsServer;
 
-				ClientMethodTwo.Invoke(obj);
+				ClientMethodTwo.Invoke(obj, data);
 				Console.WriteLine("Sent to client");
 			}
 
@@ -180,7 +180,7 @@ namespace Chip.Net.Testbed
 				TestNonSerializable ns = new TestNonSerializable();
 				ns.data1 = "Hello world!";
 
-				cl.Context.Services.Get<TestRFCService>().ServerMethodTwo(ns);
+				cl.Context.Services.Get<TestRFCService>().ServerMethodTwo(ns, "Testing!!!");
 			};
 
 			cl.StartClient(new TCPClientProvider());

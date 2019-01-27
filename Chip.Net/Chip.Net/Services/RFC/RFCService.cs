@@ -10,118 +10,172 @@ namespace Chip.Net.Services.RFC
 		private byte svActionId;
 		private byte clActionId;
 
-		private Dictionary<byte, Action<object>> svActionMap;
-		private Dictionary<byte, Action<object>> clActionMap;
+		private Dictionary<byte, Action<object[]>> svActionMap;
+		private Dictionary<byte, Action<object[]>> clActionMap;
 
-		private Dictionary<byte, Type> svTypeMap;
-		private Dictionary<byte, Type> clTypeMap;
+		private Dictionary<byte, Type[]> svTypeMap;
+		private Dictionary<byte, Type[]> clTypeMap;
 
 		private Dictionary<Type, DynamicSerializer> serializerMap;
+
+		public RFCService() {
+			serializerMap = new Dictionary<Type, DynamicSerializer>();
+
+			svActionMap = new Dictionary<byte, Action<object[]>>();
+			clActionMap = new Dictionary<byte, Action<object[]>>();
+
+			svTypeMap = new Dictionary<byte, Type[]>();
+			clTypeMap = new Dictionary<byte, Type[]>();
+		}
 
 		public override void InitializeService(NetContext context) {
 			base.InitializeService(context);
 
 			context.Packets.Register<RFCExecute>();
 			Router.Route<RFCExecute>(onExecute);
-
-			serializerMap = new Dictionary<Type, DynamicSerializer>();
-
-			svActionMap = new Dictionary<byte, Action<object>>();
-			clActionMap = new Dictionary<byte, Action<object>>();
-
-			svTypeMap = new Dictionary<byte, Type>();
-			clTypeMap = new Dictionary<byte, Type>();
 		}
 
 		protected Action<T> ServerAction<T>(Action<T> real) {
+			var a = ServerAction((p) => real((T)p[0]), new Type[] { typeof(T) });
+			return (realVal) => a.Invoke(new object[] { realVal });
+		}
+
+		protected Action<T1, T2> ServerAction<T1, T2>(Action<T1, T2> real) {
+			var a = ServerAction((p) => real((T1)p[0], (T2)p[1]), new Type[] { typeof(T1), typeof(T2) });
+			return (val1, val2) => a.Invoke(new object[] { val1, val2 });
+		}
+
+		protected Action<T1, T2, T3> ServerAction<T1, T2, T3>(Action<T1, T2, T3> real) {
+			var a = ServerAction((p) => real((T1)p[0], (T2)p[1], (T3)p[2]), new Type[] { typeof(T1), typeof(T2), typeof(T3) });
+			return (val1, val2, val3) => a.Invoke(new object[] { val1, val2, val3 });
+		}
+
+		protected Action<T1, T2, T3, T4> ServerAction<T1, T2, T3, T4>(Action<T1, T2, T3, T4> real) {
+			var a = ServerAction((p) => real((T1)p[0], (T2)p[1], (T3)p[2], (T4)p[3]), new Type[] { typeof(T1), typeof(T2), typeof(T3), typeof(T4) });
+			return (val1, val2, val3, val4) => a.Invoke(new object[] { val1, val2, val3, val4 });
+		}
+
+		protected Action<T> ClientAction<T>(Action<T> real) {
+			var a = ClientAction((p) => real((T)p[0]), new Type[] { typeof(T) });
+			return (realVal) => a.Invoke(new object[] { realVal });
+		}
+
+		protected Action<T1, T2> ClientAction<T1, T2>(Action<T1, T2> real) {
+			var a = ClientAction((p) => real((T1)p[0], (T2)p[1]), new Type[] { typeof(T1), typeof(T2) });
+			return (val1, val2) => a.Invoke(new object[] { val1, val2 });
+		}
+
+		protected Action<T1, T2, T3> ClientAction<T1, T2, T3>(Action<T1, T2, T3> real) {
+			var a = ClientAction((p) => real((T1)p[0], (T2)p[1], (T3)p[2]), new Type[] { typeof(T1), typeof(T2), typeof(T3) });
+			return (val1, val2, val3) => a.Invoke(new object[] { val1, val2, val3 });
+		}
+
+		protected Action<T1, T2, T3, T4> ClientAction<T1, T2, T3, T4>(Action<T1, T2, T3, T4> real) {
+			var a = ClientAction((p) => real((T1)p[0], (T2)p[1], (T3)p[2], (T4)p[3]), new Type[] { typeof(T1), typeof(T2), typeof(T3), typeof(T4) });
+			return (val1, val2, val3, val4) => a.Invoke(new object[] { val1, val2, val3, val4 });
+		}
+
+		private Action<object[]> ServerAction(Action<object[]> real, Type[] types) {
 			byte id = svActionId++;
 
-			var serializer = GetSerializer(typeof(T));
-			Action<T> action = (model) => {
+			Action<object[]> action = (param) => {
 				byte _id = id;
-				var _ss = serializer;
-
 				if (IsServer) {
-					real.Invoke(model);
+					real.Invoke(param);
 				}
 
 				if (IsClient) {
-					//send to server
 					RFCExecute msg = new RFCExecute();
 					msg.FunctionId = _id;
 					var buff = new DataBuffer();
-					_ss.WriteTo(buff, model);
+					WriteModelsToBuffer(buff, param);
 					msg.FunctionParameters = buff.ToBytes();
 					SendPacketToServer(msg);
 				}
 			};
 
-			svActionMap[id] = (obj) => action((T)obj);
-			svTypeMap[id] = typeof(T);
+			svActionMap[id] = (obj) => action(obj);
+			svTypeMap[id] = types;
 
 			return action;
 		}
 
-		protected Action<T> ClientAction<T>(Action<T> real) {
+		private Action<object[]> ClientAction(Action<object[]> real, Type[] types) {
 			byte id = clActionId++;
 
-			var serializer = GetSerializer(typeof(T));
-			Action<T> action = (model) => {
+			Action<object[]> action = (param) => {
 				byte _id = id;
-				var _ss = serializer;
+				if (IsClient) {
+					real.Invoke(param);
+				}
 
 				if (IsServer) {
-					//send to current user
 					RFCExecute msg = new RFCExecute();
 					msg.FunctionId = _id;
 					var buff = new DataBuffer();
-					_ss.WriteTo(buff, model);
+					WriteModelsToBuffer(buff, param);
 					msg.FunctionParameters = buff.ToBytes();
 
 					var user = GetCurrentUser();
 					msg.Recipient = user;
 					SendPacketToClient(user, msg);
 				}
-
-				if (IsClient) {
-					real.Invoke(model);
-				}
 			};
 
-			clActionMap[id] = (obj) => action((T)obj);
-			clTypeMap[id] = typeof(T);
+			clActionMap[id] = (obj) => action(obj);
+			clTypeMap[id] = types;
 
 			return action;
 		}
 
+		private void WriteModelsToBuffer(DataBuffer buffer, object[] param) {
+			for(int i = 0; i < param.Length; i++) {
+				var pType = param[i].GetType();
+				if (DynamicSerializer.HasType(pType)) {
+					DynamicSerializer.Write(buffer, param[i], pType);
+					continue;
+				}
+
+				var s = GetSerializer(pType);
+				s.WriteTo(buffer, param[i]);
+			}
+		}
+
 		private void onExecute(RFCExecute obj) {
-			object model = null;
-			Action<object> action = null;
+			object[] param = null;
+			Type[] modelTypes = null;
+
+			var buff = new DataBuffer(obj.FunctionParameters);
+			buff.Seek(0);
+
+			Action<object[]> action = null;
 			if (IsServer) {
 				SetCurrentUser(obj.Sender);
 				action = svActionMap[obj.FunctionId];
-
-				var modelType = svTypeMap[obj.FunctionId];
-				var serializer = GetSerializer(modelType);
-				model = Activator.CreateInstance(modelType);
-
-				var buff = new DataBuffer(obj.FunctionParameters);
-				buff.Seek(0);
-				serializer.ReadFrom(buff, model);
+				modelTypes = svTypeMap[obj.FunctionId];
 			}
 
 			if(IsClient) {
 				action = clActionMap[obj.FunctionId];
-				var modelType = clTypeMap[obj.FunctionId];
-				var serializer = GetSerializer(modelType);
-				model = Activator.CreateInstance(modelType);
-
-				var buff = new DataBuffer(obj.FunctionParameters);
-				buff.Seek(0);
-				serializer.ReadFrom(buff, model);
+				modelTypes = clTypeMap[obj.FunctionId];
 			}
 
-			action.Invoke(model);
+			param = new object[modelTypes.Length];
+			for (int i = 0; i < param.Length; i++) {
+				var modelType = modelTypes[i];
+				var serializer = GetSerializer(modelType);
+
+				if (DynamicSerializer.HasType(modelType)) {
+					var model = DynamicSerializer.Read(modelType, buff);
+					param[i] = model;
+				} else {
+					var model = Activator.CreateInstance(modelType);
+					serializer.ReadFrom(buff, model);
+					param[i] = model;
+				}
+			}
+
+			action.Invoke(param);
 		}
 
 		public NetUser GetCurrentUser() {
