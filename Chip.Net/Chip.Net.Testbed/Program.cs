@@ -38,8 +38,8 @@ namespace Chip.Net.Testbed
 			}
 		}
 
-		public class TestSerializableTwo : Serializable {
-
+		public class TestNonSerializable {
+			public string data1 { get; set; }
 		}
 
 		public class TestSerializable : Serializable
@@ -49,6 +49,7 @@ namespace Chip.Net.Testbed
 			public string data { get; set; }
 
 			public TestSerializable Inner { get; set; }
+			public TestNonSerializable NonSerializable { get; set; }
 			public IEnumerable<string> TestEnum { get; set; }
 		}
 
@@ -92,6 +93,9 @@ namespace Chip.Net.Testbed
 				TestSerializable ss = new TestSerializable();
 				ss.data = "Hello world!";
 				ss.data1 = "Data 1";
+				ss.NonSerializable = new TestNonSerializable() {
+					data1 = "This should be serialized too"
+				};
 				//s.data2 = "Data 2";
 				ss.Inner = new TestSerializable() {
 					data = "Hello inner world!",

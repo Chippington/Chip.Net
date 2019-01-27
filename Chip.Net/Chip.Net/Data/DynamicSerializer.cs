@@ -114,6 +114,21 @@ namespace Chip.Net.Data
 			if (typeof(IEnumerable).IsAssignableFrom(tt))
 				return typeof(IEnumerable);
 
+			if(tt.GetConstructors().Any(i => i.GetParameters().Count() == 0)) {
+				DynamicSerializer s = new DynamicSerializer(tt);
+				WriteFunctions[tt] = (data, buffer) => {
+					s.WriteTo(buffer, data);
+				};
+
+				ReadFunctions[tt] = (type, buffer) => {
+					var inst = Activator.CreateInstance(tt);
+					s.ReadFrom(buffer, inst);
+					return inst;
+				};
+
+				return tt;
+			}
+
 			return null;
 		}
 
