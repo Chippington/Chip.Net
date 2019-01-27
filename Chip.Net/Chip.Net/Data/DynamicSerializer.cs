@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -8,59 +9,83 @@ namespace Chip.Net.Data
 {
 	public class DynamicSerializer
 	{
-		private delegate void WriteFunc(object instance, PropertyInfo prop, DataBuffer buffer);
-		private delegate void ReadFunc(object instance, PropertyInfo prop, DataBuffer buffer);
+		private delegate void WriteFunc(object data, DataBuffer buffer);
+		private delegate object ReadFunc(Type type, DataBuffer buffer);
 
 		private static Dictionary<Type, WriteFunc> WriteFunctions = new Dictionary<Type, WriteFunc>() {
-			{ typeof(byte), (inst, prop, buffer) => buffer.Write((byte)prop.GetValue(inst)) },
-			{ typeof(int), (inst, prop, buffer) => buffer.Write((int)prop.GetValue(inst)) },
-			{ typeof(uint), (inst, prop, buffer) => buffer.Write((uint)prop.GetValue(inst)) },
-			{ typeof(short), (inst, prop, buffer) => buffer.Write((short)prop.GetValue(inst)) },
-			{ typeof(ushort), (inst, prop, buffer) => buffer.Write((ushort)prop.GetValue(inst)) },
-			{ typeof(long), (inst, prop, buffer) => buffer.Write((long)prop.GetValue(inst)) },
-			{ typeof(ulong), (inst, prop, buffer) => buffer.Write((ulong)prop.GetValue(inst)) },
-			{ typeof(float), (inst, prop, buffer) => buffer.Write((float)prop.GetValue(inst)) },
-			{ typeof(double), (inst, prop, buffer) => buffer.Write((double)prop.GetValue(inst)) },
-			{ typeof(string), (inst, prop, buffer) => buffer.Write((string)prop.GetValue(inst)) },
-			{ typeof(ISerializable), (inst, prop, buffer) => {
-				ISerializable s = (ISerializable)prop.GetValue(inst);
-				s.WriteTo(buffer);
+			{ typeof(byte), (data, buffer) => buffer.Write((byte)data) },
+			{ typeof(int), (data, buffer) => buffer.Write((int)data) },
+			{ typeof(uint), (data, buffer) => buffer.Write((uint)data) },
+			{ typeof(short), (data, buffer) => buffer.Write((short)data) },
+			{ typeof(ushort), (data, buffer) => buffer.Write((ushort)data) },
+			{ typeof(long), (data, buffer) => buffer.Write((long)data) },
+			{ typeof(ulong), (data, buffer) => buffer.Write((ulong)data) },
+			{ typeof(float), (data, buffer) => buffer.Write((float)data) },
+			{ typeof(double), (data, buffer) => buffer.Write((double)data) },
+			{ typeof(string), (data, buffer) => buffer.Write((string)data) },
+			{ typeof(ISerializable), (data, buffer) => {
+				((ISerializable)data).WriteTo(buffer);
 			} },
+			{ typeof(IEnumerable), (data, buffer) => {
+				var genericType = data.GetType().GenericTypeArguments[0];
+				var en = (data as IEnumerable).GetEnumerator();
 
+				Queue<object> toWrite = new Queue<object>();
+				while(en.MoveNext()) {
+					var el = en.Current;
+					toWrite.Enqueue(el);
+				}
+
+				buffer.Write((ushort)toWrite.Count);
+				while(toWrite.Count > 0) {
+					Write(buffer, toWrite.Dequeue(), genericType);
+				}
+			} }
 		};
 
 		private static Dictionary<Type, ReadFunc> ReadFunctions = new Dictionary<Type, ReadFunc>() {
-			{typeof(byte), (inst, prop, buffer) => prop.SetValue(inst, buffer.ReadByte()) },
-			{typeof(int), (inst, prop, buffer) => prop.SetValue(inst, buffer.ReadInt32()) },
-			{typeof(short), (inst, prop, buffer) => prop.SetValue(inst, buffer.ReadInt16()) },
-			{typeof(uint), (inst, prop, buffer) => prop.SetValue(inst, buffer.ReadUInt32()) },
-			{typeof(ushort), (inst, prop, buffer) => prop.SetValue(inst, buffer.ReadUInt16()) },
-			{typeof(long), (inst, prop, buffer) => prop.SetValue(inst, buffer.ReadInt64()) },
-			{typeof(ulong), (inst, prop, buffer) => prop.SetValue(inst, buffer.ReadUInt64()) },
-			{typeof(float), (inst, prop, buffer) => prop.SetValue(inst, buffer.ReadFloat()) },
-			{typeof(double), (inst, prop, buffer) => prop.SetValue(inst, buffer.ReadDouble()) },
-			{typeof(string), (inst, prop, buffer) => prop.SetValue(inst, buffer.ReadString()) },
-			{typeof(ISerializable), (inst, prop, buffer) => {
-				var propType = prop.PropertyType;
-				var propInst = (ISerializable)Activator.CreateInstance(propType);
-				propInst.ReadFrom(buffer);
-				prop.SetValue(inst, propInst);
+			{typeof(byte), (type, buffer) => buffer.ReadByte() },
+			{typeof(int), (type, buffer) => buffer.ReadInt32() },
+			{typeof(short), (type, buffer) => buffer.ReadInt16() },
+			{typeof(uint), (type, buffer) => buffer.ReadUInt32() },
+			{typeof(ushort), (type, buffer) => buffer.ReadUInt16() },
+			{typeof(long), (type, buffer) => buffer.ReadInt64() },
+			{typeof(ulong), (type, buffer) => buffer.ReadUInt64() },
+			{typeof(float), (type, buffer) => buffer.ReadFloat() },
+			{typeof(double), (type, buffer) => buffer.ReadDouble() },
+			{typeof(string), (type, buffer) => buffer.ReadString() },
+			{typeof(ISerializable), (type, buffer) => {
+				var dataInst = (ISerializable)Activator.CreateInstance(type);
+				dataInst.ReadFrom(buffer);
+				return dataInst;
+			} },
+			{typeof(IEnumerable), (type, buffer) => {
+				var genericType = type.GenericTypeArguments[0];
+				var count = buffer.ReadUInt16();
+				IList list = (IList)Activator.CreateInstance(typeof(List<>).MakeGenericType(genericType));
+				for(int i = 0; i < count; i++) {
+					var inst = Read(genericType, buffer);
+					list.Add(inst);
+				}
+
+				return list;
 			} },
 		};
+
+		public static void Write(DataBuffer buffer, object data, Type type = null) {
+			if (type == null)
+				type = SelectType(data.GetType());
+
+			WriteFunctions[type].Invoke(data, buffer);
+		}
+
+		public static object Read(Type type, DataBuffer buffer) {
+			return ReadFunctions[SelectType(type)].Invoke(type, buffer);
+		}
 
 		private List<PropertyInfo> properties = new List<PropertyInfo>();
 
 		public DynamicSerializer(Type type) {
-			Func<Type, Type> SelectType = (tt) => {
-				if (typeof(ISerializable).IsAssignableFrom(tt))
-					return typeof(ISerializable);
-
-				if (WriteFunctions.ContainsKey(tt))
-					return tt;
-
-				return null;
-			};
-
 			var propertiesTemp = type.GetProperties()
 				.Where(i => SelectType(i.PropertyType) != null)
 				.OrderBy(i => i.PropertyType.FullName);
@@ -79,7 +104,20 @@ namespace Chip.Net.Data
 		private List<Tuple<PropertyInfo, WriteFunc>> Writes { get; set; } = new List<Tuple<PropertyInfo, WriteFunc>>();
 		private List<Tuple<PropertyInfo, ReadFunc>> Reads { get; set; } = new List<Tuple<PropertyInfo, ReadFunc>>();
 
-		public void Write(DataBuffer buffer, object instance) {
+		public static Type SelectType(Type tt) {
+			if (WriteFunctions.ContainsKey(tt))
+				return tt;
+
+			if (typeof(ISerializable).IsAssignableFrom(tt))
+				return typeof(ISerializable);
+
+			if (typeof(IEnumerable).IsAssignableFrom(tt))
+				return typeof(IEnumerable);
+
+			return null;
+		}
+
+		public void WriteTo(DataBuffer buffer, object instance) {
 			byte flags = 0;
 			for (int i = 0; i < Writes.Count; i++) {
 				flags = (byte)(flags << 1);
@@ -92,18 +130,20 @@ namespace Chip.Net.Data
 
 			buffer.Write((byte)flags);
 			for (int i = Writes.Count - 1; i >= 0; i--) {
-				if(Writes[i].Item1.GetValue(instance) != null)
-					Writes[i].Item2.Invoke(instance, Writes[i].Item1, buffer);
+				var val = Writes[i].Item1.GetValue(instance);
+				if (val != null)
+					Write(buffer, val);
 			}
 		}
 
-		public void Read(DataBuffer buffer, object instance) {
+		public void ReadFrom(DataBuffer buffer, object instance) {
 			byte flags = buffer.ReadByte();
 			byte mask = 1;
 
 			for (int i = Reads.Count - 1; i >= 0; i--) {
 				if((flags & mask) == mask) {
-					Reads[i].Item2.Invoke(instance, Reads[i].Item1, buffer);
+					var val = Read(Reads[i].Item1.PropertyType, buffer);
+					Reads[i].Item1.SetValue(instance, val);
 				}
 
 				mask = (byte)(mask << 1);

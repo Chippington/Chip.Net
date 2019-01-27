@@ -22,11 +22,11 @@ namespace Chip.Net {
 		}
 
 		public void ReadFrom(DataBuffer buffer) {
-			GetSerializer().Read(buffer, this);
+			GetSerializer().ReadFrom(buffer, this);
 		}
 
 		public void WriteTo(DataBuffer buffer) {
-			GetSerializer().Write(buffer, this);
+			GetSerializer().WriteTo(buffer, this);
 		}
 	}
 }

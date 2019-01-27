@@ -5,6 +5,9 @@ using Chip.Net.Services.NetTime;
 using Chip.Net.Services.Ping;
 using Chip.Net.Services.RFC;
 using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace Chip.Net.Testbed
 {
@@ -46,6 +49,7 @@ namespace Chip.Net.Testbed
 			public string data { get; set; }
 
 			public TestSerializable Inner { get; set; }
+			public IEnumerable<string> TestEnum { get; set; }
 		}
 
 		public class TestRFCService : RFCService
@@ -79,6 +83,38 @@ namespace Chip.Net.Testbed
 
         static void Main(string[] args)
         {
+			Stopwatch sw = new Stopwatch();
+			sw.Start();
+
+			int iterations = 0;
+			while (sw.ElapsedMilliseconds < 1000) {
+				iterations++;
+				TestSerializable ss = new TestSerializable();
+				ss.data = "Hello world!";
+				ss.data1 = "Data 1";
+				//s.data2 = "Data 2";
+				ss.Inner = new TestSerializable() {
+					data = "Hello inner world!",
+					Inner = new TestSerializable() {
+						data2 = "Super secret inner world!",
+					},
+					TestEnum = new List<string>() {
+						"str1",
+						"str2",
+						"str3",
+						"str4",
+					}
+				};
+
+				DataBuffer b = new DataBuffer();
+				ss.WriteTo(b);
+
+				b.Seek(0);
+				TestSerializable sss = new TestSerializable();
+				sss.ReadFrom(b);
+			}
+
+
 			TestPacketTwo t = new TestPacketTwo();
 			t.TestInt = 1;
 			t.TestIntTwo = 2;
@@ -87,12 +123,12 @@ namespace Chip.Net.Testbed
 			t.TestString = "Hello";
 			t.TestStringTwo = "World";
 
-			DataBuffer b = new DataBuffer();
-			t.WriteTo(b);
+			DataBuffer bb = new DataBuffer();
+			t.WriteTo(bb);
 
-			b.Seek(0);
+			bb.Seek(0);
 			TestPacketTwo result = new TestPacketTwo();
-			result.ReadFrom(b);
+			result.ReadFrom(bb);
 
 			INetServer sv = new BasicServer();
 			sv.InitializeServer(Context);
@@ -107,6 +143,15 @@ namespace Chip.Net.Testbed
 				//s.data2 = "Data 2";
 				s.Inner = new TestSerializable() {
 					data = "Hello inner world!",
+					Inner = new TestSerializable() {
+						data2 = "Super secret inner world!",
+					},
+					TestEnum = new List<string>() {
+						"str1",
+						"str2",
+						"str3",
+						"str4",
+					}
 				};
 
 				cl.Context.Services.Get<TestRFCService>().ServerMethod(s);
