@@ -27,9 +27,12 @@ namespace Chip.Net.Data
 				((ISerializable)data).WriteTo(buffer);
 			} },
 			{ typeof(IEnumerable), (data, buffer) => {
-				var genericType = data.GetType().GenericTypeArguments[0];
-				var en = (data as IEnumerable).GetEnumerator();
+				var dType = data.GetType();
+				var genericType = data.GetType().GetElementType();
+				if(genericType == null)
+					genericType = data.GetType().GenericTypeArguments[0];
 
+				var en = (data as IEnumerable).GetEnumerator();
 				Queue<object> toWrite = new Queue<object>();
 				while(en.MoveNext()) {
 					var el = en.Current;
@@ -38,7 +41,7 @@ namespace Chip.Net.Data
 
 				buffer.Write((ushort)toWrite.Count);
 				while(toWrite.Count > 0) {
-					Write(buffer, toWrite.Dequeue(), genericType);
+					Write(buffer, toWrite.Dequeue());
 				}
 			} }
 		};
@@ -60,7 +63,10 @@ namespace Chip.Net.Data
 				return dataInst;
 			} },
 			{typeof(IEnumerable), (type, buffer) => {
-				var genericType = type.GenericTypeArguments[0];
+				var genericType = type.GetElementType();
+				if(genericType == null)
+					genericType = type.GenericTypeArguments[0];
+
 				var count = buffer.ReadUInt16();
 				IList list = (IList)Activator.CreateInstance(typeof(List<>).MakeGenericType(genericType));
 				for(int i = 0; i < count; i++) {

@@ -51,6 +51,8 @@ namespace Chip.Net.Testbed
 			public TestSerializable Inner { get; set; }
 			public TestNonSerializable NonSerializable { get; set; }
 			public IEnumerable<string> TestEnum { get; set; }
+
+			public IEnumerable<IEnumerable<byte>> Intricate { get; set; }
 		}
 
 		public class TestRFCService : RFCService {
@@ -107,7 +109,7 @@ namespace Chip.Net.Testbed
 			sw.Start();
 
 			int iterations = 0;
-			while (sw.ElapsedMilliseconds < 0) {
+			while (sw.ElapsedMilliseconds < 1000) {
 				iterations++;
 				TestSerializable ss = new TestSerializable();
 				ss.data = "Hello world!";
@@ -115,6 +117,11 @@ namespace Chip.Net.Testbed
 				ss.NonSerializable = new TestNonSerializable() {
 					data1 = "This should be serialized too"
 				};
+				ss.Intricate = new byte[2][] {
+					new byte[2] { 0, 1 },
+					new byte[2] { 2, 3 }
+				};
+
 				//s.data2 = "Data 2";
 				ss.Inner = new TestSerializable() {
 					data = "Hello inner world!",
