@@ -208,10 +208,29 @@ namespace Chip.Net.Services.RFC
 		}
 
 		public void Broadcast(IEnumerable<NetUser> recipients, Action<NetUser> userAction) {
+			var originalUser = currentUser;
 			if (recipients == null) recipients = GetUsers();
-			foreach(var user in recipients) {
+			foreach (var user in recipients) {
+				SetCurrentUser(user);
 				userAction.Invoke(user);
 			}
+
+			SetCurrentUser(originalUser);
+		}
+
+		public void Broadcast(Action userAction) {
+			this.Broadcast(GetUsers(), userAction);
+		}
+
+		public void Broadcast(IEnumerable<NetUser> recipients, Action userAction) {
+			var originalUser = currentUser;
+			if (recipients == null) recipients = GetUsers();
+			foreach (var user in recipients) {
+				SetCurrentUser(user);
+				userAction.Invoke();
+			}
+
+			SetCurrentUser(originalUser);
 		}
 
 		public NetUser GetCurrentUser() {
