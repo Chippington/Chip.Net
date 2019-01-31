@@ -259,7 +259,7 @@ namespace Chip.Net.Services.RFC
 
 		private DynamicSerializer GetSerializer(Type type) {
 			if (serializerMap.ContainsKey(type) == false) {
-				serializerMap[type] = new DynamicSerializer(type);
+				serializerMap[type] = DynamicSerializer.Get(type);
 			}
 
 			var serializer = serializerMap[type];

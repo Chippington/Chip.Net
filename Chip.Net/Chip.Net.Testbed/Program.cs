@@ -108,9 +108,16 @@ namespace Chip.Net.Testbed
 			One, Two, Three
 		}
 
+		public class TestStatic<T> {
+			public static int i { get; set; }
+		}
+
         static void Main(string[] args)
         {
 			var tttt = typeof(TestEnum);
+
+			TestStatic<int>.i = 5;
+			TestStatic<string>.i = 10;
 
 			Stopwatch sw = new Stopwatch();
 			sw.Start();

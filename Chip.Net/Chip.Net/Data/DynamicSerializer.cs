@@ -104,7 +104,21 @@ namespace Chip.Net.Data
 
 		private List<PropertyInfo> properties = new List<PropertyInfo>();
 
-		public DynamicSerializer(Type type) {
+		private static Dictionary<Type, DynamicSerializer> cache = new Dictionary<Type, DynamicSerializer>();
+		public static DynamicSerializer Get<T>() {
+			return Get(typeof(T));
+		}
+
+		public static DynamicSerializer Get(Type type) {
+			if (cache.ContainsKey(type))
+				return cache[type];
+
+			var n = new DynamicSerializer(type);
+			cache[type] = n;
+			return n;
+		}
+
+		private DynamicSerializer(Type type) {
 			var propertiesTemp = type.GetProperties()
 				.Where(i => SelectType(i.PropertyType) != null)
 				.OrderBy(i => i.PropertyType.FullName);

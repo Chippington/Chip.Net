@@ -16,7 +16,7 @@ namespace Chip.Net {
 			if (SerializerMap.ContainsKey(GetType()))
 				return SerializerMap[GetType()];
 
-			var serializer = new DynamicSerializer(GetType());
+			var serializer = DynamicSerializer.Get(GetType());
 			SerializerMap.Add(GetType(), serializer);
 			return serializer;
 		}
