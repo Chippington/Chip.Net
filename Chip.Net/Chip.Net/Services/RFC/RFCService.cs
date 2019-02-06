@@ -265,6 +265,14 @@ namespace Chip.Net.Services.RFC
 			this.Broadcast(GetUsers(), null, u => userAction(u));
 		}
 
+		public void Broadcast(NetUser exclude, Action userAction) {
+			this.Broadcast(GetUsers(), new NetUser[] { exclude }, _ => userAction());
+		}
+
+		public void Broadcast(NetUser exclude, Action<NetUser> userAction) {
+			this.Broadcast(GetUsers(), new NetUser[] { exclude }, u => userAction(u));
+		}
+
 		public void Broadcast(IEnumerable<NetUser> recipients, Action userAction) {
 			this.Broadcast(recipients, null, _ => userAction());
 		}
