@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Chip.Net.Data
 {
-	public class DataBuffer {
+	public class DataBuffer : ISerializable {
 		private MemoryStream ms;
 		private BinaryWriter writer;
 		private BinaryReader reader;
@@ -522,6 +522,24 @@ namespace Chip.Net.Data
 			writer = new BinaryWriter(ms);
 			reader = new BinaryReader(ms);
 			length = 0;
+		}
+
+		public void WriteTo(DataBuffer buffer) {
+			var bytes = ToBytes();
+			buffer.Write((byte[])bytes);
+		}
+
+		public void ReadFrom(DataBuffer buffer) {
+			var message = buffer.ReadByteArray();
+			ms = new MemoryStream();
+			for (int i = 0; i < message.Length; i++)
+				ms.WriteByte(message[i]);
+
+			ms.Seek(0, SeekOrigin.Begin);
+
+			writer = new BinaryWriter(ms);
+			reader = new BinaryReader(ms);
+			length = message.Length;
 		}
 	}
 }
