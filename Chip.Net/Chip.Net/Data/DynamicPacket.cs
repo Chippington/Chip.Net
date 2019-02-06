@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 
 namespace Chip.Net.Data {
-	public class DynamicPacket<TModel> : Packet {
+	public class Packet<TModel> : Packet {
 		private static DynamicSerializer s;
 		protected static DynamicSerializer Serializer {
 			get {
@@ -14,11 +14,11 @@ namespace Chip.Net.Data {
 
 		public TModel Model { get; set; }
 
-		public DynamicPacket() {
+		public Packet() {
 			Model = Activator.CreateInstance<TModel>();
 		}
 
-		public DynamicPacket(TModel model) {
+		public Packet(TModel model) {
 			this.Model = model;
 		}
 
