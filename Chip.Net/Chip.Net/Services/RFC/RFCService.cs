@@ -248,8 +248,7 @@ namespace Chip.Net.Services.RFC
 					var model = DynamicSerializer.Read(modelType, buff);
 					param[i] = model;
 				} else {
-					var model = Activator.CreateInstance(modelType);
-					serializer.ReadFrom(buff, model);
+					var model = serializer.ReadFrom(buff);
 					param[i] = model;
 				}
 			}

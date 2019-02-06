@@ -29,7 +29,7 @@ namespace Chip.Net.Data {
 
 		public override void ReadFrom(DataBuffer buffer) {
 			base.ReadFrom(buffer);
-			Serializer.ReadFrom(buffer, Model);
+			Model = (TModel)Serializer.ReadFrom(buffer);
 		}
 	}
 }

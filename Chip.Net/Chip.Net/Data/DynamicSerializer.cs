@@ -118,7 +118,16 @@ namespace Chip.Net.Data
 			return n;
 		}
 
+		public Type SerializedType { get; private set; }
+		public bool SingleType { get; private set; }
+
 		private DynamicSerializer(Type type) {
+			this.SerializedType = type;
+			var selectedType = SelectType(SerializedType);
+			if(selectedType != null && HasType(selectedType) && typeof(ISerializable).IsAssignableFrom(SerializedType) == false) {
+				SingleType = true;
+			}
+
 			var propertiesTemp = type.GetProperties()
 				.Where(i => SelectType(i.PropertyType) != null)
 				.OrderBy(i => i.PropertyType.FullName);
@@ -157,8 +166,7 @@ namespace Chip.Net.Data
 				};
 
 				ReadFunctions[tt] = (type, buffer) => {
-					var inst = Activator.CreateInstance(tt);
-					s.ReadFrom(buffer, inst);
+					var inst = s.ReadFrom(buffer);
 					return inst;
 				};
 
@@ -169,6 +177,11 @@ namespace Chip.Net.Data
 		}
 
 		public void WriteTo(DataBuffer buffer, object instance) {
+			if(SingleType) {
+				Write(buffer, instance, SelectType(SerializedType));
+				return;
+			}
+
 			byte flags = 0;
 			for (int i = 0; i < Writes.Count; i++) {
 				flags = (byte)(flags << 1);
@@ -187,12 +200,22 @@ namespace Chip.Net.Data
 			}
 		}
 
-		public void ReadFrom(DataBuffer buffer, object instance) {
+		public object ReadFrom(DataBuffer buffer) {
+			if(SingleType) {
+				return Read(SerializedType, buffer);
+			}
+
+			var instance = Activator.CreateInstance(SerializedType);
+			ReadInPlace(buffer, instance);
+			return instance;
+		}
+
+		public void ReadInPlace(DataBuffer buffer, object instance) {
 			byte flags = buffer.ReadByte();
 			byte mask = 1;
 
 			for (int i = Reads.Count - 1; i >= 0; i--) {
-				if((flags & mask) == mask) {
+				if ((flags & mask) == mask) {
 					var val = Read(Reads[i].Item1.PropertyType, buffer);
 					Reads[i].Item1.SetValue(instance, val);
 				}
