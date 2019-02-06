@@ -1,6 +1,7 @@
 ﻿using Chip.Net.Data;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace Chip.Net.Services.RFC
@@ -203,31 +204,35 @@ namespace Chip.Net.Services.RFC
 			action.Invoke(param);
 		}
 
-		public void Broadcast(Action<NetUser> userAction) {
-			this.Broadcast(GetUsers(), userAction);
-		}
-
-		public void Broadcast(IEnumerable<NetUser> recipients, Action<NetUser> userAction) {
-			var originalUser = currentUser;
-			if (recipients == null) recipients = GetUsers();
-			foreach (var user in recipients) {
-				SetCurrentUser(user);
-				userAction.Invoke(user);
-			}
-
-			SetCurrentUser(originalUser);
-		}
-
 		public void Broadcast(Action userAction) {
-			this.Broadcast(GetUsers(), userAction);
+			this.Broadcast(GetUsers(), null, _ => userAction());
+		}
+
+		public void Broadcast(Action<NetUser> userAction) {
+			this.Broadcast(GetUsers(), null, u => userAction(u));
 		}
 
 		public void Broadcast(IEnumerable<NetUser> recipients, Action userAction) {
+			this.Broadcast(recipients, null, _ => userAction());
+		}
+
+		public void Broadcast(IEnumerable<NetUser> recipients, Action<NetUser> userAction) {
+			this.Broadcast(recipients, null, u => userAction(u));
+		}
+
+		public void Broadcast(IEnumerable<NetUser> recipients, IEnumerable<NetUser> exclude, Action userAction) {
+			this.Broadcast(recipients, exclude, _ => userAction());
+		}
+
+		public void Broadcast(IEnumerable<NetUser> recipients, IEnumerable<NetUser> exclude, Action<NetUser> userAction) {
 			var originalUser = currentUser;
 			if (recipients == null) recipients = GetUsers();
 			foreach (var user in recipients) {
+				if (exclude != null && exclude.Contains(user))
+					continue;
+
 				SetCurrentUser(user);
-				userAction.Invoke();
+				userAction.Invoke(user);
 			}
 
 			SetCurrentUser(originalUser);

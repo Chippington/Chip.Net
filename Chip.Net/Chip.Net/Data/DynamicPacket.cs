@@ -12,14 +12,24 @@ namespace Chip.Net.Data {
 			}
 		}
 
+		public TModel Model { get; set; }
+
+		public DynamicPacket() {
+			Model = Activator.CreateInstance<TModel>();
+		}
+
+		public DynamicPacket(TModel model) {
+			this.Model = model;
+		}
+
 		public override void WriteTo(DataBuffer buffer) {
 			base.WriteTo(buffer);
-			Serializer.WriteTo(buffer, this);
+			Serializer.WriteTo(buffer, Model);
 		}
 
 		public override void ReadFrom(DataBuffer buffer) {
 			base.ReadFrom(buffer);
-			Serializer.ReadFrom(buffer, this);
+			Serializer.ReadFrom(buffer, Model);
 		}
 	}
 }
