@@ -23,8 +23,8 @@ namespace Chip.Net.Services.RFC
 		private byte svActionId;
 		private byte clActionId;
 
-		private Dictionary<byte, Action<object[]>> svActionMap;
-		private Dictionary<byte, Action<object[]>> clActionMap;
+		private Dictionary<byte, Action<object[], bool>> svActionMap;
+		private Dictionary<byte, Action<object[], bool>> clActionMap;
 
 		private Dictionary<byte, Type[]> svTypeMap;
 		private Dictionary<byte, Type[]> clTypeMap;
@@ -36,8 +36,8 @@ namespace Chip.Net.Services.RFC
 			userList = new List<NetUser>();
 			serializerMap = new Dictionary<Type, DynamicSerializer>();
 
-			svActionMap = new Dictionary<byte, Action<object[]>>();
-			clActionMap = new Dictionary<byte, Action<object[]>>();
+			svActionMap = new Dictionary<byte, Action<object[], bool>>();
+			clActionMap = new Dictionary<byte, Action<object[], bool>>();
 
 			svTypeMap = new Dictionary<byte, Type[]>();
 			clTypeMap = new Dictionary<byte, Type[]>();
@@ -59,6 +59,26 @@ namespace Chip.Net.Services.RFC
 					userList.Remove(arg.User);
 				};
 			}
+		}
+
+		protected Action<T> SharedAction<T>(Action<T> real) {
+			var a = RemoteAction((p) => real((T)p[0]), new Type[] { typeof(T) });
+			return (realVal) => a.Invoke(new object[] { realVal });
+		}
+
+		protected Action<T1, T2> SharedAction<T1, T2>(Action<T1, T2> real) {
+			var a = RemoteAction((p) => real((T1)p[0], (T2)p[1]), new Type[] { typeof(T1), typeof(T2) });
+			return (val1, val2) => a.Invoke(new object[] { val1, val2 });
+		}
+
+		protected Action<T1, T2, T3> SharedAction<T1, T2, T3>(Action<T1, T2, T3> real) {
+			var a = RemoteAction((p) => real((T1)p[0], (T2)p[1], (T3)p[2]), new Type[] { typeof(T1), typeof(T2), typeof(T3) });
+			return (val1, val2, val3) => a.Invoke(new object[] { val1, val2, val3 });
+		}
+
+		protected Action<T1, T2, T3, T4> SharedAction<T1, T2, T3, T4>(Action<T1, T2, T3, T4> real) {
+			var a = RemoteAction((p) => real((T1)p[0], (T2)p[1], (T3)p[2], (T4)p[3]), new Type[] { typeof(T1), typeof(T2), typeof(T3), typeof(T4) });
+			return (val1, val2, val3, val4) => a.Invoke(new object[] { val1, val2, val3, val4 });
 		}
 
 		protected Action<T> ServerAction<T>(Action<T> real) {
@@ -101,10 +121,43 @@ namespace Chip.Net.Services.RFC
 			return (val1, val2, val3, val4) => a.Invoke(new object[] { val1, val2, val3, val4 });
 		}
 
+		private Action<object[]> RemoteAction(Action<object[]> real, Type[] types) {
+			byte id = svActionId++;
+
+			Action<object[], bool> action = (param, isReceiving) => {
+				byte _id = id;
+
+				if(isReceiving) {
+					real.Invoke(param);
+				} else {
+					RFCExecute msg = new RFCExecute();
+					msg.FunctionId = _id;
+					var buff = new DataBuffer();
+					WriteModelsToBuffer(buff, param);
+					msg.FunctionParameters = buff.ToBytes();
+
+					if (IsServer) {
+						SendPacketToClient(CurrentUser, msg);
+					}
+
+					if (IsClient) {
+						SendPacketToServer(msg);
+					}
+				}
+			};
+
+			svActionMap[id] = (obj, rec) => action(obj, rec);
+			clActionMap[id] = (obj, rec) => action(obj, rec);
+			svTypeMap[id] = types;
+			clTypeMap[id] = types;
+
+			return (param) => action(param, false);
+		}
+
 		private Action<object[]> ServerAction(Action<object[]> real, Type[] types) {
 			byte id = svActionId++;
 
-			Action<object[]> action = (param) => {
+			Action<object[], bool> action = (param, isReceiving) => {
 				byte _id = id;
 				if (IsServer) {
 					real.Invoke(param);
@@ -120,16 +173,16 @@ namespace Chip.Net.Services.RFC
 				}
 			};
 
-			svActionMap[id] = (obj) => action(obj);
+			svActionMap[id] = (obj, rec) => action(obj, rec);
 			svTypeMap[id] = types;
 
-			return action;
+			return (param) => action(param, false);
 		}
 
 		private Action<object[]> ClientAction(Action<object[]> real, Type[] types) {
 			byte id = clActionId++;
 
-			Action<object[]> action = (param) => {
+			Action<object[], bool> action = (param, isReceiving) => {
 				byte _id = id;
 				if (IsClient) {
 					real.Invoke(param);
@@ -148,10 +201,10 @@ namespace Chip.Net.Services.RFC
 				}
 			};
 
-			clActionMap[id] = (obj) => action(obj);
+			clActionMap[id] = (obj, rec) => action(obj, rec);
 			clTypeMap[id] = types;
 
-			return action;
+			return (param) => action(param, false);
 		}
 
 		private void WriteModelsToBuffer(DataBuffer buffer, object[] param) {
@@ -174,7 +227,7 @@ namespace Chip.Net.Services.RFC
 			var buff = new DataBuffer(obj.FunctionParameters);
 			buff.Seek(0);
 
-			Action<object[]> action = null;
+			Action<object[], bool> action = null;
 			if (IsServer) {
 				SetCurrentUser(obj.Sender);
 				action = svActionMap[obj.FunctionId];
@@ -201,7 +254,7 @@ namespace Chip.Net.Services.RFC
 				}
 			}
 
-			action.Invoke(param);
+			action.Invoke(param, true);
 		}
 
 		public void Broadcast(Action userAction) {
@@ -246,7 +299,7 @@ namespace Chip.Net.Services.RFC
 			return userList.AsReadOnly();
 		}
 
-		protected void SetCurrentUser(NetUser user) {
+		public void SetCurrentUser(NetUser user) {
 			currentUser = user;
 		}
 
