@@ -82,6 +82,10 @@ namespace Chip.Net.Services {
 			if (Locked)
 				throw new Exception("Services have been locked");
 
+			if(typeof(T) != inst.GetType()) {
+				serviceMap.Add(inst.GetType(), inst);
+			}
+
 			serviceMap.Add(typeof(T), inst);
 			serviceList.Add(inst);
 			return inst;
