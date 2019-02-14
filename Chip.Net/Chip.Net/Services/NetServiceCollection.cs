@@ -86,6 +86,9 @@ namespace Chip.Net.Services {
 				serviceMap.Add(inst.GetType(), inst);
 			}
 
+			if (serviceMap.ContainsKey(typeof(T)))
+				return (T)serviceMap[typeof(T)];
+
 			serviceMap.Add(typeof(T), inst);
 			serviceList.Add(inst);
 			return inst;
