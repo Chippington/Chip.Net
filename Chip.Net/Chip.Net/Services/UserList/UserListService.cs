@@ -37,6 +37,10 @@ namespace Chip.Net.Services.UserList {
 			ClSetUserList = ClientAction<List<NetUser>>(_clSetUserList);
 		}
 
+		public NetUser Get(int userId) {
+			return userList.FirstOrDefault(i => i.UserId == userId);
+		}
+
 		private void _clSetUser(NetUser obj) {
 			this.LocalUser = obj;
 			OnLocalUserSet?.Invoke(obj);
