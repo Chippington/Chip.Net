@@ -8,7 +8,7 @@ namespace Chip.Net.Data
 	{
 		public object UserKey { get; private set; }
 
-		public int UserId { get; set; }
+		public int UserId { get; private set; }
 
 		private Dictionary<string, object> localDataMap;
 
@@ -57,6 +57,15 @@ namespace Chip.Net.Data
 
 		public void ReadFrom(DataBuffer buffer) {
 			UserId = buffer.ReadInt16();
+		}
+
+		public override bool Equals(object obj) {
+			var other = obj as NetUser;
+			if(other != null) {
+				return other.UserId == UserId;
+			}
+
+			return base.Equals(obj);
 		}
 	}
 }

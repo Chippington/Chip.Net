@@ -6,9 +6,13 @@ using System.Linq;
 using System.Text;
 
 namespace Chip.Net.Services.UserList {
+	public delegate void UserListEvent(NetUser User);
+
 	public class UserListService : RFCService {
-		public NetUser ThisUser { get; set; }
+		public NetUser LocalUser { get; set; }
 		public IReadOnlyList<NetUser> UserList { get; private set; }
+
+		public UserListEvent OnLocalUserSet { get; set; }
 
 		private List<NetUser> userList;
 		private Action<NetUser> ClSetUser;
@@ -34,7 +38,8 @@ namespace Chip.Net.Services.UserList {
 		}
 
 		private void _clSetUser(NetUser obj) {
-			this.ThisUser = obj;
+			this.LocalUser = obj;
+			OnLocalUserSet?.Invoke(obj);
 		}
 
 		private void _clAddUser(NetUser obj) {
