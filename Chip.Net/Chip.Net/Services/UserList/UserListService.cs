@@ -53,7 +53,7 @@ namespace Chip.Net.Services.UserList {
 		}
 
 		private void _clSetUserList(List<NetUser> obj) {
-			this.userList = obj;
+			this.userList.AddRange(obj.Where(i => userList.Any(o => o.UserId != i.UserId)));
 		}
 
 		private void onUserDisconnected(NetEventArgs args) {
