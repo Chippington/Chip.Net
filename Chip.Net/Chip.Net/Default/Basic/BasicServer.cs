@@ -24,6 +24,7 @@ namespace Chip.Net.Default.Basic
 		private INetServerProvider provider;
 		private Dictionary<object, NetUser> userMap;
 		private List<NetUser> userList;
+		private int nextUserId;
 		private bool disposed;
 
 		public virtual void InitializeServer(NetContext context) {
@@ -31,6 +32,7 @@ namespace Chip.Net.Default.Basic
 			this.Context = context;
 			this.IsActive = false;
 
+			nextUserId = 0;
 			disposed = false;
 			userMap = new Dictionary<object, NetUser>();
 			userList = new List<NetUser>();
@@ -54,7 +56,7 @@ namespace Chip.Net.Default.Basic
 		}
 
 		private void OnProviderUserConnected(ProviderEventArgs args) {
-			var user = new NetUser(args.UserKey);
+			var user = new NetUser(args.UserKey, nextUserId);
 			userMap[user.UserKey] = user;
 			userList.Add(user);
 

@@ -4,14 +4,17 @@ using System.Text;
 
 namespace Chip.Net.Data
 {
-	public class NetUser
+	public class NetUser : ISerializable
 	{
 		public object UserKey { get; private set; }
 
+		public int UserId { get; set; }
+
 		private Dictionary<string, object> localDataMap;
 
-		public NetUser(object userKey)
+		public NetUser(object userKey, int userId)
 		{
+			this.UserId = userId;
 			this.UserKey = userKey;
 			localDataMap = new Dictionary<string, object>();
 		}
@@ -46,6 +49,14 @@ namespace Chip.Net.Data
 				return default(T);
 
 			return (T)ret;
+		}
+
+		public void WriteTo(DataBuffer buffer) {
+			buffer.Write((short)UserId);
+		}
+
+		public void ReadFrom(DataBuffer buffer) {
+			UserId = buffer.ReadInt16();
 		}
 	}
 }
