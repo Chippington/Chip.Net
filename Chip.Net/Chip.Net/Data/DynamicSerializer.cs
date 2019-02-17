@@ -129,11 +129,10 @@ namespace Chip.Net.Data
 			}
 
 			var propertiesTemp = type.GetProperties()
-				.Where(i => SelectType(i.PropertyType) != null)
+				.Where(i => SelectType(i.PropertyType) != null && i.PropertyType != typeof(object))
 				.OrderBy(i => i.PropertyType.FullName);
 
 			this.properties = propertiesTemp.ToList();
-
 
 			var writes = properties.Select(i => new	Tuple<PropertyInfo, WriteFunc>(i, WriteFunctions[SelectType(i.PropertyType)])).ToList();
 			var reads = properties.Select(i => new Tuple<PropertyInfo, ReadFunc>(i, ReadFunctions[SelectType(i.PropertyType)])).ToList();
@@ -147,6 +146,9 @@ namespace Chip.Net.Data
 		private List<Tuple<PropertyInfo, ReadFunc>> Reads { get; set; } = new List<Tuple<PropertyInfo, ReadFunc>>();
 
 		public static Type SelectType(Type tt) {
+			if (tt == typeof(object))
+				return null;
+
 			if (WriteFunctions.ContainsKey(tt))
 				return tt;
 

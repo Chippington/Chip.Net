@@ -8,7 +8,7 @@ namespace Chip.Net.Services.RFC
 {
 	public class RFCService : NetService {
 		private NetUser currentUser;
-		public NetUser CurrentUser {
+		protected NetUser CurrentUser {
 			get {
 				return currentUser;
 			}
