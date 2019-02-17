@@ -14,7 +14,7 @@ namespace Chip.Net.Services.RFC
 			}
 		}
 
-		public IReadOnlyList<NetUser> AllUsers {
+		protected IReadOnlyList<NetUser> AllUsers {
 			get {
 				return GetUsers();
 			}

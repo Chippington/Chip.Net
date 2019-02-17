@@ -12,6 +12,12 @@ namespace Chip.Net.Data
 
 		private Dictionary<string, object> localDataMap;
 
+		public NetUser() {
+			this.UserId = -1;
+			this.UserKey = null;
+			localDataMap = new Dictionary<string, object>();
+		}
+
 		public NetUser(object userKey, int userId)
 		{
 			this.UserId = userId;
@@ -66,6 +72,10 @@ namespace Chip.Net.Data
 			}
 
 			return base.Equals(obj);
+		}
+
+		public override string ToString() {
+			return "User [" + UserId + "]";
 		}
 	}
 }

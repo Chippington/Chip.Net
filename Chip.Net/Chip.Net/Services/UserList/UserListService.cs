@@ -69,6 +69,7 @@ namespace Chip.Net.Services.UserList {
 
 			SetCurrentUser(args.User);
 			ClSetUserList(userList);
+			ClSetUser(args.User);
 
 			Broadcast(CurrentUser, () => {
 				ClAddUser(args.User);
