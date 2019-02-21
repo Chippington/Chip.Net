@@ -57,9 +57,9 @@ namespace Chip.Net.UnitTests.Default
 			return cl;
 		}
 
-		void Wait(Func<bool> func) {
+		void Wait(Func<bool> func, int ticks = 1000) {
 			var tick = Environment.TickCount;
-			while (Environment.TickCount - tick < 1000 && func() == false)
+			while (Environment.TickCount - tick < ticks && func() == false)
 				System.Threading.Thread.Sleep(10);
 		}
 
@@ -347,7 +347,7 @@ namespace Chip.Net.UnitTests.Default
 				cl.UpdateClient();
 				return cl.IsConnected;
 			});
-
+			Assert.IsTrue(cl.IsConnected);
 			sv.SendPacket(new TestPacket());
 
 			Wait(() => {

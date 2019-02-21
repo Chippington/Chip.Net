@@ -1,5 +1,6 @@
 ﻿using Chip.Net.Data;
 using Chip.Net.Default.Basic;
+using Chip.Net.Providers.SocketProvider;
 using Chip.Net.Providers.TCP;
 using Chip.Net.Services.NetTime;
 using Chip.Net.Services.Ping;
@@ -114,70 +115,70 @@ namespace Chip.Net.Testbed
 
         static void Main(string[] args)
         {
-			var tttt = typeof(TestEnum);
+			//var tttt = typeof(TestEnum);
 
-			TestStatic<int>.i = 5;
-			TestStatic<string>.i = 10;
+			//TestStatic<int>.i = 5;
+			//TestStatic<string>.i = 10;
 
-			Stopwatch sw = new Stopwatch();
-			sw.Start();
+			//Stopwatch sw = new Stopwatch();
+			//sw.Start();
 
-			int iterations = 0;
-			while (sw.ElapsedMilliseconds < 1000) {
-				iterations++;
-				TestSerializable ss = new TestSerializable();
-				ss.data = "Hello world!";
-				ss.data1 = "Data 1";
-				ss.NonSerializable = new TestNonSerializable() {
-					data1 = "This should be serialized too"
-				};
-				ss.Enum = TestEnum.Three;
-				ss.Intricate = new byte[2][] {
-					new byte[2] { 0, 1 },
-					new byte[2] { 2, 3 }
-				};
+			//int iterations = 0;
+			//while (sw.ElapsedMilliseconds < 1000) {
+			//	iterations++;
+			//	TestSerializable ss = new TestSerializable();
+			//	ss.data = "Hello world!";
+			//	ss.data1 = "Data 1";
+			//	ss.NonSerializable = new TestNonSerializable() {
+			//		data1 = "This should be serialized too"
+			//	};
+			//	ss.Enum = TestEnum.Three;
+			//	ss.Intricate = new byte[2][] {
+			//		new byte[2] { 0, 1 },
+			//		new byte[2] { 2, 3 }
+			//	};
 
-				//s.data2 = "Data 2";
-				ss.Inner = new TestSerializable() {
-					data = "Hello inner world!",
-					Inner = new TestSerializable() {
-						data2 = "Super secret inner world!",
-					},
-					TestEnum = new List<string>() {
-						"str1",
-						"str2",
-						"str3",
-						"str4",
-					}
-				};
+			//	//s.data2 = "Data 2";
+			//	ss.Inner = new TestSerializable() {
+			//		data = "Hello inner world!",
+			//		Inner = new TestSerializable() {
+			//			data2 = "Super secret inner world!",
+			//		},
+			//		TestEnum = new List<string>() {
+			//			"str1",
+			//			"str2",
+			//			"str3",
+			//			"str4",
+			//		}
+			//	};
 
-				DataBuffer b = new DataBuffer();
-				ss.WriteTo(b);
+			//	DataBuffer b = new DataBuffer();
+			//	ss.WriteTo(b);
 
-				b.Seek(0);
-				TestSerializable sss = new TestSerializable();
-				sss.ReadFrom(b);
-			}
+			//	b.Seek(0);
+			//	TestSerializable sss = new TestSerializable();
+			//	sss.ReadFrom(b);
+			//}
 
 
-			TestPacketTwo t = new TestPacketTwo();
-			t.TestInt = 1;
-			t.TestIntTwo = 2;
-			t.TestFloat = 3f;
-			t.TestFloatTwo = 4f;
-			t.TestString = "Hello";
-			t.TestStringTwo = "World";
+			//TestPacketTwo t = new TestPacketTwo();
+			//t.TestInt = 1;
+			//t.TestIntTwo = 2;
+			//t.TestFloat = 3f;
+			//t.TestFloatTwo = 4f;
+			//t.TestString = "Hello";
+			//t.TestStringTwo = "World";
 
-			DataBuffer bb = new DataBuffer();
-			t.WriteTo(bb);
+			//DataBuffer bb = new DataBuffer();
+			//t.WriteTo(bb);
 
-			bb.Seek(0);
-			TestPacketTwo result = new TestPacketTwo();
-			result.ReadFrom(bb);
+			//bb.Seek(0);
+			//TestPacketTwo result = new TestPacketTwo();
+			//result.ReadFrom(bb);
 
 			INetServer sv = new BasicServer();
 			sv.InitializeServer(Context);
-			sv.StartServer(new TCPServerProvider());
+			sv.StartServer(new SocketServerProvider());
 
 			INetClient cl = new BasicClient();
 			cl.InitializeClient(Context);
@@ -199,13 +200,13 @@ namespace Chip.Net.Testbed
 					}
 				};
 
-				TestNonSerializable ns = new TestNonSerializable();
-				ns.data1 = "Hello world!";
+				//TestNonSerializable ns = new TestNonSerializable();
+				//ns.data1 = "Hello world!";
 
-				cl.Context.Services.Get<TestRFCService>().ServerMethodTwo(ns, "Testing!!!");
+				cl.Context.Services.Get<TestRFCService>().ServerMethod(s);
 			};
 
-			cl.StartClient(new TCPClientProvider());
+			cl.StartClient(new SocketClientProvider());
 
 			while(true) {
 				System.Threading.Thread.Sleep(10);
