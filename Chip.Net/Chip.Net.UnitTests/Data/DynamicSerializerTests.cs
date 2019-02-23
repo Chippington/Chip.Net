@@ -6,6 +6,12 @@ using System.Text;
 
 namespace Chip.Net.UnitTests.Data
 {
+	public enum TestEnum {
+		One = 1,
+		Two = 10,
+		Three = 11,
+	}
+
 	public class TestModelISerializable : ISerializable {
 		public UInt16 UShort { get; set; }
 		public UInt32 UInt { get; set; }
@@ -35,6 +41,7 @@ namespace Chip.Net.UnitTests.Data
 		public byte ByteValue { get; set; }
 		public short ShortValue { get; set; }
 		public int IntValue { get; set; }
+		public long LongValue { get; set; }
 	}
 
 	public class TestLargeModel {
@@ -71,6 +78,7 @@ namespace Chip.Net.UnitTests.Data
 			m.ByteValue = (byte)r.Next();
 			m.ShortValue = (short)r.Next();
 			m.IntValue = (int)r.Next();
+			m.LongValue = (long)r.Next();
 
 			DataBuffer b = new DataBuffer();
 			DynamicSerializer.Write(b, typeof(TestModel), m);
@@ -85,6 +93,7 @@ namespace Chip.Net.UnitTests.Data
 			Assert.AreEqual(m.ByteValue, mresult.ByteValue);
 			Assert.AreEqual(m.ShortValue, mresult.ShortValue);
 			Assert.AreEqual(m.IntValue, mresult.IntValue);
+			Assert.AreEqual(m.LongValue, mresult.LongValue);
 		}
 
 		[TestMethod]
@@ -296,6 +305,27 @@ namespace Chip.Net.UnitTests.Data
 			Assert.AreEqual(m.UInt, result.UInt);
 			Assert.AreEqual(m.UShort, result.UShort);
 			Assert.AreEqual(m.ULong, result.ULong);
+		}
+
+		[TestMethod]
+		public void DynamicSerializer_WriteReadEnum() {
+			TestEnum e1 = TestEnum.One;
+			TestEnum e2 = TestEnum.Two;
+			TestEnum e3 = TestEnum.Three;
+
+			DataBuffer b = new DataBuffer();
+			DynamicSerializer.Write<TestEnum>(b, e1);
+			DynamicSerializer.Write<TestEnum>(b, e2);
+			DynamicSerializer.Write<TestEnum>(b, e3);
+
+			b.Seek(0);
+			var r1 = DynamicSerializer.Read<TestEnum>(b);
+			var r2 = DynamicSerializer.Read<TestEnum>(b);
+			var r3 = DynamicSerializer.Read<TestEnum>(b);
+
+			Assert.AreEqual(e1, r1);
+			Assert.AreEqual(e2, r2);
+			Assert.AreEqual(e3, r3);
 		}
 	}
 }

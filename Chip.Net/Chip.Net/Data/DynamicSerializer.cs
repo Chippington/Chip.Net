@@ -74,9 +74,11 @@ namespace Chip.Net.Data
 
 		public static bool CanReadWrite(Type type) {
 			return (Writers.ContainsKey(type) && Readers.ContainsKey(type)) || 
-				type.GetConstructors().Any(i => i.GetParameters().Count() == 0 ||
+				type.GetConstructors().Any(i => i.GetParameters().Count() == 0) ||
+				typeof(IEnumerable).IsAssignableFrom(type) ||
 				typeof(ICollection).IsAssignableFrom(type) ||
-				typeof(ISerializable).IsAssignableFrom(type));
+				typeof(ISerializable).IsAssignableFrom(type) ||
+				type.IsEnum;
 		}
     }
 
@@ -87,7 +89,12 @@ namespace Chip.Net.Data
 		private Type ListType;
 
 		public DataWriter(Type type) {
-			if(typeof(ICollection).IsAssignableFrom(type)) {
+			if (type.IsEnum) {
+				WriteAction = WriteEnum;
+				return;
+			}
+
+			if (typeof(IEnumerable).IsAssignableFrom(type)) {
 				WriteAction = WriteList;
 
 				if (type.GenericTypeArguments.Any())
@@ -100,6 +107,12 @@ namespace Chip.Net.Data
 
 			Properties = DataHelpers.GetSerializableProperties(type);
 			WriteAction = WritePropertyValues;
+		}
+
+		private void WriteEnum(DataBuffer buffer, object data) {
+			var underlying = data.GetType().GetEnumUnderlyingType();
+			byte underlyingValue = (byte)((IConvertible)data).ToType(typeof(byte), null);
+			buffer.Write((byte)underlyingValue);
 		}
 
 		private void WriteList(DataBuffer buffer, object inst) {
@@ -151,7 +164,13 @@ namespace Chip.Net.Data
 		private Type ListType;
 
 		public DataReader(Type type) {
-			if (typeof(ICollection).IsAssignableFrom(type)) {
+			ModelType = type;
+			if (type.IsEnum) {
+				ReadFunction = ReadEnum;
+				return;
+			}
+
+			if (typeof(IEnumerable).IsAssignableFrom(type)) {
 
 				if (type.GenericTypeArguments.Any()) {
 					ReadFunction = ReadList;
@@ -166,7 +185,10 @@ namespace Chip.Net.Data
 
 			Properties = DataHelpers.GetSerializableProperties(type);
 			ReadFunction = ReadPropertyValues;
-			ModelType = type;
+		}
+
+		private object ReadEnum(DataBuffer buffer, object arg2) {
+			return Enum.ToObject(ModelType, buffer.ReadByte());
 		}
 
 		private object ReadList(DataBuffer buffer, object inst) {
