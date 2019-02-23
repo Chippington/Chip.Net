@@ -142,7 +142,7 @@ namespace Chip.Net.Providers.TCP
 		}
 
 		public void SendMessage(object recipientKey, object excludeKey, DataBuffer buffer) {
-			if (recipientKey == excludeKey)
+			if (recipientKey == excludeKey && recipientKey != null)
 				return;
 
 			var msg = Compress(buffer.ToBytes());
@@ -152,7 +152,7 @@ namespace Chip.Net.Providers.TCP
 				tcpClient.GetStream().Write(BitConverter.GetBytes((Int16)msg.Length), 0, 2);
 				tcpClient.GetStream().Write(msg, 0, msg.Length);
 				tcpClient.GetStream().Flush();
-			} catch {
+			} catch(Exception ex) {
 				if(connected.Contains(recipientKey as TcpClient))
 					DisconnectUser(recipientKey);
 			}

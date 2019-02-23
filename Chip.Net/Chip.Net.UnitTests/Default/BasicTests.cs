@@ -335,6 +335,11 @@ namespace Chip.Net.UnitTests.Default
 		[TestMethod]
 		public void Server_SendPacket_ClientReceivesPacket() {
 			var sv = StartNewServer();
+			NetUser user = null;
+			sv.OnUserConnected += i => {
+				user = i.User;
+			};
+
 			var cl = StartNewClient();
 			bool received = false;
 
@@ -347,7 +352,8 @@ namespace Chip.Net.UnitTests.Default
 				cl.UpdateClient();
 				return cl.IsConnected;
 			});
-			Assert.IsTrue(cl.IsConnected);
+
+			Assert.IsNotNull(user);
 			sv.SendPacket(new TestPacket());
 
 			Wait(() => {

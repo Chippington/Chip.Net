@@ -95,7 +95,12 @@ namespace Chip.Net.Default.Basic
 					buffer.Write((byte)sid);
 					p.WriteTo(buffer);
 
-					provider.SendMessage(p.Recipient?.UserKey, p.Exclude?.UserKey, buffer);
+					if(p.Recipient == null) {
+						foreach(var user in userList)
+							provider.SendMessage(user.UserKey, p.Exclude?.UserKey, buffer);
+					} else {
+						provider.SendMessage(p.Recipient?.UserKey, p.Exclude?.UserKey, buffer);
+					}
 				}
 			}
 
@@ -147,7 +152,8 @@ namespace Chip.Net.Default.Basic
 		}
 
 		public void SendPacket(Packet packet) {
-			packetQueue.Enqueue(packet);
+			foreach (var user in userList)
+				SendPacket(user, packet);
 		}
 
 		public void SendPacket(NetUser user, Packet packet) {
