@@ -13,6 +13,7 @@ namespace Chip.Net.Providers.SocketProvider
 
 		public bool IsConnected { get; }
 
+		private object LockObject = new object();
 		private Socket Connection;
 		private Queue<DataBuffer> Incoming;
 
@@ -54,7 +55,9 @@ namespace Chip.Net.Providers.SocketProvider
 				Array.Copy(state.buffer, arr, bytesRead);
 
 				DataBuffer buffer = new DataBuffer(arr);
-				Incoming.Enqueue(buffer);
+
+				lock(LockObject)
+					Incoming.Enqueue(buffer);
 			}
 		}
 
@@ -74,9 +77,11 @@ namespace Chip.Net.Providers.SocketProvider
 		}
 
 		public IEnumerable<DataBuffer> GetIncomingMessages() {
-			var t = new Queue<DataBuffer>(Incoming);
-			Incoming = new Queue<DataBuffer>();
-			return t;
+			lock(LockObject) {
+				var t = new Queue<DataBuffer>(Incoming);
+				Incoming = new Queue<DataBuffer>();
+				return t;
+			}
 		}
 
 		public void SendMessage(DataBuffer data) {

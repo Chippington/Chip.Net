@@ -18,6 +18,7 @@ namespace Chip.Net.Providers.SocketProvider {
 
 		private Queue<Tuple<object, DataBuffer>> Incoming;
 		private List<Socket> Clients;
+		private object LockObject = new object();
 
 		public void DisconnectUser(object userKey) {
 			var client = userKey as Socket;
@@ -40,9 +41,11 @@ namespace Chip.Net.Providers.SocketProvider {
 		}
 
 		public IEnumerable<Tuple<object, DataBuffer>> GetIncomingMessages() {
-			var t = new Queue<Tuple<object, DataBuffer>>(Incoming);
-			Incoming = new Queue<Tuple<object, DataBuffer>>();
-			return t;
+			lock(LockObject) {
+				var t = new Queue<Tuple<object, DataBuffer>>(Incoming);
+				Incoming = new Queue<Tuple<object, DataBuffer>>();
+				return t;
+			}
 		}
 
 		public void SendMessage(DataBuffer data, object excludeKey = null) {
@@ -106,7 +109,9 @@ namespace Chip.Net.Providers.SocketProvider {
 				Array.Copy(state.buffer, arr, bytesRead);
 
 				DataBuffer buffer = new DataBuffer(arr);
-				Incoming.Enqueue(new Tuple<object, DataBuffer>(client, buffer));
+
+				lock(LockObject)
+					Incoming.Enqueue(new Tuple<object, DataBuffer>(client, buffer));
 			}
 		}
 

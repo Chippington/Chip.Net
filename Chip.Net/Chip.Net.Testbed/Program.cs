@@ -178,7 +178,7 @@ namespace Chip.Net.Testbed
 
 			INetServer sv = new BasicServer();
 			sv.InitializeServer(Context);
-			sv.StartServer(new SocketServerProvider());
+			sv.StartServer(new TCPServerProvider());
 
 			INetClient cl = new BasicClient();
 			cl.InitializeClient(Context);
@@ -206,7 +206,7 @@ namespace Chip.Net.Testbed
 				cl.Context.Services.Get<TestRFCService>().ServerMethod(s);
 			};
 
-			cl.StartClient(new SocketClientProvider());
+			cl.StartClient(new TCPClientProvider());
 
 			while(true) {
 				System.Threading.Thread.Sleep(10);
