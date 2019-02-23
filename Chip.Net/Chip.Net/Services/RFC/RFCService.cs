@@ -29,12 +29,10 @@ namespace Chip.Net.Services.RFC
 		private Dictionary<byte, Type[]> svTypeMap;
 		private Dictionary<byte, Type[]> clTypeMap;
 
-		private Dictionary<Type, DynamicSerializer> serializerMap;
 		private List<NetUser> userList;
 
 		public RFCService() {
 			userList = new List<NetUser>();
-			serializerMap = new Dictionary<Type, DynamicSerializer>();
 
 			svActionMap = new Dictionary<byte, Action<object[], bool>>();
 			clActionMap = new Dictionary<byte, Action<object[], bool>>();
@@ -210,13 +208,9 @@ namespace Chip.Net.Services.RFC
 		private void WriteModelsToBuffer(DataBuffer buffer, object[] param) {
 			for(int i = 0; i < param.Length; i++) {
 				var pType = param[i].GetType();
-				if (DynamicSerializer.HasType(pType)) {
-					DynamicSerializer.Write(buffer, param[i], pType);
-					continue;
+				if (DynamicSerializer.CanReadWrite(pType)) {
+					DynamicSerializer.Write(buffer, pType, param[i]);
 				}
-
-				var s = GetSerializer(pType);
-				s.WriteTo(buffer, param[i]);
 			}
 		}
 
@@ -242,13 +236,9 @@ namespace Chip.Net.Services.RFC
 			param = new object[modelTypes.Length];
 			for (int i = 0; i < param.Length; i++) {
 				var modelType = modelTypes[i];
-				var serializer = GetSerializer(modelType);
 
-				if (DynamicSerializer.HasType(modelType)) {
-					var model = DynamicSerializer.Read(modelType, buff);
-					param[i] = model;
-				} else {
-					var model = serializer.ReadFrom(buff);
+				if (DynamicSerializer.CanReadWrite(modelType)) {
+					var model = DynamicSerializer.Read(buff, modelType);
 					param[i] = model;
 				}
 			}
@@ -320,15 +310,6 @@ namespace Chip.Net.Services.RFC
 
 		public override void StopService() {
 			base.StopService();
-		}
-
-		private DynamicSerializer GetSerializer(Type type) {
-			if (serializerMap.ContainsKey(type) == false) {
-				serializerMap[type] = DynamicSerializer.Get(type);
-			}
-
-			var serializer = serializerMap[type];
-			return serializer;
 		}
 	}
 }

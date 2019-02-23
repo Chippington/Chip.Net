@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -7,223 +6,201 @@ using System.Text;
 
 namespace Chip.Net.Data
 {
-	public class DynamicSerializer
-	{
-		private delegate void WriteFunc(object data, DataBuffer buffer);
-		private delegate object ReadFunc(Type type, DataBuffer buffer);
-
-		private static Dictionary<Type, WriteFunc> WriteFunctions = new Dictionary<Type, WriteFunc>() {
-			{ typeof(byte), (data, buffer) => buffer.Write((byte)data) },
-			{ typeof(int), (data, buffer) => buffer.Write((int)data) },
-			{ typeof(uint), (data, buffer) => buffer.Write((uint)data) },
-			{ typeof(short), (data, buffer) => buffer.Write((short)data) },
-			{ typeof(ushort), (data, buffer) => buffer.Write((ushort)data) },
-			{ typeof(long), (data, buffer) => buffer.Write((long)data) },
-			{ typeof(ulong), (data, buffer) => buffer.Write((ulong)data) },
-			{ typeof(float), (data, buffer) => buffer.Write((float)data) },
-			{ typeof(double), (data, buffer) => buffer.Write((double)data) },
-			{ typeof(string), (data, buffer) => buffer.Write((string)data) },
-			{ typeof(ISerializable), (data, buffer) => {
-				((ISerializable)data).WriteTo(buffer);
-			} },
-			{ typeof(IEnumerable), (data, buffer) => {
-				var dType = data.GetType();
-				var genericType = data.GetType().GetElementType();
-				if(genericType == null)
-					genericType = data.GetType().GenericTypeArguments[0];
-
-				var en = (data as IEnumerable).GetEnumerator();
-				Queue<object> toWrite = new Queue<object>();
-				while(en.MoveNext()) {
-					var el = en.Current;
-					toWrite.Enqueue(el);
-				}
-
-				buffer.Write((ushort)toWrite.Count);
-				while(toWrite.Count > 0) {
-					Write(buffer, toWrite.Dequeue());
-				}
-			} },
-			{ typeof(System.Enum), (data, buffer) => {
-				var underlying = data.GetType().GetEnumUnderlyingType();
-				byte underlyingValue = (byte)((IConvertible)data).ToType(typeof(byte), null);
-				buffer.Write((byte)underlyingValue);
-			} }
+    public static class DynamicSerializer {
+		public static Dictionary<Type, DataWriter> Writers { get; private set; } = new Dictionary<Type, DataWriter>() {
+			{ typeof(Byte), new DataWriter(typeof(byte), (b, v) => b.Write((Byte)v)) },
+			{ typeof(Int16), new DataWriter(typeof(byte), (b, v) => b.Write((Int16)v)) },
+			{ typeof(Int32), new DataWriter(typeof(byte), (b, v) => b.Write((Int32)v)) },
+			{ typeof(Int64), new DataWriter(typeof(byte), (b, v) => b.Write((Int64)v)) },
+			{ typeof(UInt16), new DataWriter(typeof(byte), (b, v) => b.Write((UInt16)v)) },
+			{ typeof(UInt32), new DataWriter(typeof(byte), (b, v) => b.Write((UInt32)v)) },
+			{ typeof(UInt64), new DataWriter(typeof(byte), (b, v) => b.Write((UInt64)v)) },
+			{ typeof(float), new DataWriter(typeof(byte), (b, v) => b.Write((float)v)) },
+			{ typeof(double), new DataWriter(typeof(byte), (b, v) => b.Write((double)v)) },
+			{ typeof(string), new DataWriter(typeof(byte), (b, v) => b.Write((string)v)) },
+			{ typeof(byte[]), new DataWriter(typeof(byte), (b, v) => b.Write((byte[])v)) },
+			{ typeof(DataBuffer), new DataWriter(typeof(byte), (b, v) => b.Write((DataBuffer)v)) },
 		};
 
-		private static Dictionary<Type, ReadFunc> ReadFunctions = new Dictionary<Type, ReadFunc>() {
-			{typeof(byte), (type, buffer) => buffer.ReadByte() },
-			{typeof(int), (type, buffer) => buffer.ReadInt32() },
-			{typeof(short), (type, buffer) => buffer.ReadInt16() },
-			{typeof(uint), (type, buffer) => buffer.ReadUInt32() },
-			{typeof(ushort), (type, buffer) => buffer.ReadUInt16() },
-			{typeof(long), (type, buffer) => buffer.ReadInt64() },
-			{typeof(ulong), (type, buffer) => buffer.ReadUInt64() },
-			{typeof(float), (type, buffer) => buffer.ReadFloat() },
-			{typeof(double), (type, buffer) => buffer.ReadDouble() },
-			{typeof(string), (type, buffer) => buffer.ReadString() },
-			{typeof(ISerializable), (type, buffer) => {
-				var dataInst = (ISerializable)Activator.CreateInstance(type);
-				dataInst.ReadFrom(buffer);
-				return dataInst;
-			} },
-			{typeof(IEnumerable), (type, buffer) => {
-				var genericType = type.GetElementType();
-				if(genericType == null)
-					genericType = type.GenericTypeArguments[0];
-
-				var count = buffer.ReadUInt16();
-				IList list = (IList)Activator.CreateInstance(typeof(List<>).MakeGenericType(genericType));
-				for(int i = 0; i < count; i++) {
-					var inst = Read(genericType, buffer);
-					list.Add(inst);
-				}
-
-				return list;
-			} },
-			{typeof(System.Enum), (type, buffer) => {
-				return Enum.ToObject(type, buffer.ReadByte());
-			} },
+		public static Dictionary<Type, DataReader> Readers { get; private set; } = new Dictionary<Type, DataReader>() {
+			{ typeof(Byte), new DataReader(typeof(byte), (b, v) => b.ReadByte()) },
+			{ typeof(Int16), new DataReader(typeof(byte), (b, v) => b.ReadInt16()) },
+			{ typeof(Int32), new DataReader(typeof(byte), (b, v) => b.ReadInt32()) },
+			{ typeof(Int64), new DataReader(typeof(byte), (b, v) => b.ReadInt64()) },
+			{ typeof(UInt16), new DataReader(typeof(byte), (b, v) => b.ReadUInt16()) },
+			{ typeof(UInt32), new DataReader(typeof(byte), (b, v) => b.ReadUInt32()) },
+			{ typeof(UInt64), new DataReader(typeof(byte), (b, v) => b.ReadUInt64()) },
+			{ typeof(float), new DataReader(typeof(byte), (b, v) => b.ReadFloat()) },
+			{ typeof(double), new DataReader(typeof(byte), (b, v) => b.ReadDouble()) },
+			{ typeof(string), new DataReader(typeof(byte), (b, v) => b.ReadString()) },
+			{ typeof(byte[]), new DataReader(typeof(byte), (b, v) => b.ReadByteArray()) },
+			{ typeof(DataBuffer), new DataReader(typeof(byte), (b, v) => b.ReadBuffer()) },
 		};
 
-		public static void Write(DataBuffer buffer, object data, Type type = null) {
-			if (type == null)
-				type = SelectType(data.GetType());
+		public static void Write(DataBuffer buffer, Type type, object instance) {
+			if (CanReadWrite(type) == false)
+				throw new Exception("Invalid model: Can not read/write");
 
-			WriteFunctions[type].Invoke(data, buffer);
-		}
-
-		public static object Read(Type type, DataBuffer buffer) {
-			return ReadFunctions[SelectType(type)].Invoke(type, buffer);
-		}
-
-		public static bool HasType(Type type, bool selectProper = false) {
-			if (selectProper) type = SelectType(type);
-			return WriteFunctions.ContainsKey(type);
-		}
-
-		private List<PropertyInfo> properties = new List<PropertyInfo>();
-
-		private static Dictionary<Type, DynamicSerializer> cache = new Dictionary<Type, DynamicSerializer>();
-		public static DynamicSerializer Get<T>() {
-			return Get(typeof(T));
-		}
-
-		public static DynamicSerializer Get(Type type) {
-			if (cache.ContainsKey(type))
-				return cache[type];
-
-			var n = new DynamicSerializer(type);
-			cache[type] = n;
-			return n;
-		}
-
-		public Type SerializedType { get; private set; }
-		public bool SingleType { get; private set; }
-
-		private DynamicSerializer(Type type) {
-			this.SerializedType = type;
-			var selectedType = SelectType(SerializedType);
-			if(selectedType != null && HasType(selectedType) && typeof(ISerializable).IsAssignableFrom(SerializedType) == false) {
-				SingleType = true;
+			if(Writers.ContainsKey(type) == false) {
+				Writers.Add(type, new DataWriter(type));
 			}
 
-			var propertiesTemp = type.GetProperties()
-				.Where(i => SelectType(i.PropertyType) != null && i.PropertyType != typeof(object))
-				.OrderBy(i => i.PropertyType.FullName);
-
-			this.properties = propertiesTemp.ToList();
-
-			var writes = properties.Select(i => new	Tuple<PropertyInfo, WriteFunc>(i, WriteFunctions[SelectType(i.PropertyType)])).ToList();
-			var reads = properties.Select(i => new Tuple<PropertyInfo, ReadFunc>(i, ReadFunctions[SelectType(i.PropertyType)])).ToList();
-
-			this.Writes = writes;
-			this.Reads = reads;
+			var writer = Writers[type];
+			writer.Write(buffer, instance);
 		}
 
-		public Type PacketType { get; set; }
-		private List<Tuple<PropertyInfo, WriteFunc>> Writes { get; set; } = new List<Tuple<PropertyInfo, WriteFunc>>();
-		private List<Tuple<PropertyInfo, ReadFunc>> Reads { get; set; } = new List<Tuple<PropertyInfo, ReadFunc>>();
-
-		public static Type SelectType(Type tt) {
-			if (tt == typeof(object))
-				return null;
-
-			if (WriteFunctions.ContainsKey(tt))
-				return tt;
-
-			if (typeof(ISerializable).IsAssignableFrom(tt))
-				return typeof(ISerializable);
-
-			if (typeof(IEnumerable).IsAssignableFrom(tt))
-				return typeof(IEnumerable);
-
-			if (typeof(System.Enum).IsAssignableFrom(tt))
-				return typeof(System.Enum);
-
-			if(tt.GetConstructors().Any(i => i.GetParameters().Count() == 0)) {
-				DynamicSerializer s = new DynamicSerializer(tt);
-				WriteFunctions[tt] = (data, buffer) => {
-					s.WriteTo(buffer, data);
-				};
-
-				ReadFunctions[tt] = (type, buffer) => {
-					var inst = s.ReadFrom(buffer);
-					return inst;
-				};
-
-				return tt;
-			}
-
-			return null;
+		public static void Write<T>(DataBuffer buffer, T instance) {
+			Write(buffer, typeof(T), instance);
 		}
 
-		public void WriteTo(DataBuffer buffer, object instance) {
-			if(SingleType) {
-				Write(buffer, instance, SelectType(SerializedType));
-				return;
+		public static object Read(DataBuffer buffer, Type type, object existing = null) {
+			if (CanReadWrite(type) == false)
+				throw new Exception("Invalid model: Can not read/write");
+
+			if(Readers.ContainsKey(type) == false) {
+				Readers.Add(type, new DataReader(type));
 			}
 
-			byte flags = 0;
-			for (int i = 0; i < Writes.Count; i++) {
-				flags = (byte)(flags << 1);
+			var reader = Readers[type];
+			var model = reader.Read(buffer, existing);
 
-				var prop = Writes[i].Item1;
-				if (prop.GetValue(instance) != null) {
-					flags = (byte)(flags | 1);
-				}
-			}
-
-			buffer.Write((byte)flags);
-			for (int i = Writes.Count - 1; i >= 0; i--) {
-				var val = Writes[i].Item1.GetValue(instance);
-				if (val != null)
-					Write(buffer, val);
-			}
+			return model;
 		}
 
-		public object ReadFrom(DataBuffer buffer) {
-			if(SingleType) {
-				return Read(SerializedType, buffer);
-			}
-
-			var instance = Activator.CreateInstance(SerializedType);
-			ReadInPlace(buffer, instance);
-			return instance;
+		public static T Read<T>(DataBuffer buffer, T existing = default(T)) {
+			return (T)Read(buffer, typeof(T), existing);
 		}
 
-		public void ReadInPlace(DataBuffer buffer, object instance) {
-			byte flags = buffer.ReadByte();
+		public static bool CanReadWrite(Type type) {
+			return (Writers.ContainsKey(type) && Readers.ContainsKey(type)) || 
+				type.GetConstructors().Any(i => i.GetParameters().Count() == 0);
+		}
+    }
+
+	public class DataWriter {
+		private Action<DataBuffer, object> WriteAction;
+		private PropertyInfo[] Properties;
+
+		public DataWriter(Type type) {
+			Properties = DataHelpers.GetSerializableProperties(type);
+			WriteAction = WritePropertyValues;
+		}
+
+		private void WritePropertyValues(DataBuffer buff, object inst) {
+			object[] values = new object[Properties.Length];
+			Type[] types = new Type[values.Length];
+			bool[] isNull = new bool[values.Length];
+			for (int i = 0; i < values.Length; i++) {
+				values[i] = Properties[i].GetValue(inst);
+				types[i] = Properties[i].PropertyType;
+				isNull[i] = values[i] == null;
+			}
+
+			var fold = DataHelpers.Fold(isNull);
+			for (int i = 0; i < fold.Length; i++)
+				buff.Write((byte)fold[i]);
+
+			for (int i = 0; i < values.Length; i++)
+				if (values[i] != null)
+					DynamicSerializer.Write(buff, types[i], values[i]);
+		}
+
+		public DataWriter(Type type, Action<DataBuffer, object> writer) {
+			this.WriteAction = writer;
+		}
+
+		public void Write(DataBuffer buffer, object instance) {
+			WriteAction.Invoke(buffer, instance);
+		}
+	}
+
+	public class DataReader {
+		private Func<DataBuffer, object, object> ReadFunction;
+		private PropertyInfo[] Properties;
+		private Type ModelType;
+
+		public DataReader(Type type) {
+			Properties = DataHelpers.GetSerializableProperties(type);
+			ReadFunction = ReadPropertyValues;
+			ModelType = type;
+		}
+
+		private object ReadPropertyValues(DataBuffer buff, object inst) {
+			if (inst == null)
+				inst = Activator.CreateInstance(ModelType);
+
+			Type[] types = new Type[Properties.Length];
+			for (int i = 0; i < Properties.Length; i++) {
+				types[i] = Properties[i].PropertyType;
+			}
+
+			var foldBytes = (Properties.Length + 7) / 8;
+			byte[] fold = new byte[foldBytes];
+			for (int i = 0; i < fold.Length; i++)
+				fold[i] = buff.ReadByte();
+
+			var isNull = DataHelpers.Unfold(fold);
+			for (int i = 0; i < Properties.Length; i++)
+				if (isNull[i] == false)
+					Properties[i].SetValue(inst, DynamicSerializer.Read(buff, types[i], Properties[i].GetValue(inst)));
+
+			return inst;
+		}
+
+		public DataReader(Type type, Func<DataBuffer, object, object> reader) {
+			this.ReadFunction = reader;
+		}
+
+		public object Read(DataBuffer buffer, object existing = null) {
+			return ReadFunction(buffer, existing);
+		}
+	}
+
+	public class DataHelpers {
+		public static PropertyInfo[] GetSerializableProperties(Type type) {
+			return type.GetProperties()
+				.Where(i => DynamicSerializer.CanReadWrite(type))
+				.ToArray();
+		}
+
+		public static byte[] Fold(bool[] flags) {
+			int byteCount = (flags.Length + 7) / 8;
+			byte[] ret = new byte[byteCount];
+
 			byte mask = 1;
+			byte index = 0;
+			for (int i = 0; i < flags.Length; i++) {
+				if (flags[i])
+					ret[index] = (byte)(ret[index] | mask);
 
-			for (int i = Reads.Count - 1; i >= 0; i--) {
-				if ((flags & mask) == mask) {
-					var val = Read(Reads[i].Item1.PropertyType, buffer);
-					Reads[i].Item1.SetValue(instance, val);
+				mask = (byte)(mask * 2);
+				if (mask == 0) {
+					mask = 1;
+					index++;
+				}
+			}
+
+			return ret;
+		}
+
+		public static bool[] Unfold(byte[] bytes) {
+			bool[] ret = new bool[bytes.Length * 8];
+
+			byte mask = 1;
+			byte index = 0;
+			for (int i = 0; i < ret.Length; i++) {
+				if ((bytes[index] & mask) == mask) {
+					ret[i] = true;
 				}
 
-				mask = (byte)(mask << 1);
+				mask = (byte)(mask * 2);
+				if (mask == 0) {
+					mask = 1;
+					index++;
+				}
 			}
+
+			return ret;
 		}
 	}
 }

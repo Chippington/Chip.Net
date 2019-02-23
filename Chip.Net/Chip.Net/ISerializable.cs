@@ -11,22 +11,12 @@ namespace Chip.Net {
 	}
 
 	public class Serializable : ISerializable {
-		private static Dictionary<Type, DynamicSerializer> SerializerMap { get; set; } = new Dictionary<Type, DynamicSerializer>();
-		private DynamicSerializer GetSerializer() {
-			if (SerializerMap.ContainsKey(GetType()))
-				return SerializerMap[GetType()];
-
-			var serializer = DynamicSerializer.Get(GetType());
-			SerializerMap.Add(GetType(), serializer);
-			return serializer;
-		}
-
 		public void ReadFrom(DataBuffer buffer) {
-			GetSerializer().ReadInPlace(buffer, this);
+			DynamicSerializer.Write(buffer, GetType(), this);
 		}
 
 		public void WriteTo(DataBuffer buffer) {
-			GetSerializer().WriteTo(buffer, this);
+			DynamicSerializer.Read(buffer, GetType(), this);
 		}
 	}
 }

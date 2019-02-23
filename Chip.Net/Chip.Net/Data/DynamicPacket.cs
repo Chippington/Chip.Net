@@ -4,14 +4,6 @@ using System.Text;
 
 namespace Chip.Net.Data {
 	public class Packet<TModel> : Packet {
-		private static DynamicSerializer s;
-		protected static DynamicSerializer Serializer {
-			get {
-				if (s != null) return s;
-				return s = DynamicSerializer.Get(typeof(TModel));
-			}
-		}
-
 		public TModel Model { get; set; }
 
 		public Packet() {
@@ -24,12 +16,12 @@ namespace Chip.Net.Data {
 
 		public override void WriteTo(DataBuffer buffer) {
 			base.WriteTo(buffer);
-			Serializer.WriteTo(buffer, Model);
+			DynamicSerializer.Write(buffer, typeof(TModel), Model);
 		}
 
 		public override void ReadFrom(DataBuffer buffer) {
 			base.ReadFrom(buffer);
-			Model = (TModel)Serializer.ReadFrom(buffer);
+			Model = DynamicSerializer.Read<TModel>(buffer);
 		}
 	}
 }
