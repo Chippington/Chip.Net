@@ -12,6 +12,10 @@ namespace Chip.Net.UnitTests.Data
 		Three = 11,
 	}
 
+	public class TestSerializedPacket : SerializedPacket {
+		public string Data { get; set; }
+	}
+
 	public class TestModelWithIgnore {
 		public string Data { get; set; }
 
@@ -381,6 +385,30 @@ namespace Chip.Net.UnitTests.Data
 			Assert.IsNull(result.Ignored);
 			Assert.AreEqual(result.Data, m.Data);
 			Assert.AreNotEqual(result.Ignored, m.Ignored);
+		}
+
+		[TestMethod]
+		public void SerializedPacket_WriteRead_IgnoresProperties() {
+			TestSerializedPacket p = new TestSerializedPacket();
+			p.Sender = new NetUser();
+			p.Exclude = new NetUser();
+			p.Recipient = new NetUser();
+
+			DataBuffer b = new DataBuffer();
+
+			p.Data = "Data";
+			p.WriteTo(b);
+
+			b.Seek(0);
+			TestSerializedPacket result = new TestSerializedPacket();
+			result.ReadFrom(b);
+
+			Assert.AreEqual(p.Data, result.Data);
+			Assert.IsNull(result.Exclude);
+			Assert.IsNull(result.Recipient);
+			Assert.IsNull(result.Sender);
+
+			Assert.IsTrue(DataHelpers.GetSerializableProperties(typeof(TestSerializedPacket)).Length == 1);
 		}
 	}
 }

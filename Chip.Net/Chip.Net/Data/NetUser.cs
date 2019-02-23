@@ -6,6 +6,7 @@ namespace Chip.Net.Data
 {
 	public class NetUser : ISerializable
 	{
+		[IgnoreProperty]
 		public object UserKey { get; private set; }
 
 		public int UserId { get; private set; }
