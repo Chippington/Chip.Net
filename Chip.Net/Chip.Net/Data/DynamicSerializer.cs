@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -67,13 +68,15 @@ namespace Chip.Net.Data
 			return model;
 		}
 
-		public static T Read<T>(DataBuffer buffer, T existing = default(T)) {
-			return (T)Read(buffer, typeof(T), existing);
+		public static T Read<T>(DataBuffer buffer) {
+			return (T)Read(buffer, typeof(T));
 		}
 
 		public static bool CanReadWrite(Type type) {
 			return (Writers.ContainsKey(type) && Readers.ContainsKey(type)) || 
-				type.GetConstructors().Any(i => i.GetParameters().Count() == 0);
+				type.GetConstructors().Any(i => i.GetParameters().Count() == 0 ||
+				typeof(ICollection).IsAssignableFrom(type) ||
+				typeof(ISerializable).IsAssignableFrom(type));
 		}
     }
 
@@ -81,9 +84,36 @@ namespace Chip.Net.Data
 		private Action<DataBuffer, object> WriteAction;
 		private PropertyInfo[] Properties;
 
+		private Type ListType;
+
 		public DataWriter(Type type) {
+			if(typeof(ICollection).IsAssignableFrom(type)) {
+				WriteAction = WriteList;
+
+				if (type.GenericTypeArguments.Any())
+					ListType = type.GenericTypeArguments.First();
+				else
+					ListType = type.GetElementType();
+
+				return;
+			}
+
 			Properties = DataHelpers.GetSerializableProperties(type);
 			WriteAction = WritePropertyValues;
+		}
+
+		private void WriteList(DataBuffer buffer, object inst) {
+			IList list = inst as IList;
+
+			short count = (short)list.Count;
+			buffer.Write((short)count);
+
+			for (int i = 0; i < count; i++) {
+				if (list[i].GetType() != ListType)
+					throw new Exception("Type mismatch");
+
+				DynamicSerializer.Write(buffer, ListType, list[i]);
+			}
 		}
 
 		private void WritePropertyValues(DataBuffer buff, object inst) {
@@ -118,11 +148,47 @@ namespace Chip.Net.Data
 		private Func<DataBuffer, object, object> ReadFunction;
 		private PropertyInfo[] Properties;
 		private Type ModelType;
+		private Type ListType;
 
 		public DataReader(Type type) {
+			if (typeof(ICollection).IsAssignableFrom(type)) {
+
+				if (type.GenericTypeArguments.Any()) {
+					ReadFunction = ReadList;
+					ListType = type.GenericTypeArguments.First();
+				} else {
+					ReadFunction = ReadArray;
+					ListType = type.GetElementType();
+				}
+
+				return;
+			}
+
 			Properties = DataHelpers.GetSerializableProperties(type);
 			ReadFunction = ReadPropertyValues;
 			ModelType = type;
+		}
+
+		private object ReadList(DataBuffer buffer, object inst) {
+			IList ret = (IList)Activator.CreateInstance(typeof(List<>).MakeGenericType(ListType));
+
+			var count = buffer.ReadInt16();
+			for(int i = 0; i < count; i++) {
+				ret.Add(DynamicSerializer.Read(buffer, ListType));
+			}
+
+			return ret;
+		}
+
+		private object ReadArray(DataBuffer buffer, object inst) {
+			var count = buffer.ReadInt16();
+			Array arr = (Array)Activator.CreateInstance(ListType.MakeArrayType(), new object[] { (int)count });
+
+			for(int i = 0; i < count; i++) {
+				arr.SetValue(DynamicSerializer.Read(buffer, ListType), i);
+			}
+
+			return arr;
 		}
 
 		private object ReadPropertyValues(DataBuffer buff, object inst) {
