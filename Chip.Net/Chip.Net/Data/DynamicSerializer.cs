@@ -72,9 +72,20 @@ namespace Chip.Net.Data
 			return (T)Read(buffer, typeof(T));
 		}
 
+		public static void AddReaderWriter(Type type, DataWriter writer, DataReader reader) {
+			Writers.Add(type, writer);
+			Readers.Add(type, reader);
+		}
+
+		public static void AddReaderWriter<T>(DataWriter writer, DataReader reader) {
+			AddReaderWriter(typeof(T), writer, reader);
+		}
+
 		public static bool CanReadWrite(Type type) {
-			return (Writers.ContainsKey(type) && Readers.ContainsKey(type)) || 
-				type.GetConstructors().Any(i => i.GetParameters().Count() == 0) ||
+			if (Writers.ContainsKey(type) && Readers.ContainsKey(type))
+				return true;
+
+			return type.GetConstructors().Any(i => i.GetParameters().Count() == 0) ||
 				typeof(IEnumerable).IsAssignableFrom(type) ||
 				typeof(ICollection).IsAssignableFrom(type) ||
 				typeof(ISerializable).IsAssignableFrom(type) ||
@@ -159,11 +170,12 @@ namespace Chip.Net.Data
 
 	public class DataReader {
 		private Func<DataBuffer, object, object> ReadFunction;
+		private Func<object> ActivationFunction;
 		private PropertyInfo[] Properties;
 		private Type ModelType;
 		private Type ListType;
 
-		public DataReader(Type type) {
+		public DataReader(Type type, Func<object> activator = null) {
 			ModelType = type;
 			if (type.IsEnum) {
 				ReadFunction = ReadEnum;
@@ -185,6 +197,11 @@ namespace Chip.Net.Data
 
 			Properties = DataHelpers.GetSerializableProperties(type);
 			ReadFunction = ReadPropertyValues;
+			ActivationFunction = activator;
+		}
+
+		public DataReader(Type type, Func<DataBuffer, object, object> reader) {
+			this.ReadFunction = reader;
 		}
 
 		private object ReadEnum(DataBuffer buffer, object arg2) {
@@ -214,8 +231,12 @@ namespace Chip.Net.Data
 		}
 
 		private object ReadPropertyValues(DataBuffer buff, object inst) {
-			if (inst == null)
-				inst = Activator.CreateInstance(ModelType);
+			if (inst == null) {
+				if (ActivationFunction == null)
+					inst = Activator.CreateInstance(ModelType);
+				else
+					inst = ActivationFunction.Invoke();
+			}
 
 			Type[] types = new Type[Properties.Length];
 			for (int i = 0; i < Properties.Length; i++) {
@@ -235,10 +256,6 @@ namespace Chip.Net.Data
 			return inst;
 		}
 
-		public DataReader(Type type, Func<DataBuffer, object, object> reader) {
-			this.ReadFunction = reader;
-		}
-
 		public object Read(DataBuffer buffer, object existing = null) {
 			return ReadFunction(buffer, existing);
 		}
@@ -247,7 +264,7 @@ namespace Chip.Net.Data
 	public class DataHelpers {
 		public static PropertyInfo[] GetSerializableProperties(Type type) {
 			return type.GetProperties()
-				.Where(i => DynamicSerializer.CanReadWrite(type))
+				.Where(i => DynamicSerializer.CanReadWrite(i.PropertyType))
 				.ToArray();
 		}
 

@@ -12,6 +12,13 @@ namespace Chip.Net.UnitTests.Data
 		Three = 11,
 	}
 
+	public class TestModelWithConstructor {
+		public string Data { get; set; }
+		public TestModelWithConstructor(string Data) {
+			this.Data = Data;
+		}
+	}
+
 	public class TestModelISerializable : ISerializable {
 		public UInt16 UShort { get; set; }
 		public UInt32 UInt { get; set; }
@@ -326,6 +333,29 @@ namespace Chip.Net.UnitTests.Data
 			Assert.AreEqual(e1, r1);
 			Assert.AreEqual(e2, r2);
 			Assert.AreEqual(e3, r3);
+		}
+
+		[TestMethod]
+		public void DynamicSerializer_AddReaderWriter_CanReadWrite() {
+			Assert.IsFalse(DynamicSerializer.CanReadWrite(typeof(TestModelWithConstructor)));
+
+			DynamicSerializer.AddReaderWriter<TestModelWithConstructor>(
+				new DataWriter(typeof(TestModelWithConstructor)),
+				new DataReader(typeof(TestModelWithConstructor), () => new TestModelWithConstructor("")));
+
+			Assert.IsTrue(DynamicSerializer.CanReadWrite(typeof(TestModelWithConstructor)));
+
+			TestModelWithConstructor m = new TestModelWithConstructor("Hello world");
+
+			DataBuffer b = new DataBuffer();
+			DynamicSerializer.Write<TestModelWithConstructor>(b, m);
+
+			b.Seek(0);
+			var result = DynamicSerializer.Read<TestModelWithConstructor>(b);
+
+			Assert.IsNotNull(result);
+			Assert.IsNotNull(result.Data);
+			Assert.AreEqual(result.Data, m.Data);
 		}
 	}
 }
