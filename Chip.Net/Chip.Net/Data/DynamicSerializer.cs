@@ -265,6 +265,7 @@ namespace Chip.Net.Data
 		public static PropertyInfo[] GetSerializableProperties(Type type) {
 			return type.GetProperties()
 				.Where(i => DynamicSerializer.CanReadWrite(i.PropertyType))
+				.Where(i => i.CustomAttributes.Any(o => o.AttributeType == typeof(IgnoreProperty)) == false)
 				.ToArray();
 		}
 
@@ -308,4 +309,6 @@ namespace Chip.Net.Data
 			return ret;
 		}
 	}
+
+	public class IgnoreProperty : Attribute { }
 }

@@ -12,6 +12,13 @@ namespace Chip.Net.UnitTests.Data
 		Three = 11,
 	}
 
+	public class TestModelWithIgnore {
+		public string Data { get; set; }
+
+		[IgnoreProperty]
+		public string Ignored { get; set; }
+	}
+
 	public class TestModelWithConstructor {
 		public string Data { get; set; }
 		public TestModelWithConstructor(string Data) {
@@ -356,6 +363,24 @@ namespace Chip.Net.UnitTests.Data
 			Assert.IsNotNull(result);
 			Assert.IsNotNull(result.Data);
 			Assert.AreEqual(result.Data, m.Data);
+		}
+
+		[TestMethod]
+		public void DynamicSerializer_WriteReadWithIgnore_PropertyIgnored() {
+			TestModelWithIgnore m = new TestModelWithIgnore();
+			m.Data = "Data";
+			m.Ignored = "Ignored";
+
+			DataBuffer b = new DataBuffer();
+			DynamicSerializer.Write<TestModelWithIgnore>(b, m);
+
+			b.Seek(0);
+			var result = DynamicSerializer.Read<TestModelWithIgnore>(b);
+
+			Assert.IsNotNull(result);
+			Assert.IsNull(result.Ignored);
+			Assert.AreEqual(result.Data, m.Data);
+			Assert.AreNotEqual(result.Ignored, m.Ignored);
 		}
 	}
 }
