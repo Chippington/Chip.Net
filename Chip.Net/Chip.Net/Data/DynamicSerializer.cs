@@ -85,7 +85,9 @@ namespace Chip.Net.Data
 			if (Writers.ContainsKey(type) && Readers.ContainsKey(type))
 				return true;
 
-			return type.GetConstructors().Any(i => i.GetParameters().Count() == 0) ||
+			bool hasConstructor = type.GetConstructors().Any(i => i.GetParameters().Count() == 0);
+
+			return (hasConstructor || type.IsValueType) ||
 				typeof(IEnumerable).IsAssignableFrom(type) ||
 				typeof(ICollection).IsAssignableFrom(type) ||
 				typeof(ISerializable).IsAssignableFrom(type) ||

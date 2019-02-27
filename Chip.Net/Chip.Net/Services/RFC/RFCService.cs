@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Chip.Net.Services.RFC
 {
@@ -126,7 +127,11 @@ namespace Chip.Net.Services.RFC
 				byte _id = id;
 
 				if(isReceiving) {
-					real.Invoke(param);
+					Task.Run(() => {
+						var _param = param;
+						var _real = real;
+						_real.Invoke(_param);
+					});
 				} else {
 					RFCExecute msg = new RFCExecute();
 					msg.FunctionId = _id;
@@ -158,7 +163,11 @@ namespace Chip.Net.Services.RFC
 			Action<object[], bool> action = (param, isReceiving) => {
 				byte _id = id;
 				if (IsServer) {
-					real.Invoke(param);
+					Task.Run(() => {
+						var _param = param;
+						var _real = real;
+						_real.Invoke(_param);
+					});
 				}
 
 				if (IsClient) {
@@ -183,7 +192,12 @@ namespace Chip.Net.Services.RFC
 			Action<object[], bool> action = (param, isReceiving) => {
 				byte _id = id;
 				if (IsClient) {
-					real.Invoke(param);
+					Task.Run(() => {
+						var type = GetType();
+						var _param = param;
+						var _real = real;
+						_real.Invoke(_param);
+					});
 				}
 
 				if (IsServer) {

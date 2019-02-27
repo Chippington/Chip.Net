@@ -12,6 +12,10 @@ namespace Chip.Net.UnitTests.Data
 		Three = 11,
 	}
 
+	public struct TestStruct {
+		public string Data { get; set; }
+	}
+
 	public class TestSerializedPacket : SerializedPacket {
 		public string Data { get; set; }
 	}
@@ -85,8 +89,7 @@ namespace Chip.Net.UnitTests.Data
 	}
 
 	[TestClass]
-    public class DynamicSerializerTests
-    {
+    public class DynamicSerializerTests {
 		[TestMethod]
 		public void DynamicSerializer_WriteReadTestModel() {
 			Random r = new Random();
@@ -112,6 +115,25 @@ namespace Chip.Net.UnitTests.Data
 			Assert.AreEqual(m.ShortValue, mresult.ShortValue);
 			Assert.AreEqual(m.IntValue, mresult.IntValue);
 			Assert.AreEqual(m.LongValue, mresult.LongValue);
+		}
+
+		[TestMethod]
+		public void DynamicSerializer_WriteReadTestStruct() {
+			Random r = new Random();
+			TestStruct m = new TestStruct();
+
+			m.Data = "Hello world";
+
+			DataBuffer b = new DataBuffer();
+			DynamicSerializer.Write(b, typeof(TestStruct), m);
+
+			b.Seek(0);
+			var mresult = DynamicSerializer.Read<TestStruct>(b);
+
+			Assert.IsNotNull(mresult);
+			Assert.IsNotNull(mresult.Data);
+			Assert.IsFalse(mresult.Data == "");
+			Assert.AreEqual(m.Data, mresult.Data);
 		}
 
 		[TestMethod]
