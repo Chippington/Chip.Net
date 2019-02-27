@@ -121,40 +121,10 @@ namespace Chip.Net.Services.RFC
 		}
 
 		private Action<object[]> RemoteAction(Action<object[]> real, Type[] types) {
-			byte id = svActionId++;
+			if (IsServer) return ClientAction(real, types);
+			if (IsClient) return ServerAction(real, types);
 
-			Action<object[], bool> action = (param, isReceiving) => {
-				byte _id = id;
-
-				if(isReceiving) {
-					Task.Run(() => {
-						var _param = param;
-						var _real = real;
-						_real.Invoke(_param);
-					});
-				} else {
-					RFCExecute msg = new RFCExecute();
-					msg.FunctionId = _id;
-					var buff = new DataBuffer();
-					WriteModelsToBuffer(buff, param);
-					msg.FunctionParameters = buff.ToBytes();
-
-					if (IsServer) {
-						SendPacketToClient(CurrentUser, msg);
-					}
-
-					if (IsClient) {
-						SendPacketToServer(msg);
-					}
-				}
-			};
-
-			svActionMap[id] = (obj, rec) => action(obj, rec);
-			clActionMap[id] = (obj, rec) => action(obj, rec);
-			svTypeMap[id] = types;
-			clTypeMap[id] = types;
-
-			return (param) => action(param, false);
+			return null;
 		}
 
 		private Action<object[]> ServerAction(Action<object[]> real, Type[] types) {
