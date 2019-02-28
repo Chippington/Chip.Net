@@ -21,8 +21,7 @@ namespace Chip.Net.Services.RFC
 			}
 		}
 
-		private byte svActionId;
-		private byte clActionId;
+		private byte actionId;
 
 		private Dictionary<byte, Action<object[], bool>> svActionMap;
 		private Dictionary<byte, Action<object[], bool>> clActionMap;
@@ -121,14 +120,17 @@ namespace Chip.Net.Services.RFC
 		}
 
 		private Action<object[]> RemoteAction(Action<object[]> real, Type[] types) {
-			if (IsServer) return ClientAction(real, types);
-			if (IsClient) return ServerAction(real, types);
+			var clAction = ClientAction(real, types);
+			var svAction = ServerAction(real, types);
 
-			return null;
+			return (param) => {
+				if (IsServer) clAction.Invoke(param);
+				if (IsClient) svAction.Invoke(param);
+			};
 		}
 
 		private Action<object[]> ServerAction(Action<object[]> real, Type[] types) {
-			byte id = svActionId++;
+			byte id = actionId++;
 
 			Action<object[], bool> action = (param, isReceiving) => {
 				byte _id = id;
@@ -153,10 +155,11 @@ namespace Chip.Net.Services.RFC
 		}
 
 		private Action<object[]> ClientAction(Action<object[]> real, Type[] types) {
-			byte id = clActionId++;
+			byte id = actionId++;
 
 			Action<object[], bool> action = (param, isReceiving) => {
 				byte _id = id;
+
 				if (IsClient) {
 					real.Invoke(param);
 				}

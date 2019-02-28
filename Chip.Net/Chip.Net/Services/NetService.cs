@@ -13,6 +13,7 @@ namespace Chip.Net.Services
 
 		protected NetContext Context { get; private set; }
 
+		private object LockObject = new object();
 		private Queue<Packet> clientOutQueue;
 		private Queue<Packet> serverOutQueue;
 		private List<Tuple<DateTime, Action>> scheduledEvents;
@@ -46,40 +47,68 @@ namespace Chip.Net.Services
 		public virtual void StopService() { }
 
 		public IEnumerable<Packet> GetOutgoingClientPackets() {
-			var ret = clientOutQueue;
-			clientOutQueue = new Queue<Packet>();
-			return ret;
+			lock(LockObject) {
+				var ret = clientOutQueue;
+				clientOutQueue = new Queue<Packet>();
+				return ret;
+			}
 		}
 
 		public IEnumerable<Packet> GetOutgoingServerPackets() {
-			var ret = serverOutQueue;
-			serverOutQueue = new Queue<Packet>();
-			return ret;
+			lock(LockObject) {
+				var ret = serverOutQueue;
+				serverOutQueue = new Queue<Packet>();
+				return ret;
+			}
 		}
 
 		public void SendPacketToClients(Packet packet) {
+			if (packet == null)
+				throw new Exception("Packet is null");
+
 			packet.Recipient = null;
-			clientOutQueue.Enqueue(packet);
+
+			lock(LockObject)
+				clientOutQueue.Enqueue(packet);
 		}
 
 		public void SendPacketToClient(NetUser user, Packet packet) {
+			if (packet == null)
+				throw new Exception("Packet is null");
+
 			packet.Recipient = user;
-			serverOutQueue.Enqueue(packet);
+
+			lock (LockObject)
+				serverOutQueue.Enqueue(packet);
 		}
 
 		public void SendPacketToServer(Packet packet) {
-			clientOutQueue.Enqueue(packet);
+			if (packet == null)
+				throw new Exception("Packet is null");
+
+			lock(LockObject)
+				clientOutQueue.Enqueue(packet);
 		}
 
 		public void SendPacket(Packet packet) {
-			if (IsServer) serverOutQueue.Enqueue(packet);
-			if (IsClient) clientOutQueue.Enqueue(packet);
+			if (packet == null)
+				throw new Exception("Packet is null");
+
+			lock (LockObject) {
+				if (IsServer) serverOutQueue.Enqueue(packet);
+				if (IsClient) clientOutQueue.Enqueue(packet);
+			}
 		}
 
 		public void SendPacket(NetUser user, Packet packet) {
+			if (packet == null)
+				throw new Exception("Packet is null");
+
 			packet.Recipient = user;
-			if (IsServer) serverOutQueue.Enqueue(packet);
-			if (IsClient) clientOutQueue.Enqueue(packet);
+			lock (LockObject) {
+				if (IsServer) serverOutQueue.Enqueue(packet);
+				if (IsClient) clientOutQueue.Enqueue(packet);
+			}
 		}
 
 		public void Dispose() {
