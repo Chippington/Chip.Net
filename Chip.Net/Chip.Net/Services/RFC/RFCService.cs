@@ -133,11 +133,7 @@ namespace Chip.Net.Services.RFC
 			Action<object[], bool> action = (param, isReceiving) => {
 				byte _id = id;
 				if (IsServer) {
-					Task.Run(() => {
-						var _param = param;
-						var _real = real;
-						_real.Invoke(_param);
-					});
+					real.Invoke(param);
 				}
 
 				if (IsClient) {
@@ -162,12 +158,7 @@ namespace Chip.Net.Services.RFC
 			Action<object[], bool> action = (param, isReceiving) => {
 				byte _id = id;
 				if (IsClient) {
-					Task.Run(() => {
-						var type = GetType();
-						var _param = param;
-						var _real = real;
-						_real.Invoke(_param);
-					});
+					real.Invoke(param);
 				}
 
 				if (IsServer) {
@@ -227,7 +218,11 @@ namespace Chip.Net.Services.RFC
 				}
 			}
 
-			action.Invoke(param, true);
+			Task.Run(() => {
+				var _action = action;
+				var _param = param;
+				_action.Invoke(_param, true);
+			});
 		}
 
 		public void Broadcast(Action userAction) {
