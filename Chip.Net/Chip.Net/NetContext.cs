@@ -13,10 +13,12 @@ namespace Chip.Net {
 		public int Port { get; set; }
 		public bool Locked { get; private set; }
 
+		public DynamicSerializer Serializer { get; private set; }
 		public NetServiceCollection Services { get; private set; }
 		public PacketRegistry Packets { get; private set; }
 
 		public NetContext() {
+			Serializer = new DynamicSerializer();
 			Packets = new PacketRegistry();
 			Services = new NetServiceCollection();
 			Locked = false;

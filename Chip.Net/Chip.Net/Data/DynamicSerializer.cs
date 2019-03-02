@@ -40,15 +40,25 @@ namespace Chip.Net.Data
 			{ typeof(DataBuffer), new DataReader(typeof(DataBuffer), (b, v) => b.ReadBuffer()) },
 		};
 
+		private List<Type> CoveredTypes = new List<Type>();
+		private Dictionary<Type, Type> CoveredTypeMap = new Dictionary<Type, Type>();
+
 		public void Write(DataBuffer buffer, Type type, object instance) {
 			if (CanReadWrite(type) == false)
 				throw new Exception("Invalid model: Can not read/write");
 
-			if(Writers.ContainsKey(type) == false) {
-				Writers.Add(type, new DataWriter(this, type));
+			DataWriter writer = null;
+			if (Writers.ContainsKey(type) == false) {
+				if (CoveredTypeMap.ContainsKey(type)) {
+					writer = Writers[CoveredTypeMap[type]];
+				} else {
+					Writers.Add(type, new DataWriter(this, type));
+				}
 			}
 
-			var writer = Writers[type];
+			if (writer == null)
+				writer = Writers[type];
+
 			writer.Write(buffer, instance);
 		}
 
@@ -60,13 +70,19 @@ namespace Chip.Net.Data
 			if (CanReadWrite(type) == false)
 				throw new Exception("Invalid model: Can not read/write");
 
+			DataReader reader = null;
 			if(Readers.ContainsKey(type) == false) {
-				Readers.Add(type, new DataReader(this, type));
+				if(CoveredTypeMap.ContainsKey(type)) {
+					reader = Readers[CoveredTypeMap[type]];
+				} else {
+					Readers.Add(type, new DataReader(this, type));
+				}
 			}
 
-			var reader = Readers[type];
-			var model = reader.Read(buffer, existing);
+			if(reader == null)
+				reader = Readers[type];
 
+			var model = reader.Read(buffer, existing);
 			return model;
 		}
 
@@ -74,18 +90,35 @@ namespace Chip.Net.Data
 			return (T)Read(buffer, typeof(T));
 		}
 
-		public void AddReaderWriter(Type type, DataWriter writer, DataReader reader) {
+		public void AddReaderWriter(Type type, DataWriter writer, DataReader reader, bool covered = false) {
 			Writers.Add(type, writer);
 			Readers.Add(type, reader);
+
+			if (covered) {
+				var collisions = CoveredTypes.Where(i => i.IsAssignableFrom(type) || type.IsAssignableFrom(i));
+				if (collisions.Any())
+					throw new Exception(string.Format("Types {0} and {1} cannot implement one another", collisions.First().Name, type.Name));
+
+				CoveredTypes.Add(type);
+			}
 		}
 
-		public void AddReaderWriter<T>(DataWriter writer, DataReader reader) {
-			AddReaderWriter(typeof(T), writer, reader);
+		public void AddReaderWriter<T>(DataWriter writer, DataReader reader, bool covered = false) {
+			AddReaderWriter(typeof(T), writer, reader, covered);
 		}
 
 		public bool CanReadWrite(Type type) {
 			if (Writers.ContainsKey(type) && Readers.ContainsKey(type))
 				return true;
+
+			if (CoveredTypeMap.ContainsKey(type))
+				return true;
+
+			var t = CoveredTypes.Where(i => i.IsAssignableFrom(type));
+			if (t.Any()) {
+				CoveredTypeMap[type] = t.First();
+				return true;
+			}
 
 			bool hasConstructor = type.GetConstructors().Any(i => i.GetParameters().Count() == 0);
 

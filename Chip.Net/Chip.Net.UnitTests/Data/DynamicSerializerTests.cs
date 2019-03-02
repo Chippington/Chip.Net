@@ -12,6 +12,14 @@ namespace Chip.Net.UnitTests.Data
 		Three = 11,
 	}
 
+	public interface ITestInterface {
+		string Data { get; set; }
+	}
+
+	public class TestImplemented : ITestInterface {
+		public string Data { get; set; }
+	}
+
 	public struct TestStruct {
 		public string Data { get; set; }
 	}
@@ -431,6 +439,39 @@ namespace Chip.Net.UnitTests.Data
 			Assert.IsNull(result.Sender);
 
 			Assert.IsTrue(DynamicSerializer.Instance.GetSerializableProperties(typeof(TestSerializedPacket)).Length == 1);
+		}
+
+		[TestMethod]
+		public void DynamicSerializer_WriteReadCoveredType() {
+			DynamicSerializer.Instance.AddReaderWriter(typeof(ITestInterface),
+				new DataWriter(typeof(ITestInterface), WriteTestInterface),
+				new DataReader(typeof(ITestInterface), ReadTestInterface), true);
+
+			Random r = new Random();
+			ITestInterface m = new TestImplemented();
+
+			m.Data = "Hello world";
+
+			DataBuffer b = new DataBuffer();
+			DynamicSerializer.Instance.Write(b, typeof(TestImplemented), m);
+
+			b.Seek(0);
+			var mresult = DynamicSerializer.Instance.Read<ITestInterface>(b);
+
+			Assert.IsNotNull(mresult);
+			Assert.IsNotNull(mresult.Data);
+			Assert.IsFalse(mresult.Data == "");
+			Assert.AreEqual(m.Data, mresult.Data);
+		}
+
+		private object ReadTestInterface(DataBuffer arg1, object arg2) {
+			var inst = new TestImplemented();
+			inst.Data = arg1.ReadString();
+			return inst;
+		}
+
+		private void WriteTestInterface(DataBuffer arg1, object arg2) {
+			arg1.Write((string)(arg2 as ITestInterface).Data);
 		}
 	}
 }
