@@ -29,9 +29,12 @@ namespace Chip.Net.Services.RFC
 		private Dictionary<byte, Type[]> svTypeMap;
 		private Dictionary<byte, Type[]> clTypeMap;
 
+		private Dictionary<byte, bool> useContextMap;
+
 		private List<NetUser> userList;
 
 		public RFCService() {
+			useContextMap = new Dictionary<byte, bool>();
 			userList = new List<NetUser>();
 
 			svActionMap = new Dictionary<byte, Action<object[], bool>>();
@@ -59,69 +62,69 @@ namespace Chip.Net.Services.RFC
 			}
 		}
 
-		protected Action<T> SharedAction<T>(Action<T> real) {
-			var a = RemoteAction((p) => real((T)p[0]), new Type[] { typeof(T) });
+		protected Action<T> SharedAction<T>(Action<T> real, bool useContext = true) {
+			var a = RemoteAction((p) => real((T)p[0]), new Type[] { typeof(T) }, useContext);
 			return (realVal) => a.Invoke(new object[] { realVal });
 		}
 
-		protected Action<T1, T2> SharedAction<T1, T2>(Action<T1, T2> real) {
-			var a = RemoteAction((p) => real((T1)p[0], (T2)p[1]), new Type[] { typeof(T1), typeof(T2) });
+		protected Action<T1, T2> SharedAction<T1, T2>(Action<T1, T2> real, bool useContext = true) {
+			var a = RemoteAction((p) => real((T1)p[0], (T2)p[1]), new Type[] { typeof(T1), typeof(T2) }, useContext);
 			return (val1, val2) => a.Invoke(new object[] { val1, val2 });
 		}
 
-		protected Action<T1, T2, T3> SharedAction<T1, T2, T3>(Action<T1, T2, T3> real) {
-			var a = RemoteAction((p) => real((T1)p[0], (T2)p[1], (T3)p[2]), new Type[] { typeof(T1), typeof(T2), typeof(T3) });
+		protected Action<T1, T2, T3> SharedAction<T1, T2, T3>(Action<T1, T2, T3> real, bool useContext = true) {
+			var a = RemoteAction((p) => real((T1)p[0], (T2)p[1], (T3)p[2]), new Type[] { typeof(T1), typeof(T2), typeof(T3) }, useContext);
 			return (val1, val2, val3) => a.Invoke(new object[] { val1, val2, val3 });
 		}
 
-		protected Action<T1, T2, T3, T4> SharedAction<T1, T2, T3, T4>(Action<T1, T2, T3, T4> real) {
-			var a = RemoteAction((p) => real((T1)p[0], (T2)p[1], (T3)p[2], (T4)p[3]), new Type[] { typeof(T1), typeof(T2), typeof(T3), typeof(T4) });
+		protected Action<T1, T2, T3, T4> SharedAction<T1, T2, T3, T4>(Action<T1, T2, T3, T4> real, bool useContext = true) {
+			var a = RemoteAction((p) => real((T1)p[0], (T2)p[1], (T3)p[2], (T4)p[3]), new Type[] { typeof(T1), typeof(T2), typeof(T3), typeof(T4) }, useContext);
 			return (val1, val2, val3, val4) => a.Invoke(new object[] { val1, val2, val3, val4 });
 		}
 
-		protected Action<T> ServerAction<T>(Action<T> real) {
-			var a = ServerAction((p) => real((T)p[0]), new Type[] { typeof(T) });
+		protected Action<T> ServerAction<T>(Action<T> real, bool useContext = true) {
+			var a = ServerAction((p) => real((T)p[0]), new Type[] { typeof(T) }, useContext);
 			return (realVal) => a.Invoke(new object[] { realVal });
 		}
 
-		protected Action<T1, T2> ServerAction<T1, T2>(Action<T1, T2> real) {
-			var a = ServerAction((p) => real((T1)p[0], (T2)p[1]), new Type[] { typeof(T1), typeof(T2) });
+		protected Action<T1, T2> ServerAction<T1, T2>(Action<T1, T2> real, bool useContext = true) {
+			var a = ServerAction((p) => real((T1)p[0], (T2)p[1]), new Type[] { typeof(T1), typeof(T2) }, useContext);
 			return (val1, val2) => a.Invoke(new object[] { val1, val2 });
 		}
 
-		protected Action<T1, T2, T3> ServerAction<T1, T2, T3>(Action<T1, T2, T3> real) {
-			var a = ServerAction((p) => real((T1)p[0], (T2)p[1], (T3)p[2]), new Type[] { typeof(T1), typeof(T2), typeof(T3) });
+		protected Action<T1, T2, T3> ServerAction<T1, T2, T3>(Action<T1, T2, T3> real, bool useContext = true) {
+			var a = ServerAction((p) => real((T1)p[0], (T2)p[1], (T3)p[2]), new Type[] { typeof(T1), typeof(T2), typeof(T3) }, useContext);
 			return (val1, val2, val3) => a.Invoke(new object[] { val1, val2, val3 });
 		}
 
-		protected Action<T1, T2, T3, T4> ServerAction<T1, T2, T3, T4>(Action<T1, T2, T3, T4> real) {
-			var a = ServerAction((p) => real((T1)p[0], (T2)p[1], (T3)p[2], (T4)p[3]), new Type[] { typeof(T1), typeof(T2), typeof(T3), typeof(T4) });
+		protected Action<T1, T2, T3, T4> ServerAction<T1, T2, T3, T4>(Action<T1, T2, T3, T4> real, bool useContext = true) {
+			var a = ServerAction((p) => real((T1)p[0], (T2)p[1], (T3)p[2], (T4)p[3]), new Type[] { typeof(T1), typeof(T2), typeof(T3), typeof(T4) }, useContext);
 			return (val1, val2, val3, val4) => a.Invoke(new object[] { val1, val2, val3, val4 });
 		}
 
-		protected Action<T> ClientAction<T>(Action<T> real) {
-			var a = ClientAction((p) => real((T)p[0]), new Type[] { typeof(T) });
+		protected Action<T> ClientAction<T>(Action<T> real, bool useContext = true) {
+			var a = ClientAction((p) => real((T)p[0]), new Type[] { typeof(T) }, useContext);
 			return (realVal) => a.Invoke(new object[] { realVal });
 		}
 
-		protected Action<T1, T2> ClientAction<T1, T2>(Action<T1, T2> real) {
-			var a = ClientAction((p) => real((T1)p[0], (T2)p[1]), new Type[] { typeof(T1), typeof(T2) });
+		protected Action<T1, T2> ClientAction<T1, T2>(Action<T1, T2> real, bool useContext = true) {
+			var a = ClientAction((p) => real((T1)p[0], (T2)p[1]), new Type[] { typeof(T1), typeof(T2) }, useContext);
 			return (val1, val2) => a.Invoke(new object[] { val1, val2 });
 		}
 
-		protected Action<T1, T2, T3> ClientAction<T1, T2, T3>(Action<T1, T2, T3> real) {
-			var a = ClientAction((p) => real((T1)p[0], (T2)p[1], (T3)p[2]), new Type[] { typeof(T1), typeof(T2), typeof(T3) });
+		protected Action<T1, T2, T3> ClientAction<T1, T2, T3>(Action<T1, T2, T3> real, bool useContext = true) {
+			var a = ClientAction((p) => real((T1)p[0], (T2)p[1], (T3)p[2]), new Type[] { typeof(T1), typeof(T2), typeof(T3) }, useContext);
 			return (val1, val2, val3) => a.Invoke(new object[] { val1, val2, val3 });
 		}
 
-		protected Action<T1, T2, T3, T4> ClientAction<T1, T2, T3, T4>(Action<T1, T2, T3, T4> real) {
-			var a = ClientAction((p) => real((T1)p[0], (T2)p[1], (T3)p[2], (T4)p[3]), new Type[] { typeof(T1), typeof(T2), typeof(T3), typeof(T4) });
+		protected Action<T1, T2, T3, T4> ClientAction<T1, T2, T3, T4>(Action<T1, T2, T3, T4> real, bool useContext = true) {
+			var a = ClientAction((p) => real((T1)p[0], (T2)p[1], (T3)p[2], (T4)p[3]), new Type[] { typeof(T1), typeof(T2), typeof(T3), typeof(T4) }, useContext);
 			return (val1, val2, val3, val4) => a.Invoke(new object[] { val1, val2, val3, val4 });
 		}
 
-		private Action<object[]> RemoteAction(Action<object[]> real, Type[] types) {
-			var clAction = ClientAction(real, types);
-			var svAction = ServerAction(real, types);
+		private Action<object[]> RemoteAction(Action<object[]> real, Type[] types, bool useContext = true) {
+			var clAction = ClientAction(real, types, useContext);
+			var svAction = ServerAction(real, types, useContext);
 
 			return (param) => {
 				if (IsServer) clAction.Invoke(param);
@@ -129,9 +132,10 @@ namespace Chip.Net.Services.RFC
 			};
 		}
 
-		private Action<object[]> ServerAction(Action<object[]> real, Type[] types) {
+		private Action<object[]> ServerAction(Action<object[]> real, Type[] types, bool useContext = true) {
 			byte id = actionId++;
 
+			useContextMap[id] = useContext;
 			Action<object[], bool> action = (param, isReceiving) => {
 				byte _id = id;
 				if (IsServer) {
@@ -142,7 +146,8 @@ namespace Chip.Net.Services.RFC
 					RFCExecute msg = new RFCExecute();
 					msg.FunctionId = _id;
 					var buff = new DataBuffer();
-					WriteModelsToBuffer(buff, param);
+					var _useContext = useContextMap[msg.FunctionId];
+					WriteModelsToBuffer(buff, param, _useContext);
 					msg.FunctionParameters = buff.ToBytes();
 					SendPacketToServer(msg);
 				}
@@ -154,9 +159,10 @@ namespace Chip.Net.Services.RFC
 			return (param) => action(param, false);
 		}
 
-		private Action<object[]> ClientAction(Action<object[]> real, Type[] types) {
+		private Action<object[]> ClientAction(Action<object[]> real, Type[] types, bool useContext = true) {
 			byte id = actionId++;
 
+			useContextMap[id] = useContext;
 			Action<object[], bool> action = (param, isReceiving) => {
 				byte _id = id;
 
@@ -168,7 +174,9 @@ namespace Chip.Net.Services.RFC
 					RFCExecute msg = new RFCExecute();
 					msg.FunctionId = _id;
 					var buff = new DataBuffer();
-					WriteModelsToBuffer(buff, param);
+
+					var _useContext = useContextMap[msg.FunctionId];
+					WriteModelsToBuffer(buff, param, _useContext);
 					msg.FunctionParameters = buff.ToBytes();
 
 					var user = GetCurrentUser();
@@ -183,11 +191,15 @@ namespace Chip.Net.Services.RFC
 			return (param) => action(param, false);
 		}
 
-		private void WriteModelsToBuffer(DataBuffer buffer, object[] param) {
+		private void WriteModelsToBuffer(DataBuffer buffer, object[] param, bool useContext) {
 			for(int i = 0; i < param.Length; i++) {
 				var pType = param[i].GetType();
-				if (DynamicSerializer.Instance.CanReadWrite(pType)) {
-					DynamicSerializer.Instance.Write(buffer, pType, param[i]);
+				var serializer = Context.Serializer;
+				if (!useContext)
+					serializer = DynamicSerializer.Instance;
+
+				if (serializer.CanReadWrite(pType)) {
+					serializer.Write(buffer, pType, param[i]);
 				}
 			}
 		}
@@ -212,11 +224,16 @@ namespace Chip.Net.Services.RFC
 			}
 
 			param = new object[modelTypes.Length];
-			for (int i = 0; i < param.Length; i++) {
+				for (int i = 0; i < param.Length; i++) {
 				var modelType = modelTypes[i];
 
-				if (DynamicSerializer.Instance.CanReadWrite(modelType)) {
-					var model = DynamicSerializer.Instance.Read(buff, modelType);
+				var serializer = Context.Serializer;
+				if (useContextMap[obj.FunctionId] == false) {
+					serializer = DynamicSerializer.Instance;
+				}
+
+				if (serializer.CanReadWrite(modelType)) {
+					var model = serializer.Read(buff, modelType);
 					param[i] = model;
 				}
 			}
