@@ -102,10 +102,10 @@ namespace Chip.Net.UnitTests.Data
 			m.LongValue = (long)r.Next();
 
 			DataBuffer b = new DataBuffer();
-			DynamicSerializer.Write(b, typeof(TestModel), m);
+			DynamicSerializer.Instance.Write(b, typeof(TestModel), m);
 
 			b.Seek(0);
-			var mresult = DynamicSerializer.Read<TestModel>(b);
+			var mresult = DynamicSerializer.Instance.Read<TestModel>(b);
 
 			Assert.IsNotNull(mresult);
 			Assert.IsNotNull(mresult.Data);
@@ -125,10 +125,10 @@ namespace Chip.Net.UnitTests.Data
 			m.Data = "Hello world";
 
 			DataBuffer b = new DataBuffer();
-			DynamicSerializer.Write(b, typeof(TestStruct), m);
+			DynamicSerializer.Instance.Write(b, typeof(TestStruct), m);
 
 			b.Seek(0);
-			var mresult = DynamicSerializer.Read<TestStruct>(b);
+			var mresult = DynamicSerializer.Instance.Read<TestStruct>(b);
 
 			Assert.IsNotNull(mresult);
 			Assert.IsNotNull(mresult.Data);
@@ -144,10 +144,10 @@ namespace Chip.Net.UnitTests.Data
 			m.Inner.Data = "Inner";
 
 			DataBuffer b = new DataBuffer();
-			DynamicSerializer.Write<TestNestedModel>(b, m);
+			DynamicSerializer.Instance.Write<TestNestedModel>(b, m);
 
 			b.Seek(0);
-			var mresult = DynamicSerializer.Read<TestNestedModel>(b);
+			var mresult = DynamicSerializer.Instance.Read<TestNestedModel>(b);
 
 			Assert.IsNotNull(mresult);
 			Assert.IsNotNull(mresult.Inner);
@@ -164,10 +164,10 @@ namespace Chip.Net.UnitTests.Data
 			};
 
 			DataBuffer b = new DataBuffer();
-			DynamicSerializer.Write<List<byte>>(b, data);
+			DynamicSerializer.Instance.Write<List<byte>>(b, data);
 
 			b.Seek(0);
-			var result = DynamicSerializer.Read<List<byte>>(b);
+			var result = DynamicSerializer.Instance.Read<List<byte>>(b);
 
 			Assert.IsNotNull(result);
 			Assert.IsTrue(result.Count == data.Count);
@@ -194,10 +194,10 @@ namespace Chip.Net.UnitTests.Data
 
 
 			DataBuffer b = new DataBuffer();
-			DynamicSerializer.Write<List<TestSimpleModel>>(b, data);
+			DynamicSerializer.Instance.Write<List<TestSimpleModel>>(b, data);
 
 			b.Seek(0);
-			var result = DynamicSerializer.Read<List<TestSimpleModel>>(b);
+			var result = DynamicSerializer.Instance.Read<List<TestSimpleModel>>(b);
 
 			Assert.IsNotNull(result);
 			Assert.AreEqual(result.Count, data.Count);
@@ -212,10 +212,10 @@ namespace Chip.Net.UnitTests.Data
 			};
 
 			DataBuffer b = new DataBuffer();
-			DynamicSerializer.Write<byte[]>(b, data);
+			DynamicSerializer.Instance.Write<byte[]>(b, data);
 
 			b.Seek(0);
-			var result = DynamicSerializer.Read<byte[]>(b);
+			var result = DynamicSerializer.Instance.Read<byte[]>(b);
 
 			Assert.IsNotNull(result);
 			Assert.IsTrue(result.Length == data.Length);
@@ -241,10 +241,10 @@ namespace Chip.Net.UnitTests.Data
 			};
 
 			DataBuffer b = new DataBuffer();
-			DynamicSerializer.Write<TestSimpleModel[]>(b, data);
+			DynamicSerializer.Instance.Write<TestSimpleModel[]>(b, data);
 
 			b.Seek(0);
-			var result = DynamicSerializer.Read<TestSimpleModel[]>(b);
+			var result = DynamicSerializer.Instance.Read<TestSimpleModel[]>(b);
 
 			Assert.IsNotNull(result);
 			Assert.AreEqual(result.Length, data.Length);
@@ -267,10 +267,10 @@ namespace Chip.Net.UnitTests.Data
 			m.B10 = "10";
 
 			DataBuffer b = new DataBuffer();
-			DynamicSerializer.Write<TestLargeModel>(b, m);
+			DynamicSerializer.Instance.Write<TestLargeModel>(b, m);
 
 			b.Seek(0);
-			var mresult = DynamicSerializer.Read<TestLargeModel>(b);
+			var mresult = DynamicSerializer.Instance.Read<TestLargeModel>(b);
 
 			Assert.IsNotNull(mresult);
 			Assert.AreEqual(m.B1, mresult.B1);
@@ -294,10 +294,10 @@ namespace Chip.Net.UnitTests.Data
 			m.ULong = (UInt64)r.Next();
 
 			DataBuffer b = new DataBuffer();
-			DynamicSerializer.Write<TestModelISerializable>(b, m);
+			DynamicSerializer.Instance.Write<TestModelISerializable>(b, m);
 
 			b.Seek(0);
-			var result = DynamicSerializer.Read<TestModelISerializable>(b);
+			var result = DynamicSerializer.Instance.Read<TestModelISerializable>(b);
 
 			Assert.IsNotNull(result);
 			Assert.AreEqual(m.UInt, result.UInt);
@@ -315,10 +315,10 @@ namespace Chip.Net.UnitTests.Data
 			m.Float = (float)r.NextDouble();
 
 			DataBuffer b = new DataBuffer();
-			DynamicSerializer.Write<TestModelDynamic>(b, m);
+			DynamicSerializer.Instance.Write<TestModelDynamic>(b, m);
 
 			b.Seek(0);
-			var result = DynamicSerializer.Read<TestModelDynamic>(b);
+			var result = DynamicSerializer.Instance.Read<TestModelDynamic>(b);
 
 			Assert.IsNotNull(result);
 			Assert.AreEqual(m.Data, result.Data);
@@ -354,14 +354,14 @@ namespace Chip.Net.UnitTests.Data
 			TestEnum e3 = TestEnum.Three;
 
 			DataBuffer b = new DataBuffer();
-			DynamicSerializer.Write<TestEnum>(b, e1);
-			DynamicSerializer.Write<TestEnum>(b, e2);
-			DynamicSerializer.Write<TestEnum>(b, e3);
+			DynamicSerializer.Instance.Write<TestEnum>(b, e1);
+			DynamicSerializer.Instance.Write<TestEnum>(b, e2);
+			DynamicSerializer.Instance.Write<TestEnum>(b, e3);
 
 			b.Seek(0);
-			var r1 = DynamicSerializer.Read<TestEnum>(b);
-			var r2 = DynamicSerializer.Read<TestEnum>(b);
-			var r3 = DynamicSerializer.Read<TestEnum>(b);
+			var r1 = DynamicSerializer.Instance.Read<TestEnum>(b);
+			var r2 = DynamicSerializer.Instance.Read<TestEnum>(b);
+			var r3 = DynamicSerializer.Instance.Read<TestEnum>(b);
 
 			Assert.AreEqual(e1, r1);
 			Assert.AreEqual(e2, r2);
@@ -370,21 +370,21 @@ namespace Chip.Net.UnitTests.Data
 
 		[TestMethod]
 		public void DynamicSerializer_AddReaderWriter_CanReadWrite() {
-			Assert.IsFalse(DynamicSerializer.CanReadWrite(typeof(TestModelWithConstructor)));
+			Assert.IsFalse(DynamicSerializer.Instance.CanReadWrite(typeof(TestModelWithConstructor)));
 
-			DynamicSerializer.AddReaderWriter<TestModelWithConstructor>(
-				new DataWriter(typeof(TestModelWithConstructor)),
-				new DataReader(typeof(TestModelWithConstructor), () => new TestModelWithConstructor("")));
+			DynamicSerializer.Instance.AddReaderWriter<TestModelWithConstructor>(
+				new DataWriter(DynamicSerializer.Instance, typeof(TestModelWithConstructor)),
+				new DataReader(DynamicSerializer.Instance, typeof(TestModelWithConstructor), () => new TestModelWithConstructor("")));
 
-			Assert.IsTrue(DynamicSerializer.CanReadWrite(typeof(TestModelWithConstructor)));
+			Assert.IsTrue(DynamicSerializer.Instance.CanReadWrite(typeof(TestModelWithConstructor)));
 
 			TestModelWithConstructor m = new TestModelWithConstructor("Hello world");
 
 			DataBuffer b = new DataBuffer();
-			DynamicSerializer.Write<TestModelWithConstructor>(b, m);
+			DynamicSerializer.Instance.Write<TestModelWithConstructor>(b, m);
 
 			b.Seek(0);
-			var result = DynamicSerializer.Read<TestModelWithConstructor>(b);
+			var result = DynamicSerializer.Instance.Read<TestModelWithConstructor>(b);
 
 			Assert.IsNotNull(result);
 			Assert.IsNotNull(result.Data);
@@ -398,10 +398,10 @@ namespace Chip.Net.UnitTests.Data
 			m.Ignored = "Ignored";
 
 			DataBuffer b = new DataBuffer();
-			DynamicSerializer.Write<TestModelWithIgnore>(b, m);
+			DynamicSerializer.Instance.Write<TestModelWithIgnore>(b, m);
 
 			b.Seek(0);
-			var result = DynamicSerializer.Read<TestModelWithIgnore>(b);
+			var result = DynamicSerializer.Instance.Read<TestModelWithIgnore>(b);
 
 			Assert.IsNotNull(result);
 			Assert.IsNull(result.Ignored);
@@ -430,7 +430,7 @@ namespace Chip.Net.UnitTests.Data
 			Assert.IsNull(result.Recipient);
 			Assert.IsNull(result.Sender);
 
-			Assert.IsTrue(DataHelpers.GetSerializableProperties(typeof(TestSerializedPacket)).Length == 1);
+			Assert.IsTrue(DynamicSerializer.Instance.GetSerializableProperties(typeof(TestSerializedPacket)).Length == 1);
 		}
 	}
 }

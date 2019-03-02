@@ -186,8 +186,8 @@ namespace Chip.Net.Services.RFC
 		private void WriteModelsToBuffer(DataBuffer buffer, object[] param) {
 			for(int i = 0; i < param.Length; i++) {
 				var pType = param[i].GetType();
-				if (DynamicSerializer.CanReadWrite(pType)) {
-					DynamicSerializer.Write(buffer, pType, param[i]);
+				if (DynamicSerializer.Instance.CanReadWrite(pType)) {
+					DynamicSerializer.Instance.Write(buffer, pType, param[i]);
 				}
 			}
 		}
@@ -215,8 +215,8 @@ namespace Chip.Net.Services.RFC
 			for (int i = 0; i < param.Length; i++) {
 				var modelType = modelTypes[i];
 
-				if (DynamicSerializer.CanReadWrite(modelType)) {
-					var model = DynamicSerializer.Read(buff, modelType);
+				if (DynamicSerializer.Instance.CanReadWrite(modelType)) {
+					var model = DynamicSerializer.Instance.Read(buff, modelType);
 					param[i] = model;
 				}
 			}

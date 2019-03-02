@@ -12,11 +12,11 @@ namespace Chip.Net {
 
 	public class Serializable : ISerializable {
 		public void ReadFrom(DataBuffer buffer) {
-			DynamicSerializer.Write(buffer, GetType(), this);
+			DynamicSerializer.Instance.Write(buffer, GetType(), this);
 		}
 
 		public void WriteTo(DataBuffer buffer) {
-			DynamicSerializer.Read(buffer, GetType(), this);
+			DynamicSerializer.Instance.Read(buffer, GetType(), this);
 		}
 	}
 }

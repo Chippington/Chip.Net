@@ -16,12 +16,12 @@ namespace Chip.Net.Data {
 
 		public override void WriteTo(DataBuffer buffer) {
 			base.WriteTo(buffer);
-			DynamicSerializer.Write(buffer, typeof(TModel), Model);
+			DynamicSerializer.Instance.Write(buffer, typeof(TModel), Model);
 		}
 
 		public override void ReadFrom(DataBuffer buffer) {
 			base.ReadFrom(buffer);
-			Model = DynamicSerializer.Read<TModel>(buffer);
+			Model = DynamicSerializer.Instance.Read<TModel>(buffer);
 		}
 	}
 }

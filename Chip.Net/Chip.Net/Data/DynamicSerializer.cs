@@ -7,8 +7,10 @@ using System.Text;
 
 namespace Chip.Net.Data
 {
-    public static class DynamicSerializer {
-		public static Dictionary<Type, DataWriter> Writers { get; private set; } = new Dictionary<Type, DataWriter>() {
+    public class DynamicSerializer {
+		public static DynamicSerializer Instance { get; private set; } = new DynamicSerializer();
+
+		public Dictionary<Type, DataWriter> Writers { get; private set; } = new Dictionary<Type, DataWriter>() {
 			{ typeof(Byte), new DataWriter(typeof(Byte), (b, v) => b.Write((Byte)v)) },
 			{ typeof(Int16), new DataWriter(typeof(Int16), (b, v) => b.Write((Int16)v)) },
 			{ typeof(Int32), new DataWriter(typeof(Int32), (b, v) => b.Write((Int32)v)) },
@@ -23,7 +25,7 @@ namespace Chip.Net.Data
 			{ typeof(DataBuffer), new DataWriter(typeof(DataBuffer), (b, v) => b.Write((DataBuffer)v)) },
 		};
 
-		public static Dictionary<Type, DataReader> Readers { get; private set; } = new Dictionary<Type, DataReader>() {
+		public Dictionary<Type, DataReader> Readers { get; private set; } = new Dictionary<Type, DataReader>() {
 			{ typeof(Byte), new DataReader(typeof(Byte), (b, v) => b.ReadByte()) },
 			{ typeof(Int16), new DataReader(typeof(Int16), (b, v) => b.ReadInt16()) },
 			{ typeof(Int32), new DataReader(typeof(Int32), (b, v) => b.ReadInt32()) },
@@ -38,28 +40,28 @@ namespace Chip.Net.Data
 			{ typeof(DataBuffer), new DataReader(typeof(DataBuffer), (b, v) => b.ReadBuffer()) },
 		};
 
-		public static void Write(DataBuffer buffer, Type type, object instance) {
+		public void Write(DataBuffer buffer, Type type, object instance) {
 			if (CanReadWrite(type) == false)
 				throw new Exception("Invalid model: Can not read/write");
 
 			if(Writers.ContainsKey(type) == false) {
-				Writers.Add(type, new DataWriter(type));
+				Writers.Add(type, new DataWriter(this, type));
 			}
 
 			var writer = Writers[type];
 			writer.Write(buffer, instance);
 		}
 
-		public static void Write<T>(DataBuffer buffer, T instance) {
+		public void Write<T>(DataBuffer buffer, T instance) {
 			Write(buffer, typeof(T), instance);
 		}
 
-		public static object Read(DataBuffer buffer, Type type, object existing = null) {
+		public object Read(DataBuffer buffer, Type type, object existing = null) {
 			if (CanReadWrite(type) == false)
 				throw new Exception("Invalid model: Can not read/write");
 
 			if(Readers.ContainsKey(type) == false) {
-				Readers.Add(type, new DataReader(type));
+				Readers.Add(type, new DataReader(this, type));
 			}
 
 			var reader = Readers[type];
@@ -68,20 +70,20 @@ namespace Chip.Net.Data
 			return model;
 		}
 
-		public static T Read<T>(DataBuffer buffer) {
+		public T Read<T>(DataBuffer buffer) {
 			return (T)Read(buffer, typeof(T));
 		}
 
-		public static void AddReaderWriter(Type type, DataWriter writer, DataReader reader) {
+		public void AddReaderWriter(Type type, DataWriter writer, DataReader reader) {
 			Writers.Add(type, writer);
 			Readers.Add(type, reader);
 		}
 
-		public static void AddReaderWriter<T>(DataWriter writer, DataReader reader) {
+		public void AddReaderWriter<T>(DataWriter writer, DataReader reader) {
 			AddReaderWriter(typeof(T), writer, reader);
 		}
 
-		public static bool CanReadWrite(Type type) {
+		public bool CanReadWrite(Type type) {
 			if (Writers.ContainsKey(type) && Readers.ContainsKey(type))
 				return true;
 
@@ -93,15 +95,24 @@ namespace Chip.Net.Data
 				typeof(ISerializable).IsAssignableFrom(type) ||
 				type.IsEnum;
 		}
-    }
+
+		public PropertyInfo[] GetSerializableProperties(Type type) {
+			return type.GetProperties()
+				.Where(i => CanReadWrite(i.PropertyType))
+				.Where(i => i.CustomAttributes.Any(o => o.AttributeType == typeof(IgnoreProperty)) == false)
+				.ToArray();
+		}
+	}
 
 	public class DataWriter {
 		private Action<DataBuffer, object> WriteAction;
 		private PropertyInfo[] Properties;
+		private DynamicSerializer Parent;
 
 		private Type ListType;
 
-		public DataWriter(Type type) {
+		public DataWriter(DynamicSerializer parent, Type type) {
+			this.Parent = parent;
 			if (type.IsEnum) {
 				WriteAction = WriteEnum;
 				return;
@@ -118,7 +129,7 @@ namespace Chip.Net.Data
 				return;
 			}
 
-			Properties = DataHelpers.GetSerializableProperties(type);
+			Properties = Parent.GetSerializableProperties(type);
 			WriteAction = WritePropertyValues;
 		}
 
@@ -138,7 +149,7 @@ namespace Chip.Net.Data
 				if (list[i].GetType() != ListType)
 					throw new Exception("Type mismatch");
 
-				DynamicSerializer.Write(buffer, ListType, list[i]);
+				Parent.Write(buffer, ListType, list[i]);
 			}
 		}
 
@@ -158,7 +169,7 @@ namespace Chip.Net.Data
 
 			for (int i = 0; i < values.Length; i++)
 				if (values[i] != null)
-					DynamicSerializer.Write(buff, types[i], values[i]);
+					Parent.Write(buff, types[i], values[i]);
 		}
 
 		public DataWriter(Type type, Action<DataBuffer, object> writer) {
@@ -174,10 +185,12 @@ namespace Chip.Net.Data
 		private Func<DataBuffer, object, object> ReadFunction;
 		private Func<object> ActivationFunction;
 		private PropertyInfo[] Properties;
+		private DynamicSerializer Parent;
 		private Type ModelType;
 		private Type ListType;
 
-		public DataReader(Type type, Func<object> activator = null) {
+		public DataReader(DynamicSerializer parent, Type type, Func<object> activator = null) {
+			this.Parent = parent;
 			ModelType = type;
 			if (type.IsEnum) {
 				ReadFunction = ReadEnum;
@@ -197,7 +210,7 @@ namespace Chip.Net.Data
 				return;
 			}
 
-			Properties = DataHelpers.GetSerializableProperties(type);
+			Properties = Parent.GetSerializableProperties(type);
 			ReadFunction = ReadPropertyValues;
 			ActivationFunction = activator;
 		}
@@ -215,7 +228,7 @@ namespace Chip.Net.Data
 
 			var count = buffer.ReadInt16();
 			for(int i = 0; i < count; i++) {
-				ret.Add(DynamicSerializer.Read(buffer, ListType));
+				ret.Add(Parent.Read(buffer, ListType));
 			}
 
 			return ret;
@@ -226,7 +239,7 @@ namespace Chip.Net.Data
 			Array arr = (Array)Activator.CreateInstance(ListType.MakeArrayType(), new object[] { (int)count });
 
 			for(int i = 0; i < count; i++) {
-				arr.SetValue(DynamicSerializer.Read(buffer, ListType), i);
+				arr.SetValue(Parent.Read(buffer, ListType), i);
 			}
 
 			return arr;
@@ -253,7 +266,7 @@ namespace Chip.Net.Data
 			var isNull = DataHelpers.Unfold(fold);
 			for (int i = 0; i < Properties.Length; i++)
 				if (isNull[i] == false)
-					Properties[i].SetValue(inst, DynamicSerializer.Read(buff, types[i], Properties[i].GetValue(inst)));
+					Properties[i].SetValue(inst, Parent.Read(buff, types[i], Properties[i].GetValue(inst)));
 
 			return inst;
 		}
@@ -264,13 +277,6 @@ namespace Chip.Net.Data
 	}
 
 	public class DataHelpers {
-		public static PropertyInfo[] GetSerializableProperties(Type type) {
-			return type.GetProperties()
-				.Where(i => DynamicSerializer.CanReadWrite(i.PropertyType))
-				.Where(i => i.CustomAttributes.Any(o => o.AttributeType == typeof(IgnoreProperty)) == false)
-				.ToArray();
-		}
-
 		public static byte[] Fold(bool[] flags) {
 			int byteCount = (flags.Length + 7) / 8;
 			byte[] ret = new byte[byteCount];
