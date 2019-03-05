@@ -40,6 +40,7 @@ namespace Chip.Net.Data
 			{ typeof(DataBuffer), new DataReader(typeof(DataBuffer), (b, v) => b.ReadBuffer()) },
 		};
 
+		private object LockObject = new object();
 		private List<Type> CoveredTypes = new List<Type>();
 		private Dictionary<Type, Type> CoveredTypeMap = new Dictionary<Type, Type>();
 
@@ -48,11 +49,13 @@ namespace Chip.Net.Data
 				throw new Exception("Invalid model: Can not read/write");
 
 			DataWriter writer = null;
-			if (Writers.ContainsKey(type) == false) {
-				if (CoveredTypeMap.ContainsKey(type)) {
-					writer = Writers[CoveredTypeMap[type]];
-				} else {
-					Writers.Add(type, new DataWriter(this, type));
+			lock (LockObject) {
+				if (Writers.ContainsKey(type) == false) {
+					if (CoveredTypeMap.ContainsKey(type)) {
+						writer = Writers[CoveredTypeMap[type]];
+					} else {
+						Writers.Add(type, new DataWriter(this, type));
+					}
 				}
 			}
 
@@ -71,11 +74,13 @@ namespace Chip.Net.Data
 				throw new Exception("Invalid model: Can not read/write");
 
 			DataReader reader = null;
-			if(Readers.ContainsKey(type) == false) {
-				if(CoveredTypeMap.ContainsKey(type)) {
-					reader = Readers[CoveredTypeMap[type]];
-				} else {
-					Readers.Add(type, new DataReader(this, type));
+			lock (LockObject) {
+				if (Readers.ContainsKey(type) == false) {
+					if (CoveredTypeMap.ContainsKey(type)) {
+						reader = Readers[CoveredTypeMap[type]];
+					} else {
+						Readers.Add(type, new DataReader(this, type));
+					}
 				}
 			}
 
@@ -91,8 +96,10 @@ namespace Chip.Net.Data
 		}
 
 		public void AddReaderWriter(Type type, DataWriter writer, DataReader reader, bool covered = false) {
-			Writers.Add(type, writer);
-			Readers.Add(type, reader);
+			lock (LockObject) {
+				Writers.Add(type, writer);
+				Readers.Add(type, reader);
+			}
 
 			if (covered) {
 				var collisions = CoveredTypes.Where(i => i.IsAssignableFrom(type) || type.IsAssignableFrom(i));

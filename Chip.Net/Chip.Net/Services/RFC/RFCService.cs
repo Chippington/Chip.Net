@@ -5,8 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Chip.Net.Services.RFC
-{
+namespace Chip.Net.Services.RFC {
 	public class RFCService : NetService {
 		private NetUser currentUser;
 		protected NetUser CurrentUser {
@@ -50,7 +49,7 @@ namespace Chip.Net.Services.RFC
 			context.Packets.Register<RFCExecute>();
 			Router.Route<RFCExecute>(onExecute);
 
-			if(IsServer) {
+			if (IsServer) {
 				var sv = context.Services.Get<INetServer>();
 				sv.OnUserConnected += (arg) => {
 					userList.Add(arg.User);
@@ -192,7 +191,7 @@ namespace Chip.Net.Services.RFC
 		}
 
 		private void WriteModelsToBuffer(DataBuffer buffer, object[] param, bool useContext) {
-			for(int i = 0; i < param.Length; i++) {
+			for (int i = 0; i < param.Length; i++) {
 				var pType = param[i].GetType();
 				var serializer = Context.Serializer;
 				if (!useContext)
@@ -218,13 +217,13 @@ namespace Chip.Net.Services.RFC
 				modelTypes = svTypeMap[obj.FunctionId];
 			}
 
-			if(IsClient) {
+			if (IsClient) {
 				action = clActionMap[obj.FunctionId];
 				modelTypes = clTypeMap[obj.FunctionId];
 			}
 
 			param = new object[modelTypes.Length];
-				for (int i = 0; i < param.Length; i++) {
+			for (int i = 0; i < param.Length; i++) {
 				var modelType = modelTypes[i];
 
 				var serializer = Context.Serializer;
@@ -238,11 +237,9 @@ namespace Chip.Net.Services.RFC
 				}
 			}
 
-			Task.Run(() => {
-				var _action = action;
-				var _param = param;
-				_action.Invoke(_param, true);
-			});
+			var _action = action;
+			var _param = param;
+			_action.Invoke(_param, true);
 		}
 
 		public void Broadcast(Action userAction) {
