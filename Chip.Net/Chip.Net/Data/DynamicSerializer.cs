@@ -159,7 +159,7 @@ namespace Chip.Net.Data
 			}
 
 			if (typeof(IEnumerable).IsAssignableFrom(type)) {
-				WriteAction = WriteList;
+				WriteAction = WriteEnumerable;
 
 				if (type.GenericTypeArguments.Any())
 					ListType = type.GenericTypeArguments.First();
@@ -179,17 +179,17 @@ namespace Chip.Net.Data
 			buffer.Write((byte)underlyingValue);
 		}
 
-		private void WriteList(DataBuffer buffer, object inst) {
-			IList list = inst as IList;
+		private void WriteEnumerable(DataBuffer buffer, object inst) {
+			IEnumerable<object> list = (inst as IEnumerable).OfType<object>();
 
-			short count = (short)list.Count;
+			short count = (short)list.Count();
 			buffer.Write((short)count);
 
-			for (int i = 0; i < count; i++) {
-				if (list[i].GetType() != ListType)
+			foreach(var obj in list) {
+				if (obj.GetType() != ListType)
 					throw new Exception("Type mismatch");
 
-				Parent.Write(buffer, ListType, list[i]);
+				Parent.Write(buffer, ListType, obj);
 			}
 		}
 
