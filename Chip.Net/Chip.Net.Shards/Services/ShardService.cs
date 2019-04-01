@@ -13,6 +13,9 @@ namespace Chip.Net.Shards.Services
 
 		public bool IsServer { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 		public bool IsClient { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+		public bool IsRouter { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+		public bool IsShard { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+		public bool IsUser { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
 		public void Dispose() {
 			throw new NotImplementedException();

@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Chip.Net.Shards.Router {
+namespace Chip.Net.Shards {
 	public class RouterServer<TUserModel, TShardModel> : IDisposable
 		where TUserModel : IUserModel
 		where TShardModel : IShardModel {

@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Chip.Net.Shards
 {
-    public class Shard<TUserModel, TShardModel> : IDisposable
+    public class ShardServer<TUserModel, TShardModel> : IDisposable
 		where TUserModel : IUserModel
 		where TShardModel : IShardModel {
 
@@ -17,7 +17,7 @@ namespace Chip.Net.Shards
 
 		public bool IsActive { get; private set; }
 
-		public Shard(NetContext context, INetClient client) {
+		public ShardServer(NetContext context, INetClient client) {
 
 		}
 
