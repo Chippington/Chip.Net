@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Text;
 
 namespace Chip.Net.Shards.Router {
-	public class RouterServer<TUserModel, TShardModel> 
+	public class RouterServer<TUserModel, TShardModel> : IDisposable
 		where TUserModel : IUserModel
 		where TShardModel : IShardModel {
 
@@ -29,6 +29,8 @@ namespace Chip.Net.Shards.Router {
 		public ModelCollection<TShardModel> Shards;
 
 		public NetContext Context { get; private set; }
+
+		public bool IsActive { get; private set; }
 
 		public RouterServer(NetContext context, INetServer shardServer, INetServer userServer) {
 			this.Context = context;
@@ -90,6 +92,15 @@ namespace Chip.Net.Shards.Router {
 			Users.Remove(model);
 
 			UserDisconnectedEvent?.Invoke(model);
+		}
+
+		public void Shutdown() {
+
+		}
+
+		public void Dispose() {
+			if (IsActive)
+				Shutdown();
 		}
 	}
 }

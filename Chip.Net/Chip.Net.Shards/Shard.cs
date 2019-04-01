@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Chip.Net.Shards
 {
-    public class Shard<TUserModel, TShardModel>
+    public class Shard<TUserModel, TShardModel> : IDisposable
 		where TUserModel : IUserModel
 		where TShardModel : IShardModel {
 
@@ -15,7 +15,7 @@ namespace Chip.Net.Shards
 		public ShardEvent ShardConnectedToRouterEvent { get; set; }
 		public ShardEvent ShardDisconnectedFromRouterEvent { get; set; }
 
-
+		public bool IsActive { get; private set; }
 
 		public Shard(NetContext context, INetClient client) {
 
@@ -24,5 +24,14 @@ namespace Chip.Net.Shards
 		public void StartShard(INetClientProvider provider) {
 
 		}
-    }
+
+		public void Shutdown() {
+
+		}
+
+		public void Dispose() {
+			if (IsActive)
+				Shutdown();
+		}
+	}
 }
