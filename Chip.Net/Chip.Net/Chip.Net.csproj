@@ -6,7 +6,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Debug\" />
     <Folder Include="Providers\UDP\" />
   </ItemGroup>
 
