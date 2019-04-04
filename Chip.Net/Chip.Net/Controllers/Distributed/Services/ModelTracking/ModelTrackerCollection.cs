@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Chip.Net.Controllers.Distributed.Services.ModelTracking
 {
-	public class ModelTrackerCollection<TModel> : ICollection<TModel> where TModel : IDistributedModel {
+	public class ModelTrackerCollection<TModel> : ICollection<TModel>, IDisposable where TModel : IDistributedModel {
 		public int Count => throw new NotImplementedException();
 
 		public TModel this[int id] {
@@ -42,6 +42,10 @@ namespace Chip.Net.Controllers.Distributed.Services.ModelTracking
 		}
 
 		IEnumerator IEnumerable.GetEnumerator() {
+			throw new NotImplementedException();
+		}
+
+		public void Dispose() {
 			throw new NotImplementedException();
 		}
 	}
