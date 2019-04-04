@@ -8,6 +8,7 @@ namespace Chip.Net.Controllers.Distributed.Services.ModelTracking
 {
 	public class ModelTrackerCollection<TModel> : ICollection<TModel>, IDisposable where TModel : IDistributedModel {
 		public int Count => throw new NotImplementedException();
+		public bool Disposed { get; private set; }
 
 		public TModel this[int id] {
 			get {
@@ -29,6 +30,10 @@ namespace Chip.Net.Controllers.Distributed.Services.ModelTracking
 			throw new NotImplementedException();
 		}
 
+		public bool Contains(int itemId) {
+			throw new NotImplementedException();
+		}
+
 		public void CopyTo(TModel[] array, int arrayIndex) {
 			throw new NotImplementedException();
 		}
@@ -38,6 +43,10 @@ namespace Chip.Net.Controllers.Distributed.Services.ModelTracking
 		}
 
 		public bool Remove(TModel item) {
+			throw new NotImplementedException();
+		}
+
+		public bool Remove(int itemId) {
 			throw new NotImplementedException();
 		}
 
