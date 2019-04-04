@@ -5,9 +5,9 @@ using Chip.Net.Data;
 using Chip.Net.Providers;
 using Chip.Net.Services;
 
-namespace Chip.Net.Default.Basic
+namespace Chip.Net.Controllers.Basic
 {
-	public class BasicServer : INetServer {
+	public class BasicServer : INetServerController {
 		#region INetServer
 		public NetEvent OnUserConnected { get; set; }
 		public NetEvent OnUserDisconnected { get; set; }
@@ -37,7 +37,7 @@ namespace Chip.Net.Default.Basic
 			userMap = new Dictionary<object, NetUser>();
 			userList = new List<NetUser>();
 
-			Context.Services.Register<INetServer>(this);
+			Context.Services.Register<INetServerController>(this);
 			Context.Services.InitializeServices(Context);
 			Context.LockContext();
 		}

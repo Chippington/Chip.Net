@@ -26,7 +26,7 @@ namespace Chip.Net.Services.UserList {
 			UserList = userList.AsReadOnly();
 
 			if(IsServer) {
-				var sv = context.Services.Get<INetServer>();
+				var sv = context.Services.Get<INetServerController>();
 				sv.OnUserConnected += onUserConnected;
 				sv.OnUserDisconnected += onUserDisconnected;
 			}

@@ -7,7 +7,7 @@ using System.Text;
 
 namespace Chip.Net
 {
-    public interface INetClient : INetService, IDisposable {
+    public interface INetClientController : INetService, IDisposable {
 		NetEvent OnConnected { get; set; }
 		NetEvent OnDisconnected { get; set; }
 		NetEvent OnPacketReceived { get; set; }

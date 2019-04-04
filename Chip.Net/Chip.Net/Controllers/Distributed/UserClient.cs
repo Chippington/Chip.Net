@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Chip.Net.Shards.Services
+namespace Chip.Net.Controllers.Distributed
 {
-    class INodeService
+    class UserClient
     {
     }
 }

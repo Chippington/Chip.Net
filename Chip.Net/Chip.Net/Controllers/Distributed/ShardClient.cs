@@ -2,10 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Chip.Net.Shards
+namespace Chip.Net.Controllers.Distributed
 {
-    class Node
+    class ShardClient
     {
-
     }
 }

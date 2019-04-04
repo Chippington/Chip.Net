@@ -20,8 +20,8 @@ namespace Chip.Net.Services {
 		}
 
 		public void InitializeServices(NetContext context) {
-			var sv = serviceMap.ContainsKey(typeof(INetServer));
-			var cl = serviceMap.ContainsKey(typeof(INetClient));
+			var sv = serviceMap.ContainsKey(typeof(INetServerController));
+			var cl = serviceMap.ContainsKey(typeof(INetClientController));
 
 			for (int i = 0; i < serviceList.Count; i++) {
 				serviceList[i].IsServer = sv;

@@ -1,5 +1,5 @@
 ﻿using Chip.Net.Data;
-using Chip.Net.Default.Basic;
+using Chip.Net.Controllers.Basic;
 using Chip.Net.Providers.TCP;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
@@ -33,25 +33,25 @@ namespace Chip.Net.UnitTests.Default
 			}
 		}
 
-		INetServer StartNewServer() {
+		INetServerController StartNewServer() {
 			var sv = NewServer();
 			sv.StartServer(new TCPServerProvider());
 			return sv;
 		}
 
-		INetServer NewServer() {
+		INetServerController NewServer() {
 			var sv = new BasicServer();
 			sv.InitializeServer(Context);
 			return sv;
 		}
 
-		INetClient StartNewClient() {
+		INetClientController StartNewClient() {
 			var cl = NewClient();
 			cl.StartClient(new TCPClientProvider());
 			return cl;
 		}
 
-		INetClient NewClient() {
+		INetClientController NewClient() {
 			var cl = new BasicClient();
 			cl.InitializeClient(Context);
 			return cl;

@@ -5,9 +5,9 @@ using Chip.Net.Data;
 using Chip.Net.Providers;
 using Chip.Net.Services;
 
-namespace Chip.Net.Default.Basic
+namespace Chip.Net.Controllers.Basic
 {
-	public class BasicClient : INetClient {
+	public class BasicClient : INetClientController {
 		#region INetClient
 		public NetEvent OnConnected { get; set; }
 		public NetEvent OnDisconnected { get; set; }
@@ -29,7 +29,7 @@ namespace Chip.Net.Default.Basic
 			this.Context = context;
 			disposed = false;
 
-			context.Services.Register<INetClient>(this);
+			context.Services.Register<INetClientController>(this);
 			context.Services.InitializeServices(context);
 			context.LockContext();
 		}

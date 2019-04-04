@@ -1,5 +1,5 @@
 ﻿using Chip.Net.Data;
-using Chip.Net.Default.Basic;
+using Chip.Net.Controllers.Basic;
 using Chip.Net.Providers.SocketProvider;
 using Chip.Net.Providers.TCP;
 using Chip.Net.Services.NetTime;
@@ -9,6 +9,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
+using System.Linq;
 
 namespace Chip.Net.Testbed
 {
@@ -176,11 +178,11 @@ namespace Chip.Net.Testbed
 			//TestPacketTwo result = new TestPacketTwo();
 			//result.ReadFrom(bb);
 
-			INetServer sv = new BasicServer();
+			INetServerController sv = new BasicServer();
 			sv.InitializeServer(Context);
 			sv.StartServer(new TCPServerProvider());
 
-			INetClient cl = new BasicClient();
+			INetClientController cl = new BasicClient();
 			cl.InitializeClient(Context);
 			cl.OnConnected += (arg) => {
 				TestSerializable s = new TestSerializable();

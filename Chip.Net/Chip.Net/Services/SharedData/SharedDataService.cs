@@ -35,7 +35,7 @@ namespace Chip.Net.Services.SharedData
 		public override void StartService() {
 			base.StartService();
 			if (IsServer) {
-				var sv = Context.Services.Get<INetServer>();
+				var sv = Context.Services.Get<INetServerController>();
 				sv.OnUserConnected += OnUserConnected;
 				sv.OnUserDisconnected += OnUserDisconnected;
 			}

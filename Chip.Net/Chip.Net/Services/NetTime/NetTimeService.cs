@@ -24,7 +24,7 @@ namespace Chip.Net.Services.NetTime {
 			serverTimer = new Stopwatch();
 			pingTimer = new Stopwatch();
 
-			var cl = context.Services.Get<INetClient>();
+			var cl = context.Services.Get<INetClientController>();
 			if(cl != null)
 				cl.OnConnected += OnConnected;
 
