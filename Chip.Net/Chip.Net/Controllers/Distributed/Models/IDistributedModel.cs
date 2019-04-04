@@ -4,7 +4,8 @@ using System.Text;
 
 namespace Chip.Net.Controllers.Distributed.Models
 {
-    class IDistributedModel
+    public interface IDistributedModel
     {
+		int Id { get; set; }
     }
 }
