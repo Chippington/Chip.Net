@@ -1,5 +1,4 @@
 ﻿using Chip.Net.Data;
-using Chip.Net.Controllers.Basic;
 using Chip.Net.Providers.TCP;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
@@ -7,11 +6,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Chip.Net.UnitTests.Default
-{
-	[TestClass]
-    public class BasicTests
-    {
+namespace Chip.Net.UnitTests.Controllers {
+	public abstract class BaseControllerTests<TServer, TClient>
+		where TServer : INetServerController
+		where TClient : INetClientController {
+
 		private int _port = 0;
 		private int Port {
 			get {
@@ -21,6 +20,7 @@ namespace Chip.Net.UnitTests.Default
 				return _port;
 			}
 		}
+
 		private NetContext _context;
 		public NetContext Context {
 			get {
@@ -33,57 +33,57 @@ namespace Chip.Net.UnitTests.Default
 			}
 		}
 
-		INetServerController StartNewServer() {
+		protected virtual INetServerController StartNewServer() {
 			var sv = NewServer();
 			sv.StartServer(new TCPServerProvider());
 			return sv;
 		}
 
-		INetServerController NewServer() {
-			var sv = new BasicServer();
+		protected virtual INetServerController NewServer() {
+			var sv = Activator.CreateInstance<TServer>();
 			sv.InitializeServer(Context);
 			return sv;
 		}
 
-		INetClientController StartNewClient() {
+		protected virtual INetClientController StartNewClient() {
 			var cl = NewClient();
 			cl.StartClient(new TCPClientProvider());
 			return cl;
 		}
 
-		INetClientController NewClient() {
-			var cl = new BasicClient();
+		protected virtual INetClientController NewClient() {
+			var cl = Activator.CreateInstance<TClient>();
 			cl.InitializeClient(Context);
 			return cl;
 		}
 
-		void Wait(Func<bool> func, int ticks = 1000) {
+		protected virtual void Wait(Func<bool> func, int ticks = 1000) {
 			var tick = Environment.TickCount;
 			while (Environment.TickCount - tick < ticks && func() == false)
 				System.Threading.Thread.Sleep(10);
 		}
 
 		[TestMethod]
-		public void Server_StartServer_RouterNotNull() {
+		public virtual void Server_StartServer_RouterNotNull() {
 			var sv = StartNewServer();
 			Assert.IsNotNull(sv.Router);
 		}
 
 		[TestMethod]
-		public void Client_StartClient_RouterNotNull() {
+		public virtual void Client_StartClient_RouterNotNull() {
 			var sv = StartNewServer();
 			var cl = StartNewClient();
 			Assert.IsNotNull(cl.Router);
 		}
 
 		[TestMethod]
-		public void Server_StartServer_IsActive() {
+		public virtual void Server_StartServer_IsActive() {
 			var sv = StartNewServer();
 			Assert.IsTrue(sv.IsActive);
 		}
 
 		[TestMethod]
-		public void Client_StartClient_IsConnected() {
+		public virtual void Client_StartClient_IsConnected() {
 			var sv = StartNewServer();
 			var cl = StartNewClient();
 
@@ -97,7 +97,7 @@ namespace Chip.Net.UnitTests.Default
 		}
 
 		[TestMethod]
-		public void Server_ClientConnects_EventInvoked() {
+		public virtual void Server_ClientConnects_EventInvoked() {
 			var sv = StartNewServer();
 			bool eventInvoked = false;
 			NetUser user = null;
@@ -123,7 +123,7 @@ namespace Chip.Net.UnitTests.Default
 		}
 
 		[TestMethod]
-		public void Server_ClientDisconnects_EventInvoked() {
+		public virtual void Server_ClientDisconnects_EventInvoked() {
 			var sv = StartNewServer();
 			bool eventInvoked = false;
 			NetUser user1 = null;
@@ -153,7 +153,7 @@ namespace Chip.Net.UnitTests.Default
 		}
 
 		[TestMethod]
-		public void Client_ClientConnects_EventInvoked() {
+		public virtual void Client_ClientConnects_EventInvoked() {
 			var sv = StartNewServer();
 			var cl = NewClient();
 			bool eventInvoked = false;
@@ -177,7 +177,7 @@ namespace Chip.Net.UnitTests.Default
 		}
 
 		[TestMethod]
-		public void Client_ClientDisconnects_EventInvoked() {
+		public virtual void Client_ClientDisconnects_EventInvoked() {
 			var sv = StartNewServer();
 			var cl = NewClient();
 			bool eventInvoked = false;
@@ -203,7 +203,7 @@ namespace Chip.Net.UnitTests.Default
 		}
 
 		[TestMethod]
-		public void Server_ClientConnected_HasUser() {
+		public virtual void Server_ClientConnected_HasUser() {
 			var sv = StartNewServer();
 			NetUser user = null;
 			sv.OnUserConnected += i => {
@@ -224,32 +224,32 @@ namespace Chip.Net.UnitTests.Default
 		}
 
 		[TestMethod]
-		public void Server_InitializeServer_HasContext() {
+		public virtual void Server_InitializeServer_HasContext() {
 			var sv = NewServer();
 			Assert.IsNotNull(sv.Context);
 		}
 
 		[TestMethod]
-		public void Client_InitializeClient_HasContext() {
+		public virtual void Client_InitializeClient_HasContext() {
 			var cl = NewClient();
 			Assert.IsNotNull(cl.Context);
 		}
 
 		[TestMethod]
-		public void Server_InitializeServer_ContextLocked() {
+		public virtual void Server_InitializeServer_ContextLocked() {
 			var sv = NewServer();
 			Assert.IsTrue(sv.Context.Locked);
 		}
 
 		[TestMethod]
-		public void Server_StartServer_ServicesStarted() {
+		public virtual void Server_StartServer_ServicesStarted() {
 			var sv = NewServer();
 			sv.StartServer(new TCPServerProvider());
 			Assert.IsTrue(sv.Context.Services.Get<TestNetService>().Started);
 		}
 
 		[TestMethod]
-		public void Server_UpdateServer_ServicesUpdated() {
+		public virtual void Server_UpdateServer_ServicesUpdated() {
 			var sv = NewServer();
 			sv.StartServer(new TCPServerProvider());
 			sv.UpdateServer();
@@ -258,7 +258,7 @@ namespace Chip.Net.UnitTests.Default
 		}
 
 		[TestMethod]
-		public void Server_StopServer_ServicesStopped() {
+		public virtual void Server_StopServer_ServicesStopped() {
 			var sv = NewServer();
 			sv.StartServer(new TCPServerProvider());
 			sv.UpdateServer();
@@ -267,7 +267,7 @@ namespace Chip.Net.UnitTests.Default
 		}
 
 		[TestMethod]
-		public void Server_DisposeServer_ServicesDisposed() {
+		public virtual void Server_DisposeServer_ServicesDisposed() {
 			var sv = NewServer();
 			var svc = sv.Context.Services.Get<TestNetService>();
 			sv.StartServer(new TCPServerProvider());
@@ -278,34 +278,34 @@ namespace Chip.Net.UnitTests.Default
 		}
 
 		[TestMethod]
-		public void Client_InitializeClient_ContextLocked() {
+		public virtual void Client_InitializeClient_ContextLocked() {
 			var cl = NewClient();
 			Assert.IsTrue(cl.Context.Locked);
 		}
 
 		[TestMethod]
-		public void Server_InitializeServer_ServicesInitialized() {
+		public virtual void Server_InitializeServer_ServicesInitialized() {
 			var sv = NewServer();
 			var cl = NewClient();
 			Assert.IsTrue(sv.Context.Services.Get<TestNetService>().Initialized);
 		}
 
 		[TestMethod]
-		public void Client_InitializeClient_ServicesInitialized() {
+		public virtual void Client_InitializeClient_ServicesInitialized() {
 			var sv = NewServer();
 			var cl = NewClient();
 			Assert.IsTrue(cl.Context.Services.Get<TestNetService>().Initialized);
 		}
 
 		[TestMethod]
-		public void Client_StartClient_ServicesStarted() {
+		public virtual void Client_StartClient_ServicesStarted() {
 			var sv = StartNewServer();
 			var cl = StartNewClient();
 			Assert.IsTrue(cl.Context.Services.Get<TestNetService>().Started);
 		}
 
 		[TestMethod]
-		public void Client_UpdateClient_ServicesUpdated() {
+		public virtual void Client_UpdateClient_ServicesUpdated() {
 			var sv = StartNewServer();
 			var cl = StartNewClient();
 			cl.UpdateClient();
@@ -313,7 +313,7 @@ namespace Chip.Net.UnitTests.Default
 		}
 
 		[TestMethod]
-		public void Client_StopClient_ServicesStopped() {
+		public virtual void Client_StopClient_ServicesStopped() {
 			var sv = StartNewServer();
 			var cl = StartNewClient();
 			cl.UpdateClient();
@@ -322,7 +322,7 @@ namespace Chip.Net.UnitTests.Default
 		}
 
 		[TestMethod]
-		public void Client_DisposeClient_ServicesDisposed() {
+		public virtual void Client_DisposeClient_ServicesDisposed() {
 			var sv = StartNewServer();
 			var cl = StartNewClient();
 			var svc = cl.Context.Services.Get<TestNetService>();
@@ -333,7 +333,7 @@ namespace Chip.Net.UnitTests.Default
 		}
 
 		[TestMethod]
-		public void Server_SendPacket_ClientReceivesPacket() {
+		public virtual void Server_SendPacket_ClientReceivesPacket() {
 			var sv = StartNewServer();
 			NetUser user = null;
 			sv.OnUserConnected += i => {
@@ -366,7 +366,7 @@ namespace Chip.Net.UnitTests.Default
 		}
 
 		[TestMethod]
-		public void Server_SendPacketToUser_ClientReceivesPacket() {
+		public virtual void Server_SendPacketToUser_ClientReceivesPacket() {
 			var sv = StartNewServer();
 			NetUser user = null;
 			sv.OnUserConnected += i => {
@@ -399,7 +399,7 @@ namespace Chip.Net.UnitTests.Default
 		}
 
 		[TestMethod]
-		public void Client_SendPacket_ServerReceivesPacket() {
+		public virtual void Client_SendPacket_ServerReceivesPacket() {
 			var sv = StartNewServer();
 			var cl = StartNewClient();
 			bool received = false;
@@ -426,7 +426,7 @@ namespace Chip.Net.UnitTests.Default
 		}
 
 		[TestMethod]
-		public void Client_SendPacket_PacketHasRecipient() {
+		public virtual void Client_SendPacket_PacketHasRecipient() {
 			var sv = StartNewServer();
 			NetUser user = null;
 			sv.OnUserConnected += i => {
@@ -462,7 +462,7 @@ namespace Chip.Net.UnitTests.Default
 		}
 
 		[TestMethod]
-		public void Server_ServiceSendPacket_ClientServiceReceivesPacket() {
+		public virtual void Server_ServiceSendPacket_ClientServiceReceivesPacket() {
 			var sv = StartNewServer();
 			var cl = StartNewClient();
 			string data = "Hello world" + Port;
@@ -490,7 +490,7 @@ namespace Chip.Net.UnitTests.Default
 		}
 
 		[TestMethod]
-		public void Server_ServiceSendPacketToUser_ClientServiceReceivesPacket() {
+		public virtual void Server_ServiceSendPacketToUser_ClientServiceReceivesPacket() {
 			var sv = StartNewServer();
 			var cl = StartNewClient();
 			string data = "Hello world" + Port;
@@ -519,7 +519,7 @@ namespace Chip.Net.UnitTests.Default
 		}
 
 		[TestMethod]
-		public void Client_ServiceSendsPacket_ServerServiceReceivesPacket() {
+		public virtual void Client_ServiceSendsPacket_ServerServiceReceivesPacket() {
 			var sv = StartNewServer();
 			var cl = StartNewClient();
 			string data = "Hello world" + Port;
@@ -547,14 +547,14 @@ namespace Chip.Net.UnitTests.Default
 		}
 
 		[TestMethod]
-		public void Server_InitializeServer_ServiceIsServerTrue() {
+		public virtual void Server_InitializeServer_ServiceIsServerTrue() {
 			var sv = NewServer();
 			Assert.IsTrue(sv.Context.Services.Get<TestNetService>().IsServer);
 			Assert.IsFalse(sv.Context.Services.Get<TestNetService>().IsClient);
 		}
 
 		[TestMethod]
-		public void Client_InitializeClient_ServiceIsServerFalse() {
+		public virtual void Client_InitializeClient_ServiceIsServerFalse() {
 			var cl = NewClient();
 			Assert.IsTrue(cl.Context.Services.Get<TestNetService>().IsClient);
 			Assert.IsFalse(cl.Context.Services.Get<TestNetService>().IsServer);
