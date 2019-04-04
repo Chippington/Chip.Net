@@ -8,8 +8,7 @@ using System.Text;
 
 namespace Chip.Net.UnitTests.Controllers.Distributed {
 	public class TestModel : IDistributedModel {
-		public int Id { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-
+		public int Id { get; set; }
 		public string Data { get; set; }
 	}
 
