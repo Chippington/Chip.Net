@@ -14,6 +14,10 @@ namespace Chip.Net.UnitTests.Controllers.Distributed
 		public ShardClient Shard { get; set; }
 		public UserClient User { get; set; }
 
+		public class TestService : DistributedService {
+
+		}
+
 
 		[TestInitialize]
 		public void Initialize() {
@@ -22,64 +26,76 @@ namespace Chip.Net.UnitTests.Controllers.Distributed
 			User = new UserClient();
 		}
 
+		private NetContext GetContext() {
+			NetContext ctx = new NetContext();
+			ctx.Services.Register<TestService>();
+			return ctx;
+		}
+
 		#region Router Server
 
 		[TestMethod]
 		public void DistributedService_RouterServer_Initialize_IsRouterIsTrue() {
-
+			Router.InitializeServer(GetContext());
+			Assert.IsTrue(Router.Context.Services.Get<TestService>().IsRouter);
 		}
 
 		[TestMethod]
 		public void DistributedService_RouterServer_Initialize_IsShardIsFalse() {
-
+			Router.InitializeServer(GetContext());
+			Assert.IsFalse(Router.Context.Services.Get<TestService>().IsShard);
 		}
 
 		[TestMethod]
 		public void DistributedService_RouterServer_Initialize_IsUserIsFalse() {
-
+			Router.InitializeServer(GetContext());
+			Assert.IsFalse(Router.Context.Services.Get<TestService>().IsUser);
 		}
 
 		[TestMethod]
 		public void DistributedService_RouterServer_Initialize_IsServerIsTrue() {
-
+			Router.InitializeServer(GetContext());
+			Assert.IsTrue(Router.Context.Services.Get<TestService>().IsServer);
 		}
 
 		[TestMethod]
 		public void DistributedService_RouterServer_Initialize_IsClientIsFalse() {
-
+			Router.InitializeServer(GetContext());
+			Assert.IsFalse(Router.Context.Services.Get<TestService>().IsClient);
 		}
 
-		[TestMethod]
-		public void DistributedService_RouterServer_SendToUser_PacketReceived() {
-
-		}
 		#endregion
 
 		#region Shard Client
 
 		[TestMethod]
 		public void DistributedService_ShardClient_Initialize_IsRouterIsFalse() {
-
+			Shard.InitializeClient(GetContext());
+			Assert.IsFalse(Shard.Context.Services.Get<TestService>().IsRouter);
 		}
 
 		[TestMethod]
 		public void DistributedService_ShardClient_Initialize_IsShardIsTrue() {
-
+			Shard.InitializeClient(GetContext());
+			Assert.IsTrue(Shard.Context.Services.Get<TestService>().IsShard);
 		}
 
 		[TestMethod]
 		public void DistributedService_ShardClient_Initialize_IsUserIsFalse() {
-
+			Shard.InitializeClient(GetContext());
+			Assert.IsFalse(Shard.Context.Services.Get<TestService>().IsUser);
 		}
 
 		[TestMethod]
 		public void DistributedService_ShardClient_Initialize_IsServerIsFalse() {
-
+			Shard.InitializeClient(GetContext());
+			Assert.IsFalse(Shard.Context.Services.Get<TestService>().IsServer);
 		}
 
 		[TestMethod]
 		public void DistributedService_ShardClient_Initialize_IsClientIsTrue() {
-
+			Shard.InitializeClient(GetContext());
+			Assert.IsTrue(Shard.Context.Services.Get<TestService>().IsClient);
 		}
 
 		#endregion
@@ -88,27 +104,32 @@ namespace Chip.Net.UnitTests.Controllers.Distributed
 
 		[TestMethod]
 		public void DistributedService_UserClient_Initialize_IsRouterIsFalse() {
-
+			User.InitializeClient(GetContext());
+			Assert.IsFalse(User.Context.Services.Get<TestService>().IsRouter);
 		}
 
 		[TestMethod]
 		public void DistributedService_UserClient_Initialize_IsShardIsFalse() {
-
+			User.InitializeClient(GetContext());
+			Assert.IsFalse(User.Context.Services.Get<TestService>().IsShard);
 		}
 
 		[TestMethod]
 		public void DistributedService_UserClient_Initialize_IsUserIsTrue() {
-
+			User.InitializeClient(GetContext());
+			Assert.IsTrue(User.Context.Services.Get<TestService>().IsUser);
 		}
 
 		[TestMethod]
 		public void DistributedService_UserClient_Initialize_IsServerIsFalse() {
-
+			User.InitializeClient(GetContext());
+			Assert.IsFalse(User.Context.Services.Get<TestService>().IsServer);
 		}
 
 		[TestMethod]
 		public void DistributedService_UserClient_Initialize_IsClientIsTrue() {
-
+			User.InitializeClient(GetContext());
+			Assert.IsTrue(User.Context.Services.Get<TestService>().IsClient);
 		}
 
 		#endregion
@@ -201,10 +222,15 @@ namespace Chip.Net.UnitTests.Controllers.Distributed
 
 		}
 
+		[TestMethod]
+		public void DistributedService_RouterServer_SendToUser_PacketReceived() {
+
+		}
+
 		#endregion
 
 		#region Shard Client
-		
+
 		[TestMethod]
 		public void DistributedService_ShardClient_SendToRouter_PacketReceived() {
 

@@ -10,7 +10,7 @@ using System.Text;
 namespace Chip.Net.UnitTests.Controllers.Default
 {
 	[TestClass]
-    public class BasicTests : BaseControllerTests<BasicServer, BasicClient>
+    public class BasicServerClientTests : BaseControllerTests<BasicServer, BasicClient>
     {
 		
 	}
