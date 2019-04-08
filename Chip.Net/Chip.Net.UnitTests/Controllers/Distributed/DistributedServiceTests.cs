@@ -1,5 +1,6 @@
 ﻿using Chip.Net.Controllers.Distributed;
 using Chip.Net.Controllers.Distributed.Services;
+using Chip.Net.Data;
 using Chip.Net.Providers.TCP;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
@@ -137,6 +138,24 @@ namespace Chip.Net.UnitTests.Controllers.Distributed
 
 	[TestClass]
 	public class DistributedServiceIntegrationTests {
+		public class TestPacket : Packet {
+			public string Data { get; set; }
+
+			public TestPacket() {
+				Data = "";
+			}
+
+			public override void WriteTo(DataBuffer buffer) {
+				buffer.Write((string)Data);
+			}
+
+			public override void ReadFrom(DataBuffer buffer) {
+				base.ReadFrom(buffer);
+				Data = buffer.ReadString();
+			}
+		}
+
+
 		public RouterServer Router { get; set; }
 		public List<ShardClient> Shards { get; set; }
 		public List<UserClient> Users { get; set; }
