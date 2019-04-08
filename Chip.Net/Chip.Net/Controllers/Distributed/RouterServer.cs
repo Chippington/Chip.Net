@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Chip.Net.Controllers.Distributed.Models;
 using Chip.Net.Data;
 using Chip.Net.Providers;
 
@@ -74,6 +75,38 @@ namespace Chip.Net.Controllers.Distributed
 		}
 
 		public void UpdateService() {
+			throw new NotImplementedException();
+		}
+
+		public void SendToShard(ShardModel Shard, Packet Pack) {
+			throw new NotImplementedException();
+		}
+
+		public void SendToShards(Packet Pack) {
+			throw new NotImplementedException();
+		}
+
+		public void SendToShards(Packet Pack, ShardModel Exclude) {
+			throw new NotImplementedException();
+		}
+
+		public void SendToShards(Packet Pack, IEnumerable<ShardModel> Exclude) {
+			throw new NotImplementedException();
+		}
+
+		public void SendToUser(UserModel User, Packet Pack) {
+			throw new NotImplementedException();
+		}
+
+		public void SendToUsers(Packet Pack) {
+			throw new NotImplementedException();
+		}
+
+		public void SendToUsers(Packet Pack, UserModel Exclude) {
+			throw new NotImplementedException();
+		}
+
+		public void SendToUsers(Packet Pack, IEnumerable<UserModel> Exclude) {
 			throw new NotImplementedException();
 		}
 	}

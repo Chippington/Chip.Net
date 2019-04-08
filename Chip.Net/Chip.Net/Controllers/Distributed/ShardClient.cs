@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Chip.Net.Controllers.Distributed.Models;
 using Chip.Net.Data;
 using Chip.Net.Providers;
 
@@ -67,6 +68,26 @@ namespace Chip.Net.Controllers.Distributed
 
 		public void UpdateService() {
 			throw new NotImplementedException();
+		}
+
+		public void SendToRouter(Packet Pack) {
+
+		}
+
+		public void SendToUser(UserModel User, Packet Pack) {
+
+		}
+
+		public void SendToUsers(Packet Pack) {
+
+		}
+
+		public void SendToUsers(Packet Pack, UserModel Exclude) {
+
+		}
+
+		public void SendToUsers(Packet Pack, IEnumerable<UserModel> Exclude) {
+
 		}
 	}
 }
