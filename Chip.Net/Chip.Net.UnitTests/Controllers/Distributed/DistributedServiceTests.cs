@@ -65,6 +65,15 @@ namespace Chip.Net.UnitTests.Controllers.Distributed
 			Assert.IsFalse(Router.Context.Services.Get<TestService>().IsClient);
 		}
 
+		[TestMethod]
+		public void DistributedService_RouterServer_Initialize_ConfiguredEventInvoked() {
+			bool configured = false;
+			Router.RouterConfiguredEvent += (s, e) => { configured = true; };
+			Router.InitializeServer(GetContext());
+
+			Assert.IsTrue(configured);
+		}
+
 		#endregion
 
 		#region Shard Client
@@ -246,6 +255,26 @@ namespace Chip.Net.UnitTests.Controllers.Distributed
 
 		}
 
+		[TestMethod]
+		public void DistributedService_RouterServer_UserConnected_EventInvoked() {
+
+		}
+
+		[TestMethod]
+		public void DistributedService_RouterServer_UserDisconnected_EventInvoked() {
+
+		}
+
+		[TestMethod]
+		public void DistributedService_RouterServer_ShardConnected_EventInvoked() {
+
+		}
+
+		[TestMethod]
+		public void DistributedService_RouterServer_ShardDisconnected_EventInvoked() {
+
+		}
+
 		#endregion
 
 		#region Shard Client
@@ -295,10 +324,35 @@ namespace Chip.Net.UnitTests.Controllers.Distributed
 
 		}
 
+		[TestMethod]
+		public void DistributedService_ShardClient_ConnectedToRouter_ConfiguredEventInvoked() {
+
+		}
+
+		[TestMethod]
+		public void DistributedService_ShardClient_UserAssigned_EventInvoked() {
+
+		}
+
+		[TestMethod]
+		public void DistributedService_ShardClient_UserUnassigned_EventInvoked() {
+
+		}
+
+		[TestMethod]
+		public void DistributedService_ShardClient_ConnectedToRouter_ConnectedEventInvoked() {
+
+		}
+
+		[TestMethod]
+		public void DistributedService_ShardClient_DisconnectedFromRouter_DisconnectedEventInvoked() {
+
+		}
+
 		#endregion
 
 		#region User Client
-		
+
 		[TestMethod]
 		public void DistributedService_UserClient_SendToRouter_ReceivesPacket() {
 
@@ -321,6 +375,31 @@ namespace Chip.Net.UnitTests.Controllers.Distributed
 
 		[TestMethod]
 		public void DistributedService_UserClient_SendToAllShards_ExcludingMany_ReceivesPackets() {
+
+		}
+
+		[TestMethod]
+		public void DistributedService_UserClient_ConnectedToRouter_UserConfiguredEventInvoked() {
+
+		}
+
+		[TestMethod]
+		public void DistributedService_UserClient_ConnectedToRouter_ConnectedEventInvoked() {
+
+		}
+
+		[TestMethod]
+		public void DistributedService_UserClient_DisconnectedFromRouter_DisconnectedEventInvoked() {
+
+		}
+
+		[TestMethod]
+		public void DistributedService_UserClient_RouterAssignUserToShard_AssignedToShardEventInvoked() {
+
+		}
+
+		[TestMethod]
+		public void DistributedService_UserClient_RouterUnassignUserFromShard_UnassignedToShardEventInvoked() {
 
 		}
 
