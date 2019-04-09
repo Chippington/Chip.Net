@@ -23,10 +23,11 @@ namespace Chip.Net.Controllers.Distributed
 		public EventHandler<TShard> ShardConnectedEvent { get; set; }
 		public EventHandler<TShard> ShardDisconnectedEvent { get; set; }
 
+		public IReadOnlyList<TShard> Shards { get; private set; }
+		public IReadOnlyList<TUser> Users { get; private set; }
+
 		public NetContext Context => throw new NotImplementedException();
-
 		public bool IsActive => throw new NotImplementedException();
-
 		public PacketRouter Router => throw new NotImplementedException();
 
 		public bool IsServer { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }

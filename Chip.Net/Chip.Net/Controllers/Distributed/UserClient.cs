@@ -22,6 +22,9 @@ namespace Chip.Net.Controllers.Distributed {
 		public EventHandler<TRouter> ConnectedToRouterEvent { get; set; }
 		public EventHandler<TRouter> DisconnectedFromRouterEvent { get; set; }
 
+		public TRouter CurrentRouter { get; private set; }
+		public IReadOnlyList<TShard> Shards { get; private set; }
+
 		public NetContext Context => throw new NotImplementedException();
 
 		public bool IsConnected => throw new NotImplementedException();

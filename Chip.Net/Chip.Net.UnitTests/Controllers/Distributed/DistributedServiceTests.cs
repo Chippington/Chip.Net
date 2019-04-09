@@ -5,6 +5,8 @@ using Chip.Net.Providers.TCP;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using System.Text;
 
 namespace Chip.Net.UnitTests.Controllers.Distributed
@@ -177,6 +179,8 @@ namespace Chip.Net.UnitTests.Controllers.Distributed
 			ctx.IPAddress = "localhost";
 			ctx.Port = Port;
 
+			ctx.Packets.Register<TestPacket>();
+
 			return ctx;
 		}
 
@@ -213,46 +217,196 @@ namespace Chip.Net.UnitTests.Controllers.Distributed
 			}
 		}
 
+		private string GetTestString() {
+			return Guid.NewGuid().ToString();
+		}
+
+		private TestPacket CreatePacket(string data) {
+			return new TestPacket() {
+				Data = data,
+			};
+		}
+
+		private void WaitUntil(Func<bool> func, long ms = 1000, long runoff = 0) {
+			Stopwatch sw = new Stopwatch();
+			sw.Start();
+
+			while(sw.ElapsedMilliseconds < ms + runoff) {
+				if (runoff == 0 && func())
+					break;
+
+				if (sw.ElapsedMilliseconds < ms && func()) {
+					ms = sw.ElapsedMilliseconds;
+				}
+
+				System.Threading.Thread.Sleep(10);
+			}
+
+			sw.Stop();
+			sw = null;
+		}
+
+		[TestMethod]
+		public void DistributedService_WaitUntil_WaitsOneSecond() {
+			Stopwatch sw = new Stopwatch();
+
+			sw.Start();
+			WaitUntil(() => false, 1000);
+			sw.Stop();
+
+			Assert.IsTrue(sw.Elapsed.TotalSeconds > 0.95);
+			Assert.IsTrue(sw.Elapsed.TotalSeconds < 1.05);
+		}
+
+		[TestMethod]
+		public void DistributedService_WaitUntil_FuncBreak() {
+			Stopwatch sw = new Stopwatch();
+
+			sw.Start();
+			WaitUntil(() => sw.Elapsed.TotalSeconds >= 0.5f, 1000);
+			sw.Stop();
+
+			Assert.IsTrue(sw.Elapsed.TotalSeconds > 0.45);
+			Assert.IsTrue(sw.Elapsed.TotalSeconds < 0.55);
+		}
+
+		[TestMethod]
+		public void DistributedService_WaitUntil_WaitsOneSecond_Runoff() {
+			Stopwatch sw = new Stopwatch();
+
+			sw.Start();
+			WaitUntil(() => false, 1000, 1000);
+			sw.Stop();
+
+			Assert.IsTrue(sw.Elapsed.TotalSeconds > 1.95);
+			Assert.IsTrue(sw.Elapsed.TotalSeconds < 2.05);
+		}
+
+		[TestMethod]
+		public void DistributedService_WaitUntil_FuncBreak_Runoff() {
+			Stopwatch sw = new Stopwatch();
+
+			sw.Start();
+			WaitUntil(() => sw.Elapsed.TotalSeconds >= 0.5f, 1000, 1000);
+			sw.Stop();
+
+			Assert.IsTrue(sw.Elapsed.TotalSeconds > 1.45);
+			Assert.IsTrue(sw.Elapsed.TotalSeconds < 1.55);
+		}
+
 		#region Router Server
 
 		[TestMethod]
-		public void DistributedService_RouterServer_SendToAllUsers_PacketsReceived() {
+		public void DistributedService_RouterServer_SendToUser_PacketReceived() {
+			var data = GetTestString();
+			var packet = CreatePacket(data);
 
+			int receivedPackets = 0;
+			foreach (var user in Users)
+				user.Router.RouteClient<TestPacket>(p => { receivedPackets++; });
+
+			Router.SendToUser(Router.Users.First(), packet);
+			WaitUntil(() => receivedPackets == 1);
+			Assert.IsTrue(receivedPackets == 1);
+		}
+
+		[TestMethod]
+		public void DistributedService_RouterServer_SendToAllUsers_PacketsReceived() {
+			var data = GetTestString();
+			var packet = CreatePacket(data);
+
+			int receivedPackets = 0;
+			foreach (var user in Users)
+				user.Router.RouteClient<TestPacket>(p => { receivedPackets++; });
+
+			Router.SendToUsers(packet);
+			WaitUntil(() => receivedPackets == Users.Count());
+			Assert.IsTrue(receivedPackets == Users.Count());
 		}
 
 		[TestMethod]
 		public void DistributedService_RouterServer_SendToAllUsers_ExcludingOne_PacketsReceived() {
+			var data = GetTestString();
+			var packet = CreatePacket(data);
+
+			int receivedPackets = 0;
+			foreach (var user in Users)
+				user.Router.RouteClient<TestPacket>(p => { receivedPackets++; });
+
+			Router.SendToUsers(packet, Router.Users.First());
+			WaitUntil(() => receivedPackets == Users.Count() - 1);
+			Assert.IsTrue(receivedPackets == Users.Count() - 1);
 
 		}
 
 		[TestMethod]
 		public void DistributedService_RouterServer_SendToAllUsers_ExcludingMany_PacketsReceived() {
+			var data = GetTestString();
+			var packet = CreatePacket(data);
 
+			int receivedPackets = 0;
+			foreach (var user in Users)
+				user.Router.RouteClient<TestPacket>(p => { receivedPackets++; });
+
+			Router.SendToUsers(packet, Router.Users.Take(2));
+			WaitUntil(() => receivedPackets == Users.Count() - 2);
+			Assert.IsTrue(receivedPackets == Users.Count() - 2);
 		}
 
 		[TestMethod]
 		public void DistributedService_RouterServer_SendToShard_PacketReceived() {
+			var data = GetTestString();
+			var packet = CreatePacket(data);
 
+			int receivedPackets = 0;
+			foreach (var shard in Shards)
+				shard.Router.RouteClient<TestPacket>(p => { receivedPackets++; });
+
+			Router.SendToShard(Router.Shards.First(), packet);
+			WaitUntil(() => receivedPackets == 1);
+			Assert.IsTrue(receivedPackets == 1);
 		}
 
 		[TestMethod]
 		public void DistributedService_RouterServer_SendToAllShards_PacketsReceived() {
+			var data = GetTestString();
+			var packet = CreatePacket(data);
 
+			int receivedPackets = 0;
+			foreach (var shard in Shards)
+				shard.Router.RouteClient<TestPacket>(p => { receivedPackets++; });
+
+			Router.SendToShards(packet);
+			WaitUntil(() => receivedPackets == Router.Shards.Count());
+			Assert.IsTrue(receivedPackets == Router.Shards.Count());
 		}
 
 		[TestMethod]
 		public void DistributedService_RouterServer_SendToAllShards_ExcludingOne_PacketsReceived() {
+			var data = GetTestString();
+			var packet = CreatePacket(data);
 
+			int receivedPackets = 0;
+			foreach (var shard in Shards)
+				shard.Router.RouteClient<TestPacket>(p => { receivedPackets++; });
+
+			Router.SendToShards(packet, Router.Shards.First());
+			WaitUntil(() => receivedPackets == Router.Shards.Count() - 1);
+			Assert.IsTrue(receivedPackets == Router.Shards.Count() - 1);
 		}
 
 		[TestMethod]
 		public void DistributedService_RouterServer_SendToAllShards_ExcludingMany_PacketsReceived() {
+			var data = GetTestString();
+			var packet = CreatePacket(data);
 
-		}
+			int receivedPackets = 0;
+			foreach (var shard in Shards)
+				shard.Router.RouteClient<TestPacket>(p => { receivedPackets++; });
 
-		[TestMethod]
-		public void DistributedService_RouterServer_SendToUser_PacketReceived() {
-
+			Router.SendToShards(packet, Router.Shards.Take(2));
+			WaitUntil(() => receivedPackets == Router.Shards.Count() - 2);
+			Assert.IsTrue(receivedPackets == Router.Shards.Count() - 2);
 		}
 
 		[TestMethod]
@@ -266,12 +420,32 @@ namespace Chip.Net.UnitTests.Controllers.Distributed
 		}
 
 		[TestMethod]
+		public void DistributedService_RouterServer_UserConnected_UserAddedToUserList() {
+
+		}
+
+		[TestMethod]
+		public void DistributedService_RouterServer_UserDisconnected_UserRemovedFromUserList() {
+
+		}
+
+		[TestMethod]
 		public void DistributedService_RouterServer_ShardConnected_EventInvoked() {
 
 		}
 
 		[TestMethod]
 		public void DistributedService_RouterServer_ShardDisconnected_EventInvoked() {
+
+		}
+
+		[TestMethod]
+		public void DistributedService_RouterServer_ShardConnected_ShardAddedToShardList() {
+
+		}
+
+		[TestMethod]
+		public void DistributedService_RouterServer_ShardDisconnected_ShardRemovedFromShardList() {
 
 		}
 
@@ -349,6 +523,16 @@ namespace Chip.Net.UnitTests.Controllers.Distributed
 
 		}
 
+		[TestMethod]
+		public void DistributedService_ShardClient_UserAssigned_UserAddedToUserList() {
+
+		}
+
+		[TestMethod]
+		public void DistributedService_ShardClient_UserUnassigned_UserRemovedFromUserList() {
+
+		}
+
 		#endregion
 
 		#region User Client
@@ -403,6 +587,15 @@ namespace Chip.Net.UnitTests.Controllers.Distributed
 
 		}
 
+		[TestMethod]
+		public void DistributedService_UserClient_ConnectedToRouter_ActiveRouterSet() {
+
+		}
+
+		[TestMethod]
+		public void DistributedService_UserClient_DisconnectedToRouter_ActiveRouterNull() {
+
+		}
 		#endregion
 	}
 }
