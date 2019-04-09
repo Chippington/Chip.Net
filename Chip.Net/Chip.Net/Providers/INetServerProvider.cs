@@ -22,6 +22,6 @@ namespace Chip.Net.Providers {
 		IEnumerable<Tuple<object, DataBuffer>> GetIncomingMessages();
 
 		void SendMessage(DataBuffer data, object excludeKey = null);
-		void SendMessage(object recipientKey, object excludeKey, DataBuffer data);
+		void SendMessage(object recipientKey, DataBuffer data);
 	}
 }

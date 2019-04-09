@@ -97,9 +97,11 @@ namespace Chip.Net.Controllers.Basic
 
 					if(p.Recipient == null) {
 						foreach(var user in userList)
-							provider.SendMessage(user.UserKey, p.Exclude?.UserKey, buffer);
+							if(user != p.Exclude?.UserKey)
+								provider.SendMessage(user.UserKey, buffer);
 					} else {
-						provider.SendMessage(p.Recipient?.UserKey, p.Exclude?.UserKey, buffer);
+						if(p.Recipient != p.Exclude?.UserKey)
+							provider.SendMessage(p.Recipient?.UserKey, buffer);
 					}
 				}
 			}

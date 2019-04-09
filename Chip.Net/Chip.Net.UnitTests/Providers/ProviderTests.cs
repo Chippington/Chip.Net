@@ -296,7 +296,7 @@ namespace Chip.Net.UnitTests.Providers
 			packet.WriteTo(buffer);
 
 			int received = 0;
-			Server.SendMessage(Server.GetClientKeys().First(), null, buffer);
+			Server.SendMessage(Server.GetClientKeys().First(), buffer);
 			Wait(() =>
 			{
 				Server.UpdateServer();
