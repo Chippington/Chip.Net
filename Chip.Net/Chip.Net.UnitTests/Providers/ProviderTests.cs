@@ -372,15 +372,146 @@ namespace Chip.Net.UnitTests.Providers
 		}
 
 		[TestMethod]
-		public virtual void Client_Connect_IsConnected() { }
+		public virtual void Client_Connect_IsConnected() {
+			var client = Clients.First();
+			var ctx = CreateContext();
+
+			Server.StartServer(ctx);
+			client.Connect(ctx);
+
+			Wait(() =>
+			{
+				Server.UpdateServer();
+				client.UpdateClient();
+				return client.IsConnected;
+			}, 250);
+
+			Assert.IsTrue(client.IsConnected);
+		}
+
+
 		[TestMethod]
-		public virtual void Client_Disconnect_IsNotConnected() { }
+		public virtual void Client_Disconnect_IsNotConnected() {
+			var client = Clients.First();
+			var ctx = CreateContext();
+
+			Server.StartServer(ctx);
+			client.Connect(ctx);
+
+			Wait(() =>
+			{
+				Server.UpdateServer();
+				client.UpdateClient();
+				return client.IsConnected;
+			}, 250);
+
+			client.Disconnect();
+			Wait(() =>
+			{
+				Server.UpdateServer();
+				return client.IsConnected == false;
+			}, 250);
+
+			Assert.IsFalse(client.IsConnected);
+		}
+
 		[TestMethod]
-		public virtual void Client_ConnectedToServer_EventInvoked() { }
+		public virtual void Client_ConnectedToServer_EventsInvoked() {
+			var client = Clients.First();
+			var ctx = CreateContext();
+
+			bool clientConnectedToServer = false;
+			bool serverClientConnected = false;
+
+			Server.OnUserConnected += (u) => serverClientConnected = true;
+			client.OnConnected += (u) => clientConnectedToServer = true;
+
+			Server.StartServer(ctx);
+			client.Connect(ctx);
+
+			Wait(() =>
+			{
+				Server.UpdateServer();
+				client.UpdateClient();
+				return clientConnectedToServer && serverClientConnected;
+			}, 250);
+
+			Assert.IsTrue(clientConnectedToServer);
+			Assert.IsTrue(serverClientConnected);
+		}
+
 		[TestMethod]
-		public virtual void Client_SendToServer_ServerReceivesData() { }
+		public virtual void Client_DisconnectedFromServer_EventsInvoked() {
+			var client = Clients.First();
+			var ctx = CreateContext();
+
+			bool clientDisconnectedFromServer = false;
+			bool serverClientDisconnected = false;
+
+			Server.OnUserDisconnected += (u) => serverClientDisconnected = true;
+			client.OnDisconnected += (u) => clientDisconnectedFromServer = true;
+
+			Server.StartServer(ctx);
+			client.Connect(ctx);
+
+			Wait(() =>
+			{
+				Server.UpdateServer();
+				client.UpdateClient();
+				return client.IsConnected;
+			}, 250);
+
+			Server.DisconnectUser(Server.GetClientKeys().First());
+			Wait(() =>
+			{
+				Server.UpdateServer();
+				client.UpdateClient();
+				return client.IsConnected == false;
+			}, 250);
+
+			Assert.IsTrue(clientDisconnectedFromServer);
+			Assert.IsTrue(serverClientDisconnected);
+		}
+
 		[TestMethod]
-		public virtual void Client_DisconnectedFromServer_EventInvoked() { }
+		public virtual void Client_SendToServer_ServerReceivesData() {
+			var client = Clients.First();
+			var ctx = CreateContext();
+
+			Server.StartServer(ctx);
+			client.Connect(ctx);
+
+			Wait(() =>
+			{
+				Server.UpdateServer();
+				client.UpdateClient();
+				return client.IsConnected;
+			}, 250);
+
+			string data = Guid.NewGuid().ToString();
+			TestPacket packet = CreateTestPacket(data);
+			DataBuffer buffer = new DataBuffer();
+			packet.WriteTo(buffer);
+
+			DataBuffer inc = null;
+			client.SendMessage(buffer);
+			Wait(() =>
+			{
+				Server.UpdateServer();
+				client.UpdateClient();
+
+				var incoming = Server.GetIncomingMessages();
+				if (incoming.Any())
+					inc = incoming.First().Item2;
+
+				return inc != null;
+			}, 250);
+
+			Assert.IsNotNull(inc);
+			TestPacket result = new TestPacket();
+			result.ReadFrom(inc);
+			Assert.AreEqual(result.Data, data);
+		}
 	}
 
 	public class ProviderBaseTests {
