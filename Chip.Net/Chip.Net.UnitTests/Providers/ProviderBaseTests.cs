@@ -406,6 +406,36 @@ namespace Chip.Net.UnitTests.Providers
 		}
 
 		[TestMethod]
+		public virtual void Server_AcceptNewClientsTrue_NewClientAccepted()
+		{
+			var client = Clients.First();
+			var ctx = CreateContext();
+
+			Server.StartServer(ctx);
+			Server.AcceptIncomingConnections = false;
+
+			Wait(() =>
+			{
+				Server.UpdateServer();
+				client.UpdateClient();
+				return false;
+			}, 100);
+
+			Server.AcceptIncomingConnections = true;
+			client.Connect(ctx);
+
+			Wait(() =>
+			{
+				Server.UpdateServer();
+				client.UpdateClient();
+				return client.IsConnected;
+			}, 250);
+
+			Assert.IsTrue(client.IsConnected);
+
+		}
+
+		[TestMethod]
 		public virtual void Client_Connect_IsConnected() {
 			var client = Clients.First();
 			var ctx = CreateContext();
