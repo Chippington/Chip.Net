@@ -13,6 +13,12 @@ namespace Chip.Net.Controllers.Distributed
 		public NetEvent OnPacketReceived { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 		public NetEvent OnPacketSent { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
+		public EventHandler<RouterModel> RouterConfiguredEvent { get; set; }
+		public EventHandler<UserModel> UserConnectedEvent { get; set; }
+		public EventHandler<UserModel> UserDisconnectedEvent { get; set; }
+		public EventHandler<ShardModel> ShardConnectedEvent { get; set; }
+		public EventHandler<ShardModel> ShardDisconnectedEvent { get; set; }
+
 		public NetContext Context => throw new NotImplementedException();
 
 		public bool IsActive => throw new NotImplementedException();
