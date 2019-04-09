@@ -16,6 +16,12 @@ namespace Chip.Net.Controllers.Distributed.Services.ModelTracking
 			}
 		}
 
+		public TModel this[uint id] {
+			get {
+				return default(TModel);
+			}
+		}
+
 		public bool IsReadOnly => throw new NotImplementedException();
 
 		public void Add(TModel item) {

@@ -1,5 +1,6 @@
 ﻿using Chip.Net.Controllers.Distributed.Models;
 using Chip.Net.Controllers.Distributed.Services.ModelTracking;
+using Chip.Net.Data;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
@@ -8,8 +9,18 @@ using System.Text;
 
 namespace Chip.Net.UnitTests.Controllers.Distributed {
 	public class TestModel : IDistributedModel {
-		public int Id { get; set; }
+		public uint Id { get; set; }
 		public string Data { get; set; }
+
+		public void ReadFrom(DataBuffer buffer) {
+			Id = buffer.ReadUInt32();
+			Data = buffer.ReadString();
+		}
+
+		public void WriteTo(DataBuffer buffer) {
+			buffer.Write((uint)Id);
+			buffer.Write((string)Data);
+		}
 	}
 
 	[TestClass]
@@ -52,12 +63,12 @@ namespace Chip.Net.UnitTests.Controllers.Distributed {
 		public void ModelTrackerCollection_NewCollection_AddModel_IdAssigned() {
 			var m = new TestModel();
 			var m2 = new TestModel();
-			m.Id = -1;
+			m.Id = 10000000;
 
 			Empty.Add(m);
 			Empty.Add(m2);
-			Assert.IsTrue(m.Id != -1);
-			Assert.IsTrue(m2.Id != -1);
+			Assert.IsTrue(m.Id != 10000000);
+			Assert.IsTrue(m2.Id != 10000000);
 			Assert.IsTrue(m.Id != m2.Id);
 		}
 
@@ -175,12 +186,12 @@ namespace Chip.Net.UnitTests.Controllers.Distributed {
 		public void ModelTrackerCollection_ExistingCollection_AddModel_IdAssigned() {
 			var m = new TestModel();
 			var m2 = new TestModel();
-			m.Id = -1;
+			m.Id = 1000000;
 
 			Existing.Add(m);
 			Existing.Add(m2);
-			Assert.IsTrue(m.Id != -1);
-			Assert.IsTrue(m2.Id != -1);
+			Assert.IsTrue(m.Id != 1000000);
+			Assert.IsTrue(m2.Id != 1000000);
 			Assert.IsTrue(m.Id != m2.Id);
 		}
 

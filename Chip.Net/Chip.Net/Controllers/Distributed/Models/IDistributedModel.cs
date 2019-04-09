@@ -4,8 +4,8 @@ using System.Text;
 
 namespace Chip.Net.Controllers.Distributed.Models
 {
-    public interface IDistributedModel
+    public interface IDistributedModel : ISerializable
     {
-		int Id { get; set; }
+		uint Id { get; set; }
     }
 }

@@ -4,7 +4,8 @@ using System.Text;
 
 namespace Chip.Net.Controllers.Distributed.Models
 {
-	public class ShardModel : IDistributedModel {
-		public int Id { get; set; }
+    public interface IUserModel : IDistributedModel {
+		string Name { get; set; }
+		string UUID { get; set; }
 	}
 }

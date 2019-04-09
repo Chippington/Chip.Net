@@ -7,18 +7,22 @@ using Chip.Net.Providers;
 
 namespace Chip.Net.Controllers.Distributed
 {
-	public class ShardClient : INetClientController {
+	public class ShardClient<TRouter, TShard, TUser> : INetClientController
+		where TRouter : IRouterModel
+		where TShard : IShardModel
+		where TUser : IUserModel {
+
 		public NetEvent OnConnected { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 		public NetEvent OnDisconnected { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 		public NetEvent OnPacketReceived { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 		public NetEvent OnPacketSent { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
-		public EventHandler<UserModel> UserAssignedEvent { get; set; }
-		public EventHandler<UserModel> UserUnassignedEvent { get; set; }
+		public EventHandler<TUser> UserAssignedEvent { get; set; }
+		public EventHandler<TUser> UserUnassignedEvent { get; set; }
 
-		public EventHandler<RouterModel> ConnectedToRouterEvent { get; set; }
-		public EventHandler<RouterModel> DisconnectedFromRouterEvent { get; set; }
-		public EventHandler<ShardModel> ShardConfiguredEvent { get; set; }
+		public EventHandler<TRouter> ConnectedToRouterEvent { get; set; }
+		public EventHandler<TRouter> DisconnectedFromRouterEvent { get; set; }
+		public EventHandler<TShard> ShardConfiguredEvent { get; set; }
 
 		public NetContext Context => throw new NotImplementedException();
 
@@ -81,7 +85,7 @@ namespace Chip.Net.Controllers.Distributed
 
 		}
 
-		public void SendToUser(UserModel User, Packet Pack) {
+		public void SendToUser(TUser User, Packet Pack) {
 
 		}
 
@@ -89,11 +93,11 @@ namespace Chip.Net.Controllers.Distributed
 
 		}
 
-		public void SendToUsers(Packet Pack, UserModel Exclude) {
+		public void SendToUsers(Packet Pack, TUser Exclude) {
 
 		}
 
-		public void SendToUsers(Packet Pack, IEnumerable<UserModel> Exclude) {
+		public void SendToUsers(Packet Pack, IEnumerable<TUser> Exclude) {
 
 		}
 	}

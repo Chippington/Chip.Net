@@ -12,27 +12,27 @@ namespace Chip.Net.Controllers.Distributed.Services
 		public bool IsUser { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 		public bool IsRouter { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
-		public void InitializeRouter(RouterModel Model) {
+		public void InitializeRouter(IRouterModel Model) {
 			throw new NotImplementedException();
 		}
 
-		public void InitializeShard(ShardModel Model) {
+		public void InitializeShard(IShardModel Model) {
 			throw new NotImplementedException();
 		}
 
-		public void InitializeUser(UserModel Model) {
+		public void InitializeUser(IUserModel Model) {
 			throw new NotImplementedException();
 		}
 
-		public void SendToUser(UserModel User, Packet Pack) {
+		public void SendToUser(IUserModel User, Packet Pack) {
 			throw new NotImplementedException();
 		}
 
-		public void SendToUsers(Packet Pack, UserModel Exclude) {
+		public void SendToUsers(Packet Pack, IUserModel Exclude) {
 			throw new NotImplementedException();
 		}
 
-		public void SendToUsers(Packet Pack, IEnumerable<UserModel> Exclude) {
+		public void SendToUsers(Packet Pack, IEnumerable<IUserModel> Exclude) {
 			throw new NotImplementedException();
 		}
 
@@ -44,7 +44,7 @@ namespace Chip.Net.Controllers.Distributed.Services
 			throw new NotImplementedException();
 		}
 
-		public void SendToShard(ShardModel Shard, Packet Pack) {
+		public void SendToShard(IShardModel Shard, Packet Pack) {
 			throw new NotImplementedException();
 		}
 
@@ -52,11 +52,11 @@ namespace Chip.Net.Controllers.Distributed.Services
 			throw new NotImplementedException();
 		}
 
-		public void SendToShards(Packet Pack, ShardModel Exclude) {
+		public void SendToShards(Packet Pack, IShardModel Exclude) {
 			throw new NotImplementedException();
 		}
 
-		public void SendToShards(Packet Pack, IEnumerable<ShardModel> Exclude) {
+		public void SendToShards(Packet Pack, IEnumerable<IShardModel> Exclude) {
 			throw new NotImplementedException();
 		}
 	}

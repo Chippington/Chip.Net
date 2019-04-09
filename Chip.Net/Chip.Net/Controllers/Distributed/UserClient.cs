@@ -6,17 +6,21 @@ using Chip.Net.Data;
 using Chip.Net.Providers;
 
 namespace Chip.Net.Controllers.Distributed {
-	public class UserClient : INetClientController {
+	public class UserClient<TRouter, TShard, TUser> : INetClientController
+		where TRouter : IRouterModel
+		where TShard : IShardModel
+		where TUser : IUserModel {
+
 		public NetEvent OnConnected { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 		public NetEvent OnDisconnected { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 		public NetEvent OnPacketReceived { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 		public NetEvent OnPacketSent { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
-		public EventHandler<UserModel> UserConfiguredEvent { get; set; }
-		public EventHandler<ShardModel> AssignedToShardEvent { get; set; }
-		public EventHandler<ShardModel> UnassignedFromShardEvent { get; set; }
-		public EventHandler<RouterModel> ConnectedToRouterEvent { get; set; }
-		public EventHandler<RouterModel> DisconnectedFromRouterEvent { get; set; }
+		public EventHandler<TUser> UserConfiguredEvent { get; set; }
+		public EventHandler<TShard> AssignedToShardEvent { get; set; }
+		public EventHandler<TShard> UnassignedFromShardEvent { get; set; }
+		public EventHandler<TRouter> ConnectedToRouterEvent { get; set; }
+		public EventHandler<TRouter> DisconnectedFromRouterEvent { get; set; }
 
 		public NetContext Context => throw new NotImplementedException();
 
@@ -79,7 +83,7 @@ namespace Chip.Net.Controllers.Distributed {
 
 		}
 
-		public void SendToShard(ShardModel Shard, Packet Pack) {
+		public void SendToShard(TShard Shard, Packet Pack) {
 
 		}
 
@@ -87,11 +91,11 @@ namespace Chip.Net.Controllers.Distributed {
 
 		}
 
-		public void SendToShards(Packet Pack, ShardModel Exclude) {
+		public void SendToShards(Packet Pack, TShard Exclude) {
 
 		}
 
-		public void SendToShards(Packet Pack, IEnumerable<ShardModel> Exclude) {
+		public void SendToShards(Packet Pack, IEnumerable<TShard> Exclude) {
 
 		}
 	}

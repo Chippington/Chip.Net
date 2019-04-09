@@ -11,9 +11,9 @@ namespace Chip.Net.UnitTests.Controllers.Distributed
 {
 	[TestClass]
 	public class DistributedServiceInitializationTests {
-		public RouterServer Router { get; set; }
-		public ShardClient Shard { get; set; }
-		public UserClient User { get; set; }
+		public RouterServer<RouterModel, ShardModel, UserModel> Router { get; set; }
+		public ShardClient<RouterModel, ShardModel, UserModel> Shard { get; set; }
+		public UserClient<RouterModel, ShardModel, UserModel> User { get; set; }
 
 		public class TestService : DistributedService {
 
@@ -22,9 +22,9 @@ namespace Chip.Net.UnitTests.Controllers.Distributed
 
 		[TestInitialize]
 		public void Initialize() {
-			Router = new RouterServer();
-			Shard = new ShardClient();
-			User = new UserClient();
+			Router = new RouterServer<RouterModel, ShardModel, UserModel>();
+			Shard = new ShardClient<RouterModel, ShardModel, UserModel>();
+			User = new UserClient<RouterModel, ShardModel, UserModel>();
 		}
 
 		private NetContext GetContext() {
@@ -156,9 +156,9 @@ namespace Chip.Net.UnitTests.Controllers.Distributed
 		}
 
 
-		public RouterServer Router { get; set; }
-		public List<ShardClient> Shards { get; set; }
-		public List<UserClient> Users { get; set; }
+		public RouterServer<RouterModel, ShardModel, UserModel> Router { get; set; }
+		public List<ShardClient<RouterModel, ShardModel, UserModel>> Shards { get; set; }
+		public List<UserClient<RouterModel, ShardModel, UserModel>> Users { get; set; }
 
 		public int ShardCount { get; set; } = 3;
 		public int UserCount { get; set; } = 3;
@@ -175,16 +175,16 @@ namespace Chip.Net.UnitTests.Controllers.Distributed
 		public void Initialize() {
 			var port = Common.Port;
 
-			Router = new RouterServer();
-			Shards = new List<ShardClient>();
-			Users = new List<UserClient>();
+			Router = new RouterServer<RouterModel, ShardModel, UserModel>();
+			Shards = new List<ShardClient<RouterModel, ShardModel, UserModel>>();
+			Users = new List<UserClient<RouterModel, ShardModel, UserModel>>();
 
 			for(int i = 0; i < ShardCount; i++) {
-				Shards.Add(new ShardClient());
+				Shards.Add(new ShardClient<RouterModel, ShardModel, UserModel>());
 			}
 
 			for(int i = 0; i < UserCount; i++) {
-				Users.Add(new UserClient());
+				Users.Add(new UserClient<RouterModel, ShardModel, UserModel>());
 			}
 
 			Router.InitializeServer(GetContext(port));

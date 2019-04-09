@@ -7,6 +7,6 @@ using System.Text;
 namespace Chip.Net.UnitTests.Controllers.Distributed
 {
 	[TestClass]
-    public class RouterUserTests : BaseControllerTests<RouterServer, UserClient> {
+    public class RouterUserTests : BaseControllerTests<RouterServer<RouterModel, ShardModel, UserModel>, UserClient<RouterModel, ShardModel, UserModel>> {
 	}
 }
