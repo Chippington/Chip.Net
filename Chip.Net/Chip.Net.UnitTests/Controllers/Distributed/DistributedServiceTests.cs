@@ -29,6 +29,21 @@ namespace Chip.Net.UnitTests.Controllers.Distributed
 			User = new UserClient<TestRouterModel, TestShardModel, TestUserModel>();
 		}
 
+		[TestCleanup]
+		public void Cleanup()
+		{
+			if (Router.IsActive) Router.StopServer();
+			if (Shard.IsConnected) Shard.StopClient();
+			if (User.IsConnected) User.StopClient();
+
+			try
+			{
+				Router.Dispose();
+				Shard.Dispose();
+				User.Dispose();
+			} catch { }
+		}
+
 		private NetContext GetContext() {
 			NetContext ctx = new NetContext();
 			ctx.Services.Register<TestService>();
@@ -215,6 +230,21 @@ namespace Chip.Net.UnitTests.Controllers.Distributed
 			foreach (var user in Users) {
 				user.StartClient(new TCPClientProvider());
 			}
+		}
+
+		[TestCleanup]
+		public void Cleanup()
+		{
+			if (Router.IsActive) Router.StopServer();
+			foreach (var shard in Shards) if (shard.IsConnected) shard.StopClient();
+			foreach (var user in Users) if (user.IsConnected) user.StopClient();
+
+			Router.Dispose();
+			foreach (var shard in Shards) shard.Dispose();
+			foreach (var user in Users) user.Dispose();
+
+			Shards.Clear();
+			Users.Clear();
 		}
 
 		private string GetTestString() {
