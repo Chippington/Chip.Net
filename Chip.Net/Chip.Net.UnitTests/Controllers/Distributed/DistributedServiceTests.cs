@@ -11,9 +11,9 @@ namespace Chip.Net.UnitTests.Controllers.Distributed
 {
 	[TestClass]
 	public class DistributedServiceInitializationTests {
-		public RouterServer<RouterModel, ShardModel, UserModel> Router { get; set; }
-		public ShardClient<RouterModel, ShardModel, UserModel> Shard { get; set; }
-		public UserClient<RouterModel, ShardModel, UserModel> User { get; set; }
+		public RouterServer<TestRouterModel, TestShardModel, TestUserModel> Router { get; set; }
+		public ShardClient<TestRouterModel, TestShardModel, TestUserModel> Shard { get; set; }
+		public UserClient<TestRouterModel, TestShardModel, TestUserModel> User { get; set; }
 
 		public class TestService : DistributedService {
 
@@ -22,9 +22,9 @@ namespace Chip.Net.UnitTests.Controllers.Distributed
 
 		[TestInitialize]
 		public void Initialize() {
-			Router = new RouterServer<RouterModel, ShardModel, UserModel>();
-			Shard = new ShardClient<RouterModel, ShardModel, UserModel>();
-			User = new UserClient<RouterModel, ShardModel, UserModel>();
+			Router = new RouterServer<TestRouterModel, TestShardModel, TestUserModel>();
+			Shard = new ShardClient<TestRouterModel, TestShardModel, TestUserModel>();
+			User = new UserClient<TestRouterModel, TestShardModel, TestUserModel>();
 		}
 
 		private NetContext GetContext() {
@@ -156,9 +156,9 @@ namespace Chip.Net.UnitTests.Controllers.Distributed
 		}
 
 
-		public RouterServer<RouterModel, ShardModel, UserModel> Router { get; set; }
-		public List<ShardClient<RouterModel, ShardModel, UserModel>> Shards { get; set; }
-		public List<UserClient<RouterModel, ShardModel, UserModel>> Users { get; set; }
+		public RouterServer<TestRouterModel, TestShardModel, TestUserModel> Router { get; set; }
+		public List<ShardClient<TestRouterModel, TestShardModel, TestUserModel>> Shards { get; set; }
+		public List<UserClient<TestRouterModel, TestShardModel, TestUserModel>> Users { get; set; }
 
 		public int ShardCount { get; set; } = 3;
 		public int UserCount { get; set; } = 3;
@@ -175,16 +175,16 @@ namespace Chip.Net.UnitTests.Controllers.Distributed
 		public void Initialize() {
 			var port = Common.Port;
 
-			Router = new RouterServer<RouterModel, ShardModel, UserModel>();
-			Shards = new List<ShardClient<RouterModel, ShardModel, UserModel>>();
-			Users = new List<UserClient<RouterModel, ShardModel, UserModel>>();
+			Router = new RouterServer<TestRouterModel, TestShardModel, TestUserModel>();
+			Shards = new List<ShardClient<TestRouterModel, TestShardModel, TestUserModel>>();
+			Users = new List<UserClient<TestRouterModel, TestShardModel, TestUserModel>>();
 
 			for(int i = 0; i < ShardCount; i++) {
-				Shards.Add(new ShardClient<RouterModel, ShardModel, UserModel>());
+				Shards.Add(new ShardClient<TestRouterModel, TestShardModel, TestUserModel>());
 			}
 
 			for(int i = 0; i < UserCount; i++) {
-				Users.Add(new UserClient<RouterModel, ShardModel, UserModel>());
+				Users.Add(new UserClient<TestRouterModel, TestShardModel, TestUserModel>());
 			}
 
 			Router.InitializeServer(GetContext(port));

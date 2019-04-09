@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Chip.Net.UnitTests.Controllers.Distributed
 {
-    public class UserModel : IUserModel {
+    public class TestUserModel : IUserModel {
 		public uint Id { get; set; }
 		public string Name { get; set; }
 		public string UUID { get; set; }
@@ -24,7 +24,7 @@ namespace Chip.Net.UnitTests.Controllers.Distributed
 		}
 	}
 
-	public class ShardModel : IShardModel {
+	public class TestShardModel : IShardModel {
 		public uint Id { get; set; }
 
 		public void ReadFrom(DataBuffer buffer) {
@@ -36,7 +36,7 @@ namespace Chip.Net.UnitTests.Controllers.Distributed
 		}
 	}
 
-	public class RouterModel : IRouterModel {
+	public class TestRouterModel : IRouterModel {
 		public string Name { get; set; }
 		public uint Id { get; set; }
 
