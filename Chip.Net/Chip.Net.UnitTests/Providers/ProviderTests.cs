@@ -1,4 +1,5 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Chip.Net.Providers;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -6,7 +7,9 @@ using System.Text;
 
 namespace Chip.Net.UnitTests.Providers
 {
-    public abstract class ProviderTests
+    public abstract class ProviderTests<TServer, TClient> : ProviderTests
+		where TServer : INetServerProvider
+		where TClient : INetClientProvider
     {
 		public abstract void Server_StartServer_IsActive();
 		public abstract void Server_StopServer_IsNotActive();
@@ -23,7 +26,9 @@ namespace Chip.Net.UnitTests.Providers
 		public abstract void Client_ConnectedToServer_EventInvoked();
 		public abstract void Client_SendToServer_ServerReceivesData();
 		public abstract void Client_DisconnectedFromServer_EventInvoked();
+	}
 
+	public class ProviderTests {
 		public static void Wait(Func<bool> func, int ms = 1000) {
 			Stopwatch stopwatch = new Stopwatch();
 

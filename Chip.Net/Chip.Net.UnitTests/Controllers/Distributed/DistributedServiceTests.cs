@@ -455,46 +455,64 @@ namespace Chip.Net.UnitTests.Controllers.Distributed
 
 		[TestMethod]
 		public void DistributedService_ShardClient_SendToRouter_PacketReceived() {
+			var data = GetTestString();
+			var packet = CreatePacket(data);
 
 		}
 
 		[TestMethod]
 		public void DistributedService_ShardClient_SendToUser_PacketReceived() {
+			var data = GetTestString();
+			var packet = CreatePacket(data);
 
 		}
 
 		[TestMethod]
 		public void DistributedService_ShardClient_SendToAllUsers_PacketsReceived() {
+			var data = GetTestString();
+			var packet = CreatePacket(data);
 
 		}
 
 		[TestMethod]
 		public void DistributedService_ShardClient_SendToAllUsers_ExcludingOne_PacketsReceived() {
+			var data = GetTestString();
+			var packet = CreatePacket(data);
 
 		}
 
 		[TestMethod]
 		public void DistributedService_ShardClient_SendToAllUsers_ExcludingMany_PacketsReceived() {
+			var data = GetTestString();
+			var packet = CreatePacket(data);
 
 		}
 
 		[TestMethod]
 		public void DistributedService_ShardClient_SendToShard_PacketReceived() {
+			var data = GetTestString();
+			var packet = CreatePacket(data);
 
 		}
 
 		[TestMethod]
 		public void DistributedService_ShardClient_SendToAllShards_PacketsReceived() {
+			var data = GetTestString();
+			var packet = CreatePacket(data);
 
 		}
 
 		[TestMethod]
 		public void DistributedService_ShardClient_SendToAllShards_ExcludingOne_PacketsReceived() {
+			var data = GetTestString();
+			var packet = CreatePacket(data);
 
 		}
 
 		[TestMethod]
 		public void DistributedService_ShardClient_SendToAllShards_ExcludingMany_PacketsReceived() {
+			var data = GetTestString();
+			var packet = CreatePacket(data);
 
 		}
 
