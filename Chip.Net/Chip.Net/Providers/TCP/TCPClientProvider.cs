@@ -33,7 +33,7 @@ namespace Chip.Net.Providers.TCP {
 				OnConnected?.Invoke(new ProviderEventArgs());
 				IsConnected = true;
 			}
-		}
+		} 
 
 		public void UpdateClient() {
 			//If we haven't started the client, do nothing.
@@ -42,8 +42,12 @@ namespace Chip.Net.Providers.TCP {
 
 			//If we haven't connected or are waiting to connect, do nothing.
 			if (client.Connected == false)
+			{
 				if (OnDisconnected != null)
 					OnDisconnected(new ProviderEventArgs());
+
+				return;
+			}
 
 			//Attempt to read any incoming data from the server.
 			int bytesRead = 0;

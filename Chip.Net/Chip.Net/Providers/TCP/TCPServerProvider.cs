@@ -11,16 +11,44 @@ namespace Chip.Net.Providers.TCP
 	public class TCPServerProvider : TCPProviderBase, INetServerProvider {
 		public ProviderEvent OnUserConnected { get; set; }
 		public ProviderEvent OnUserDisconnected { get; set; }
-		public bool AcceptIncomingConnections { get; set; }
+		public bool AcceptIncomingConnections
+		{
+			get
+			{
+				return clientListener != null;
+			}
+
+			set
+			{
+				if(value && clientListener == null)
+				{
+					clientListener = new TcpListener(IPAddress.Any, port);
+					clientListener.Start(maxConnections);
+				}
+				else
+				{
+					if (clientListener != null) {
+						clientListener.Stop();
+						clientListener = null;
+					}
+				}
+			}
+		}
 		public bool IsActive { get; private set; }
 
 		private HashSet<TcpClient> connected;
 		private Queue<Tuple<object, DataBuffer>> incoming;
 		private List<TcpClient> clientList;
 		private TcpListener clientListener;
+
+		private int maxConnections;
 		private byte[] message;
+		private int port;
 
 		public void StartServer(NetContext context) {
+			this.maxConnections = context.MaxConnections;
+			this.port = context.Port;
+
 			clientListener = new TcpListener(IPAddress.Any, context.Port);
 			clientListener.Start(context.MaxConnections);
 
@@ -38,18 +66,22 @@ namespace Chip.Net.Providers.TCP
 				return;
 
 			//If any clients are waiting to connect
-			if (clientListener.Pending()) {
+			if (clientListener != null && clientListener.Pending()) {
 				TcpClient newClient = clientListener.AcceptTcpClient();
 				newClient.SendBufferSize = newClient.ReceiveBufferSize = 1024 * 256;
 				newClient.NoDelay = false;
 
-				connected.Add(newClient);
-				clientList.Add(newClient);
+				if (AcceptIncomingConnections)
+				{
+					connected.Add(newClient);
+					clientList.Add(newClient);
 
-				//Delegate
-				OnUserConnected?.Invoke(new ProviderEventArgs() {
-					UserKey = newClient,
-				});
+					//Delegate
+					OnUserConnected?.Invoke(new ProviderEventArgs()
+					{
+						UserKey = newClient,
+					});
+				}
 			}
 
 			if (clientList == null)
@@ -157,12 +189,22 @@ namespace Chip.Net.Providers.TCP
 		}
 
 		public void Dispose() {
-			for (int i = clientList.Count - 1; i >= 0; i--) {
-				DisconnectUser(clientList[i]);
+			if (clientList != null)
+			{
+				for (int i = clientList.Count - 1; i >= 0; i--)
+				{
+					DisconnectUser(clientList[i]);
+				}
+
+				clientList.Clear();
 			}
 
-			clientListener.Stop();
-			clientListener = null;
+			if (clientListener != null)
+			{
+				clientListener.Stop();
+				clientListener = null;
+			}
+
 			clientList = null;
 			connected = null;
 			message = null;

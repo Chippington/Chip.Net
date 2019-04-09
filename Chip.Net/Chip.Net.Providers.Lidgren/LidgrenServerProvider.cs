@@ -94,18 +94,13 @@ namespace Chip.Net.Providers.Lidgren {
 			}
 		}
 
-		public void SendMessage(object recipientKey, object excludeKey, DataBuffer data) {
+		public void SendMessage(object recipientKey, DataBuffer data) {
 			if (server == null)
 				return;
 
 			var client = recipientKey as NetConnection;
-			var exclude = excludeKey as NetConnection;
-			if ((recipientKey != null || exclude != null) && recipientKey == exclude)
-				return;
-
 			if (client == null) {
-				SendMessage(data, exclude);
-				return;
+				throw new ArgumentException("Recipient key cannot be null");
 			}
 
 			var bytes = data.ToBytes();

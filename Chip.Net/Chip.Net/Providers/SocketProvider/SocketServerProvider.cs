@@ -51,13 +51,10 @@ namespace Chip.Net.Providers.SocketProvider {
 		public void SendMessage(DataBuffer data, object excludeKey = null) {
 			foreach (var cl in Clients)
 				if (cl != excludeKey)
-					SendMessage(cl, null, data);
+					SendMessage(cl, data);
 		}
 
-		public void SendMessage(object recipientKey, object excludeKey, DataBuffer data) {
-			if (recipientKey == excludeKey)
-				return;
-
+		public void SendMessage(object recipientKey, DataBuffer data) {
 			var client = recipientKey as Socket;
 			var dataArr = data.ToBytes();
 			client.BeginSend(dataArr, 0, dataArr.Length, 0, OnSend, client);

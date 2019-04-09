@@ -87,6 +87,7 @@ namespace Chip.Net.UnitTests.Providers
 			NetContext ctx = new NetContext();
 			ctx.IPAddress = "localhost";
 			ctx.Port = Common.Port;
+			ctx.MaxConnections = 10;
 			return ctx;
 		}
 
@@ -327,8 +328,11 @@ namespace Chip.Net.UnitTests.Providers
 			var ctx = CreateContext();
 
 			Server.StartServer(ctx);
-			foreach (var client in Clients)
+			for(int i = 0; i < Clients.Count; i++)
+			{
+				var client = Clients[i];
 				client.Connect(ctx);
+			}
 
 			Wait(() =>
 			{
@@ -336,7 +340,7 @@ namespace Chip.Net.UnitTests.Providers
 				foreach (var client in Clients)
 					client.UpdateClient();
 
-				return Clients.All(c => c.IsConnected);
+				return Server.GetClientKeys().Count() == Clients.Count;
 			}, 250);
 
 			string data = Guid.NewGuid().ToString();
@@ -369,6 +373,36 @@ namespace Chip.Net.UnitTests.Providers
 			}, 250);
 
 			Assert.AreEqual(received, Clients.Count);
+		}
+
+		[TestMethod]
+		public virtual void Server_AcceptNewClientsFalse_NewClientRejected()
+		{
+			var client = Clients.First();
+			var ctx = CreateContext();
+
+			Server.StartServer(ctx);
+			Server.AcceptIncomingConnections = false;
+
+			bool exception = false;
+			try
+			{
+				client.Connect(ctx);
+			}
+			catch
+			{
+				exception = true;
+			}
+
+			Wait(() =>
+			{
+				Server.UpdateServer();
+				client.UpdateClient();
+				return client.IsConnected == false;
+			}, 250);
+
+			Assert.IsTrue(exception);
+			Assert.IsFalse(client.IsConnected);
 		}
 
 		[TestMethod]
