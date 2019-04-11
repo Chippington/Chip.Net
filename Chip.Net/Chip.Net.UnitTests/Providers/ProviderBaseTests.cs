@@ -585,6 +585,11 @@ namespace Chip.Net.UnitTests.Providers
 			stopwatch.Start();
 			while (stopwatch.ElapsedMilliseconds <= ms && func() == false)
 				System.Threading.Thread.Sleep(10);
+
+			var m = stopwatch.ElapsedMilliseconds;
+			while (stopwatch.ElapsedMilliseconds < m + 100)
+				func();
+
 			stopwatch.Stop();
 		}
 	}
