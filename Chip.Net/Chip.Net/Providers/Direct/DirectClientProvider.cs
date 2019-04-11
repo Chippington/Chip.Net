@@ -67,6 +67,9 @@ namespace Chip.Net.Providers.Direct
 
 		public IEnumerable<DataBuffer> GetIncomingMessages()
 		{
+			if (Incoming == null)
+				return new DataBuffer[0];
+
 			var inc = Incoming;
 			Incoming = new Queue<DataBuffer>();
 			return inc;

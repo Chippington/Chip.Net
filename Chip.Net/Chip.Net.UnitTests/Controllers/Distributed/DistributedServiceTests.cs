@@ -1,6 +1,7 @@
 ﻿using Chip.Net.Controllers.Distributed;
 using Chip.Net.Controllers.Distributed.Services;
 using Chip.Net.Data;
+using Chip.Net.Providers.Direct;
 using Chip.Net.Providers.TCP;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
@@ -223,12 +224,12 @@ namespace Chip.Net.UnitTests.Controllers.Distributed
 				user.InitializeClient(GetContext(port));
 			}
 
-			Router.StartServer(new TCPServerProvider());
+			Router.StartServer(new DirectServerProvider());
 			foreach (var shard in Shards) {
-				shard.StartClient(new TCPClientProvider());
+				shard.StartClient(new DirectClientProvider());
 			}
 			foreach (var user in Users) {
-				user.StartClient(new TCPClientProvider());
+				user.StartClient(new DirectClientProvider());
 			}
 		}
 

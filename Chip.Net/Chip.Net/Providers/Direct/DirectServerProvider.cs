@@ -72,6 +72,9 @@ namespace Chip.Net.Providers.Direct
 
 		public IEnumerable<Tuple<object, DataBuffer>> GetIncomingMessages()
 		{
+			if (Incoming == null)
+				return new Tuple<object, DataBuffer>[0];
+
 			var inc = Incoming;
 			Incoming = new Queue<Tuple<object, DataBuffer>>();
 			return inc;
