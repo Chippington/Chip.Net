@@ -7,7 +7,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Chip.Net.UnitTests.Controllers.Distributed {
+namespace Chip.Net.UnitTests.Controllers.Distributed.Services
+{
 	public class TestModel : IDistributedModel {
 		public uint Id { get; set; }
 		public string Data { get; set; }

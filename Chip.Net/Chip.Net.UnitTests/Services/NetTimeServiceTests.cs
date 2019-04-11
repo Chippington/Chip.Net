@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Chip.Net.UnitTests.Shards
+namespace Chip.Net.UnitTests.Services
 {
-    class ShardTests
-    {
-    }
+	class NetTimeServiceTests
+	{
+	}
 }

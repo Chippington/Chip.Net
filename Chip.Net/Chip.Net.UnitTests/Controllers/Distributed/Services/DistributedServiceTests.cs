@@ -10,7 +10,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
-namespace Chip.Net.UnitTests.Controllers.Distributed
+namespace Chip.Net.UnitTests.Controllers.Distributed.Services
 {
 	[TestClass]
 	public class DistributedServiceInitializationTests {
