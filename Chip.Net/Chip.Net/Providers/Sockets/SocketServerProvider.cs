@@ -6,7 +6,7 @@ using System.Net;
 using Chip.Net.Data;
 using System.Linq;
 
-namespace Chip.Net.Providers.SocketProvider {
+namespace Chip.Net.Providers.Sockets {
     public class SocketServerProvider : SocketProviderBase, INetServerProvider {
 		public ProviderEvent OnUserConnected { get; set; }
 		public ProviderEvent OnUserDisconnected { get; set; }

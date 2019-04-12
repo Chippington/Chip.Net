@@ -5,7 +5,7 @@ using System.Net.Sockets;
 using System.Text;
 using Chip.Net.Data;
 
-namespace Chip.Net.Providers.SocketProvider
+namespace Chip.Net.Providers.Sockets
 {
 	public class SocketClientProvider : SocketProviderBase, INetClientProvider {
 		public ProviderEvent OnConnected { get; set; }

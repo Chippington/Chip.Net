@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Text;
 
-namespace Chip.Net.Providers.SocketProvider {
+namespace Chip.Net.Providers.Sockets {
 	public class StateObject {
 		// Client  socket.  
 		public Socket socket = null;

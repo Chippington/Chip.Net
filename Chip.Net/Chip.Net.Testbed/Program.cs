@@ -1,6 +1,6 @@
 ﻿using Chip.Net.Data;
 using Chip.Net.Controllers.Basic;
-using Chip.Net.Providers.SocketProvider;
+using Chip.Net.Providers.Sockets;
 using Chip.Net.Providers.TCP;
 using Chip.Net.Services.NetTime;
 using Chip.Net.Services.Ping;
