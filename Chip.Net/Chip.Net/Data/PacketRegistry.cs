@@ -35,7 +35,7 @@ namespace Chip.Net.Data
 			typeToId = new Dictionary<Type, int>();
 			idToType = new Dictionary<int, Type>();
 
-			tempTypeList = tempTypeList.OrderBy(i => i.GetType().Name).ToList();
+			tempTypeList = tempTypeList.OrderBy(i => i.Name).ToList();
 			for(int i = 0; i < tempTypeList.Count; i++) {
 				typeToId.Add(tempTypeList[i], i);
 				idToType.Add(i, tempTypeList[i]);
