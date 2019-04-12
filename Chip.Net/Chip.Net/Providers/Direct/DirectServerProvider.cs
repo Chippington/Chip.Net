@@ -8,14 +8,16 @@ namespace Chip.Net.Providers.Direct
 {
 	public class DirectServerProvider : INetServerProvider
 	{
-		public static ConcurrentDictionary<string, DirectServerProvider> Servers { get; private set; } 
-			= new ConcurrentDictionary<string, DirectServerProvider>();
+		public static Dictionary<string, DirectServerProvider> Servers { get; private set; } 
+			= new Dictionary<string, DirectServerProvider>();
 
 		public static DirectServerProvider GetServer(string ip, int port) {
-			DirectServerProvider server = null;
-			Servers.TryGetValue(ip + ":" + port, out server);
+			lock (Servers) {
+				DirectServerProvider server = null;
+				Servers.TryGetValue(ip + ":" + port, out server);
 
-			return server;
+				return server;
+			}
 		}
 
 		public List<DirectClientProvider> Clients { get; private set; }
@@ -31,8 +33,12 @@ namespace Chip.Net.Providers.Direct
 		public void StartServer(NetContext context)
 		{
 			var key = context.IPAddress + ":" + context.Port;
-			if (Servers.TryAdd(key, this) == false)
-				throw new Exception("Server already exists with that IP:Port endpoint");
+			lock (Servers) {
+				if (Servers.ContainsKey(key))
+					throw new Exception("Server already exists with that IP:Port endpoint");
+
+				Servers.Add(key, this);
+			}
 
 			Incoming = new Queue<Tuple<object, DataBuffer>>();
 			Clients = new List<DirectClientProvider>();

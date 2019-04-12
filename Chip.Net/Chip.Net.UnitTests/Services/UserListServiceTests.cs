@@ -1,4 +1,5 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Chip.Net.Services.UserList;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -6,7 +7,7 @@ using System.Text;
 namespace Chip.Net.UnitTests.Services
 {
 	[TestClass]
-	public class UserListServiceTests
+	public class UserListServiceTests : NetServiceBaseTests<UserListService>
 	{
 		[TestMethod]
 		public void UserListService_EmptyServer_UserListEmpty() {

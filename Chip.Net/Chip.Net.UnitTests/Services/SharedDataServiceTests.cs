@@ -1,4 +1,5 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Chip.Net.Services.SharedData;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -6,7 +7,7 @@ using System.Text;
 namespace Chip.Net.UnitTests.Services
 {
 	[TestClass]
-	public class SharedDataServiceTests
+	public class SharedDataServiceTests : NetServiceBaseTests<SharedDataService>
 	{
 		[TestMethod]
 		public void SharedDataService_Server_SetShared_DataSynchronized() {

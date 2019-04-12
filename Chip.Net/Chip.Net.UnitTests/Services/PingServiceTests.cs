@@ -1,4 +1,5 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Chip.Net.Services.Ping;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -6,7 +7,7 @@ using System.Text;
 namespace Chip.Net.UnitTests.Services
 {
 	[TestClass]
-	public class PingServiceTests
+	public class PingServiceTests : NetServiceBaseTests<PingService>
 	{
 		[TestMethod]
 		public void PingService_Server_GetPing_ReturnsPing() {

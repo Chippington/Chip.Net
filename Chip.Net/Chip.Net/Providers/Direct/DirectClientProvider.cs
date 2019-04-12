@@ -41,9 +41,16 @@ namespace Chip.Net.Providers.Direct
 			Incoming = new Queue<DataBuffer>();
 
 			var server = DirectServerProvider.GetServer(context.IPAddress, context.Port);
-			if (server == null)
-				throw new Exception("Could not connect to server");
+			if (server == null) {
+				long tick = Environment.TickCount;
+				while (Environment.TickCount < tick + 50 && server == null) {
+					server = DirectServerProvider.GetServer(context.IPAddress, context.Port);
+					System.Threading.Thread.Sleep(1);
+				}
 
+				if(server == null)
+					throw new Exception("Could not connect to server");
+			}
 			server.TryConnectClient(this);
 		}
 

@@ -1,4 +1,5 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using Chip.Net.Services.RFC;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -6,7 +7,7 @@ using System.Text;
 namespace Chip.Net.UnitTests.Services
 {
 	[TestClass]
-	public class RFCServiceTests
+	public class RFCServiceTests : NetServiceBaseTests<RFCService>
 	{
 		[TestMethod]
 		public void RFCService_SetCurrentUser_CurrentUserChanged() {
