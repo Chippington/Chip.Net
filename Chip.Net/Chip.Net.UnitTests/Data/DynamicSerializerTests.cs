@@ -6,98 +6,99 @@ using System.Text;
 
 namespace Chip.Net.UnitTests.Data
 {
-	public enum TestEnum {
-		One = 1,
-		Two = 10,
-		Three = 11,
-	}
-
-	public interface ITestInterface {
-		string Data { get; set; }
-	}
-
-	public class TestImplemented : ITestInterface {
-		public string Data { get; set; }
-	}
-
-	public struct TestStruct {
-		public string Data { get; set; }
-	}
-
-	public class TestSerializedPacket : SerializedPacket {
-		public string Data { get; set; }
-	}
-
-	public class TestModelWithIgnore {
-		public string Data { get; set; }
-
-		[IgnoreProperty]
-		public string Ignored { get; set; }
-	}
-
-	public class TestModelWithConstructor {
-		public string Data { get; set; }
-		public TestModelWithConstructor(string Data) {
-			this.Data = Data;
-		}
-	}
-
-	public class TestModelISerializable : ISerializable {
-		public UInt16 UShort { get; set; }
-		public UInt32 UInt { get; set; }
-		public UInt64 ULong { get; set; }
-
-		public void ReadFrom(DataBuffer buffer) {
-			UShort = buffer.ReadUInt16();
-			UInt = buffer.ReadUInt32();
-			ULong = buffer.ReadUInt64();
-		}
-
-		public void WriteTo(DataBuffer buffer) {
-			buffer.Write((UInt16)UShort);
-			buffer.Write((UInt32)UInt);
-			buffer.Write((UInt64)ULong);
-		}
-	}
-
-	public class TestModelDynamic : Serializable {
-		public string Data { get; set; }
-		public float Float { get; set; }
-		public double Double { get; set; }
-	}
-
-	public class TestModel {
-		public string Data { get; set; }
-		public byte ByteValue { get; set; }
-		public short ShortValue { get; set; }
-		public int IntValue { get; set; }
-		public long LongValue { get; set; }
-	}
-
-	public class TestLargeModel {
-		public string B1 { get; set; }
-		public string B2 { get; set; }
-		public string B3 { get; set; }
-		public string B4 { get; set; }
-		public string B5 { get; set; }
-		public string B6 { get; set; }
-		public string B7 { get; set; }
-		public string B8 { get; set; }
-		public string B9 { get; set; }
-		public string B10 { get; set; }
-	}
-
-	public class TestSimpleModel {
-		public string Data { get; set; }
-	}
-
-	public class TestNestedModel {
-		public TestNestedModel Inner { get; set; }
-		public string Data { get; set; }
-	}
-
 	[TestClass]
     public class DynamicSerializerTests {
+		public enum TestEnum {
+			One = 1,
+			Two = 10,
+			Three = 11,
+		}
+
+		public interface ITestInterface {
+			string Data { get; set; }
+		}
+
+		public class TestImplemented : ITestInterface {
+			public string Data { get; set; }
+		}
+
+		public struct TestStruct {
+			public string Data { get; set; }
+		}
+
+		public class TestSerializedPacket : SerializedPacket {
+			public string Data { get; set; }
+		}
+
+		public class TestModelWithIgnore {
+			public string Data { get; set; }
+
+			[IgnoreProperty]
+			public string Ignored { get; set; }
+		}
+
+		public class TestModelWithConstructor {
+			public string Data { get; set; }
+			public TestModelWithConstructor(string Data) {
+				this.Data = Data;
+			}
+		}
+
+		public class TestModelISerializable : ISerializable {
+			public UInt16 UShort { get; set; }
+			public UInt32 UInt { get; set; }
+			public UInt64 ULong { get; set; }
+
+			public void ReadFrom(DataBuffer buffer) {
+				UShort = buffer.ReadUInt16();
+				UInt = buffer.ReadUInt32();
+				ULong = buffer.ReadUInt64();
+			}
+
+			public void WriteTo(DataBuffer buffer) {
+				buffer.Write((UInt16)UShort);
+				buffer.Write((UInt32)UInt);
+				buffer.Write((UInt64)ULong);
+			}
+		}
+
+		public class TestModelDynamic : Serializable {
+			public string Data { get; set; }
+			public float Float { get; set; }
+			public double Double { get; set; }
+		}
+
+		public class TestModel {
+			public string Data { get; set; }
+			public byte ByteValue { get; set; }
+			public short ShortValue { get; set; }
+			public int IntValue { get; set; }
+			public long LongValue { get; set; }
+		}
+
+		public class TestLargeModel {
+			public string B1 { get; set; }
+			public string B2 { get; set; }
+			public string B3 { get; set; }
+			public string B4 { get; set; }
+			public string B5 { get; set; }
+			public string B6 { get; set; }
+			public string B7 { get; set; }
+			public string B8 { get; set; }
+			public string B9 { get; set; }
+			public string B10 { get; set; }
+		}
+
+		public class TestSimpleModel {
+			public string Data { get; set; }
+		}
+
+		public class TestNestedModel {
+			public TestNestedModel Inner { get; set; }
+			public string Data { get; set; }
+		}
+
+
 		[TestMethod]
 		public void DynamicSerializer_WriteReadTestModel() {
 			Random r = new Random();
