@@ -52,6 +52,8 @@ namespace Chip.Net.UnitTests.Data
 			//this is dumb, just make sure no exception
 			packet.WriteTo(buffer);
 			buffer.Seek(0);
+
+			packet = new Packet<EmptyModel>();
 			packet.ReadFrom(buffer);
 		}
 
