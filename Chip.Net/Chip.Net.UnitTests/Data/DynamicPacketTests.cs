@@ -49,15 +49,10 @@ namespace Chip.Net.UnitTests.Data
 			Packet<EmptyModel> packet = new Packet<EmptyModel>();
 			packet.Model = new EmptyModel();
 
-			//this is dumb
-			bool exception = false;
-			try {
-				packet.WriteTo(buffer);
-			} catch {
-				exception = true;
-			}
-
-			Assert.IsFalse(exception);
+			//this is dumb, just make sure no exception
+			packet.WriteTo(buffer);
+			buffer.Seek(0);
+			packet.ReadFrom(buffer);
 		}
 
 		[TestMethod]
