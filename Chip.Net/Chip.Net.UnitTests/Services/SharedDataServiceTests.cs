@@ -4,7 +4,18 @@ using System.Text;
 
 namespace Chip.Net.UnitTests.Services
 {
-	class SharedDataServiceTests
+	public class SharedDataServiceTests
 	{
+		public void SharedDataService_Server_SetShared_DataSynchronized() {
+
+		}
+
+		public void SharedDataService_Client_SetShared_DataSynchronized() {
+
+		}
+
+		public void SharedDataService_Server_SetSharedExtension_DataSynchronized() {
+
+		}
 	}
 }

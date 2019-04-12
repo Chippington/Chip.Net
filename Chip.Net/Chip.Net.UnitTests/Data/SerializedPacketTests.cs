@@ -4,7 +4,26 @@ using System.Text;
 
 namespace Chip.Net.UnitTests.Data
 {
-	class SerializedPacketTests
+	public class SerializedPacketTests
 	{
+		public void SerializedPacket_WriteRead_EmptyPacket() {
+
+		}
+
+		public void SerializedPacket_WriteRead_SimplePacket() {
+
+		}
+
+		public void SerializedPacket_WriteRead_ComplexPacket() {
+
+		}
+
+		public void SerializedPacket_WriteRead_NestedPacket() {
+
+		}
+
+		public void SerializedPacket_WriteRead_IgnoreProperty() {
+
+		}
 	}
 }
