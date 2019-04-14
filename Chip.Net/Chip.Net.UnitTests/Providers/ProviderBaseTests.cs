@@ -577,6 +577,65 @@ namespace Chip.Net.UnitTests.Providers
 			result.ReadFrom(inc);
 			Assert.AreEqual(result.Data, data);
 		}
+
+		[TestMethod]
+		public virtual void Server_SendToClient_DataSentEventInvoked() {
+			var client = Clients.First();
+			var ctx = CreateContext();
+
+			Server.StartServer(ctx);
+			client.Connect(ctx);
+
+			Wait(() => {
+				Server.UpdateServer();
+				client.UpdateClient();
+				return client.IsConnected;
+			}, 250);
+
+			string data = Guid.NewGuid().ToString();
+			TestPacket packet = CreateTestPacket(data);
+			DataBuffer buffer = new DataBuffer();
+			packet.WriteTo(buffer);
+
+			bool received = false;
+			Server.DataSent += (s, e) => {
+				received = true;
+				Assert.IsTrue(e.ByteCount > 0);
+				Assert.IsNotNull(e.UserKey);
+			};
+
+			Server.SendMessage(Server.GetClientKeys().First(), buffer);
+			Assert.IsTrue(received);
+		}
+
+		[TestMethod]
+		public virtual void Client_SendToServer_DataSentEventInvoked() {
+			var client = Clients.First();
+			var ctx = CreateContext();
+
+			Server.StartServer(ctx);
+			client.Connect(ctx);
+
+			Wait(() => {
+				Server.UpdateServer();
+				client.UpdateClient();
+				return client.IsConnected;
+			}, 250);
+
+			string data = Guid.NewGuid().ToString();
+			TestPacket packet = CreateTestPacket(data);
+			DataBuffer buffer = new DataBuffer();
+			packet.WriteTo(buffer);
+
+			bool received = false;
+			client.DataSent += (s, e) => {
+				received = true;
+				Assert.IsTrue(e.ByteCount > 0);
+			};
+
+			Server.SendMessage(Server.GetClientKeys().First(), buffer);
+			Assert.IsTrue(received);
+		}
 	}
 
 	public class ProviderBaseTests {
