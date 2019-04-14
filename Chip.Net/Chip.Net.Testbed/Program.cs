@@ -11,6 +11,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
+using System.Reflection;
 
 namespace Chip.Net.Testbed
 {
@@ -114,9 +116,143 @@ namespace Chip.Net.Testbed
 		public class TestStatic<T> {
 			public static int i { get; set; }
 		}
+		static Action<object, object> BuildSetAccessor(PropertyInfo prop) {
+			var method = prop.GetSetMethod();
 
-        static void Main(string[] args)
+			var obj = Expression.Parameter(typeof(object), "o");
+			var value = Expression.Parameter(typeof(object));
+
+			Expression<Action<object, object>> expr =
+				Expression.Lambda<Action<object, object>>(
+					Expression.Call(
+						Expression.Convert(obj, method.DeclaringType),
+						method,
+						Expression.Convert(value, method.GetParameters()[0].ParameterType)),
+					obj,
+					value);
+
+			return expr.Compile();
+		}
+
+		static Delegate BuildGetAccessor(PropertyInfo property) {
+			Type objType = property.DeclaringType;
+			ParameterExpression entityParameter = Expression.Parameter(objType, "e");
+			Expression propertyAccess = Expression.Property(entityParameter, property);
+			var funcType = typeof(Func<,>).MakeGenericType(objType, property.PropertyType);
+			LambdaExpression result = Expression.Lambda(funcType, propertyAccess, entityParameter);
+			return result.Compile();
+		}
+
+		//static Func<object, object> BuildGetAccessor(MethodInfo method) {
+		//	ParameterExpression entityParameter = Expression.Parameter(typeof(Entity), "e");
+		//	Expression propertyAccess = Expression.Property(entityParameter, property);
+		//	var funcType = typeof(Func<,>).MakeGenericType(typeof(Entity), property.PropertyType);
+		//	LambdaExpression result = Expression.Lambda(funcType, propertyAccess, entityParameter);
+		//	return conv.Compile();
+		//}
+
+		public class SerialWriter {
+			private Action<object, DataBuffer>[] Writers;
+
+			public SerialWriter(Type type) {
+				Writers = type.GetProperties()
+					.OrderBy(i => i.PropertyType.Name)
+					.Select(i => CreateWriterMethod(i.PropertyType, BuildGetAccessor(i)))
+					.ToArray();
+			}
+
+			private Action<object, DataBuffer> CreateWriterMethod(Type propertyType, Delegate accessor) {
+				Delegate a = accessor;
+				var writer = DynamicSerializer.Instance.Writers[propertyType];
+
+				return (obj, buffer) => {
+					var val = a.DynamicInvoke(obj);
+					writer.Write(buffer, val);
+				};
+			}
+
+			public void WriteTo(object obj, DataBuffer buffer) {
+				for (int i = 0; i < Writers.Length; i++)
+					Writers[i].Invoke(obj, buffer);
+			}
+		}
+
+		public class SerialReader {
+			private Action<object, DataBuffer>[] Readers;
+
+			public SerialReader(Type type) {
+				Readers = type.GetProperties()
+					.OrderBy(i => i.PropertyType.Name)
+					.Select(i => CreateReaderMethod(i.PropertyType, BuildSetAccessor(i)))
+					.ToArray();
+			}
+
+			private Action<object, DataBuffer> CreateReaderMethod(Type propertyType, Action<object, object> setter) {
+				Action<object, object> a = setter;
+				var reader = DynamicSerializer.Instance.Readers[propertyType];
+
+				return (obj, buffer) => {
+					var val = reader.Read(buffer);
+					a.DynamicInvoke(obj, val);
+				};
+			}
+
+			public void ReadFrom(object obj, DataBuffer buffer) {
+				for (int i = 0; i < Readers.Length; i++)
+					Readers[i].DynamicInvoke(obj, buffer);
+			}
+		}
+
+		public class TestClass {
+			public int Prop { get; set; }
+		}
+
+		static void Main(string[] args)
         {
+			var setter = BuildSetAccessor(typeof(TestClass).GetProperty("Prop"));
+			var getter = BuildGetAccessor(typeof(TestClass).GetProperty("Prop"));
+
+			TestClass testp = new TestClass();
+			TestClass testp2 = new TestClass();
+			testp.Prop = 100;
+
+			var testget = (int)getter.DynamicInvoke(testp);
+			setter.DynamicInvoke(testp, 200);
+
+			Stopwatch sw = new Stopwatch();
+			SerialWriter writer = new SerialWriter(typeof(TestClass));
+			SerialReader reader = new SerialReader(typeof(TestClass));
+			DataBuffer buffer = new DataBuffer();
+
+			int newIterations = 0;
+			int oldIterations = 0;
+
+			sw.Start();
+			while (sw.ElapsedMilliseconds < 100) {
+				buffer.Seek(0);
+				DynamicSerializer.Instance.Write(buffer, typeof(TestClass), testp);
+				buffer.Seek(0);
+				DynamicSerializer.Instance.Read(buffer, typeof(TestClass), testp2);
+				oldIterations++;
+			}
+			sw.Stop();
+			sw.Reset();
+			sw.Start();
+			while(sw.ElapsedMilliseconds < 100) {
+				buffer.Seek(0);
+				writer.WriteTo(testp, buffer);
+				buffer.Seek(0);
+				reader.ReadFrom(testp2, buffer);
+				newIterations++;
+			}
+
+			
+
+			Console.WriteLine("New: {0}", newIterations);
+			Console.WriteLine("Old: {0}", oldIterations);
+
+			Console.ReadKey();
+
 			//var tttt = typeof(TestEnum);
 
 			//TestStatic<int>.i = 5;
