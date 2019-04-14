@@ -16,13 +16,11 @@ namespace Chip.Net.Providers {
 
 		void StartServer(NetContext context);
 		void StopServer();
-
 		void UpdateServer();
 
 		IEnumerable<object> GetClientKeys();
 		void DisconnectUser(object userKey);
 
-		void SendMessage(DataBuffer data, object excludeKey = null);
 		void SendMessage(object recipientKey, DataBuffer data);
 	}
 }

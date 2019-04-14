@@ -258,7 +258,9 @@ namespace Chip.Net.UnitTests.Providers
 				inc = a.Data;
 			};
 
-			Server.SendMessage(buffer);
+			foreach(var key in Server.GetClientKeys())
+				Server.SendMessage(key, buffer);
+
 			Wait(() =>
 			{
 				Server.UpdateServer();
@@ -358,7 +360,9 @@ namespace Chip.Net.UnitTests.Providers
 					received++;
 				};
 
-			Server.SendMessage(buffer);
+			foreach(var key in Server.GetClientKeys())
+				Server.SendMessage(key, buffer);
+
 			Wait(() =>
 			{
 				Server.UpdateServer();
