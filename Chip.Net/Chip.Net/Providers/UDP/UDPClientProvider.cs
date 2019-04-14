@@ -6,8 +6,8 @@ using Chip.Net.Data;
 namespace Chip.Net.Providers.UDP
 {
 	public class UDPClientProvider : INetClientProvider {
-		public ProviderEvent OnConnected { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-		public ProviderEvent OnDisconnected { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+		public EventHandler<ProviderEventArgs> OnConnected { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+		public EventHandler<ProviderEventArgs> OnDisconnected { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
 		public bool IsConnected => throw new NotImplementedException();
 

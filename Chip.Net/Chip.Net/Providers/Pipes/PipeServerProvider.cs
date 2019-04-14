@@ -7,8 +7,8 @@ namespace Chip.Net.Providers.Pipes
 {
 	public class PipeServerProvider : INetServerProvider
 	{
-		public ProviderEvent OnUserConnected { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-		public ProviderEvent OnUserDisconnected { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+		public EventHandler<ProviderEventArgs> OnUserConnected { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+		public EventHandler<ProviderEventArgs> OnUserDisconnected { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
 		public bool IsActive => throw new NotImplementedException();
 

@@ -55,7 +55,7 @@ namespace Chip.Net.Controllers.Basic
 			IsActive = true;
 		}
 
-		private void OnProviderUserConnected(ProviderEventArgs args) {
+		private void OnProviderUserConnected(object sender, ProviderEventArgs args) {
 			var user = new NetUser(args.UserKey, nextUserId);
 			userMap[user.UserKey] = user;
 			userList.Add(user);
@@ -65,7 +65,7 @@ namespace Chip.Net.Controllers.Basic
 			});
 		}
 
-		private void OnProviderUserDisconnected(ProviderEventArgs args) {
+		private void OnProviderUserDisconnected(object sender, ProviderEventArgs args) {
 			var user = userMap[args.UserKey];
 			OnUserDisconnected?.Invoke(this, new NetEventArgs() {
 				User = user,

@@ -9,8 +9,8 @@ using Chip.Net.Data;
 namespace Chip.Net.Providers.TCP
 {
 	public class TCPServerProvider : TCPProviderBase, INetServerProvider {
-		public ProviderEvent OnUserConnected { get; set; }
-		public ProviderEvent OnUserDisconnected { get; set; }
+		public EventHandler<ProviderEventArgs> OnUserConnected { get; set; }
+		public EventHandler<ProviderEventArgs> OnUserDisconnected { get; set; }
 		public bool AcceptIncomingConnections
 		{
 			get
@@ -77,7 +77,7 @@ namespace Chip.Net.Providers.TCP
 					clientList.Add(newClient);
 
 					//Delegate
-					OnUserConnected?.Invoke(new ProviderEventArgs()
+					OnUserConnected?.Invoke(this, new ProviderEventArgs()
 					{
 						UserKey = newClient,
 					});
@@ -153,7 +153,7 @@ namespace Chip.Net.Providers.TCP
 					SendMessage(tcpClient, new DataBuffer(arr));
 				} catch { }
 
-				OnUserDisconnected?.Invoke(new ProviderEventArgs() {
+				OnUserDisconnected?.Invoke(this, new ProviderEventArgs() {
 					UserKey = tcpClient,
 				});
 

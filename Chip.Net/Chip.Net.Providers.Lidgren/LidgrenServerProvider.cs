@@ -6,8 +6,8 @@ using Lidgren.Network;
 
 namespace Chip.Net.Providers.Lidgren {
 	public class LidgrenServerProvider : INetServerProvider {
-		public ProviderEvent OnUserConnected { get; set; }
-		public ProviderEvent OnUserDisconnected { get; set; }
+		public EventHandler<ProviderEventArgs> OnUserConnected { get; set; }
+		public EventHandler<ProviderEventArgs> OnUserDisconnected { get; set; }
 
 		public bool IsActive { get; private set; }
 
@@ -39,14 +39,14 @@ namespace Chip.Net.Providers.Lidgren {
 						switch (inc.SenderConnection.Status) {
 							case NetConnectionStatus.Connected:
 								connections.Add(inc.SenderConnection);
-								OnUserConnected?.Invoke(new ProviderEventArgs() {
+								OnUserConnected?.Invoke(this, new ProviderEventArgs() {
 									UserKey = inc.SenderConnection,
 								});
 								break;
 
 							case NetConnectionStatus.Disconnected:
 								connections.Remove(inc.SenderConnection);
-								OnUserDisconnected?.Invoke(new ProviderEventArgs() {
+								OnUserDisconnected?.Invoke(this, new ProviderEventArgs() {
 									UserKey = inc.SenderConnection,
 								});
 								break;
@@ -119,7 +119,7 @@ namespace Chip.Net.Providers.Lidgren {
 		public void StopServer() {
 			if (server != null) {
 				foreach(var connection in connections) {
-					OnUserDisconnected?.Invoke(new ProviderEventArgs() {
+					OnUserDisconnected?.Invoke(this, new ProviderEventArgs() {
 						UserKey = connection,
 					});
 				}

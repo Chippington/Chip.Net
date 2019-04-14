@@ -8,8 +8,8 @@ using System.Linq;
 
 namespace Chip.Net.Providers.Sockets {
     public class SocketServerProvider : SocketProviderBase, INetServerProvider {
-		public ProviderEvent OnUserConnected { get; set; }
-		public ProviderEvent OnUserDisconnected { get; set; }
+		public EventHandler<ProviderEventArgs> OnUserConnected { get; set; }
+		public EventHandler<ProviderEventArgs> OnUserDisconnected { get; set; }
 
 		public bool IsActive { get; }
 		public bool AcceptIncomingConnections { get; set; }
@@ -26,7 +26,7 @@ namespace Chip.Net.Providers.Sockets {
 			client.Close();
 
 			Clients.Remove(client);
-			OnUserDisconnected?.Invoke(new ProviderEventArgs() {
+			OnUserDisconnected?.Invoke(this, new ProviderEventArgs() {
 				UserKey = client,
 			});
 		}
@@ -85,7 +85,7 @@ namespace Chip.Net.Providers.Sockets {
 			Listener.BeginAccept(OnSocketBeginAccept, Listener);
 
 			Clients.Add(client);
-			OnUserConnected?.Invoke(new ProviderEventArgs() {
+			OnUserConnected?.Invoke(this, new ProviderEventArgs() {
 				UserKey = client,
 			});
 

@@ -6,8 +6,8 @@ using Chip.Net.Data;
 
 namespace Chip.Net.Providers.TCP {
 	public class TCPClientProvider : TCPProviderBase, INetClientProvider {
-		public ProviderEvent OnConnected { get; set; }
-		public ProviderEvent OnDisconnected { get; set; }
+		public EventHandler<ProviderEventArgs> OnConnected { get; set; }
+		public EventHandler<ProviderEventArgs> OnDisconnected { get; set; }
 		public bool IsConnected { get; private set; }
 
 		private Queue<DataBuffer> incoming;
@@ -30,7 +30,7 @@ namespace Chip.Net.Providers.TCP {
 			client.Connect(context.IPAddress, context.Port);
 
 			if (client.Connected) {
-				OnConnected?.Invoke(new ProviderEventArgs());
+				OnConnected?.Invoke(this, new ProviderEventArgs());
 				IsConnected = true;
 			}
 		} 
@@ -44,7 +44,7 @@ namespace Chip.Net.Providers.TCP {
 			if (client.Connected == false)
 			{
 				if (OnDisconnected != null)
-					OnDisconnected(new ProviderEventArgs());
+					OnDisconnected(this, new ProviderEventArgs());
 
 				return;
 			}
@@ -112,7 +112,7 @@ namespace Chip.Net.Providers.TCP {
 
 				client.Close();
 
-				OnDisconnected?.Invoke(new ProviderEventArgs());
+				OnDisconnected?.Invoke(this, new ProviderEventArgs());
 			}
 
 			IsConnected = false;

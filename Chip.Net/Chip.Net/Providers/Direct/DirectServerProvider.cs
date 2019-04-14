@@ -23,8 +23,8 @@ namespace Chip.Net.Providers.Direct
 		public List<DirectClientProvider> Clients { get; private set; }
 		private Queue<Tuple<object, DataBuffer>> Incoming { get; set; }
 
-		public ProviderEvent OnUserConnected { get; set; }
-		public ProviderEvent OnUserDisconnected { get; set; }
+		public EventHandler<ProviderEventArgs> OnUserConnected { get; set; }
+		public EventHandler<ProviderEventArgs> OnUserDisconnected { get; set; }
 
 		public bool IsActive { get; private set; }
 
@@ -51,7 +51,7 @@ namespace Chip.Net.Providers.Direct
 				Clients.Add(client);
 				client.AcceptConnection(this);
 
-				OnUserConnected?.Invoke(new ProviderEventArgs() {
+				OnUserConnected?.Invoke(this, new ProviderEventArgs() {
 					UserKey = client,
 				});
 			} else {
@@ -61,7 +61,7 @@ namespace Chip.Net.Providers.Direct
 
 		public void DisconnectClient(DirectClientProvider client) {
 			Clients.Remove(client);
-			OnUserDisconnected?.Invoke(new ProviderEventArgs() {
+			OnUserDisconnected?.Invoke(this, new ProviderEventArgs() {
 				UserKey = client,
 			});
 		}
@@ -125,7 +125,7 @@ namespace Chip.Net.Providers.Direct
 			Clients.Remove(userKey as DirectClientProvider);
 			(userKey as DirectClientProvider).DisconnectFrom(this);
 
-			OnUserDisconnected?.Invoke(new ProviderEventArgs() {
+			OnUserDisconnected?.Invoke(this, new ProviderEventArgs() {
 				UserKey = userKey,
 			});
 		}

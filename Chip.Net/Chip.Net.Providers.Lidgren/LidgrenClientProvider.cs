@@ -6,8 +6,8 @@ using System.Text;
 
 namespace Chip.Net.Providers.Lidgren {
 	public class LidgrenClientProvider : INetClientProvider {
-		public ProviderEvent OnConnected { get; set; }
-		public ProviderEvent OnDisconnected { get; set; }
+		public EventHandler<ProviderEventArgs> OnConnected { get; set; }
+		public EventHandler<ProviderEventArgs> OnDisconnected { get; set; }
 
 		public bool IsConnected => client == null ? false : client.ConnectionStatus == NetConnectionStatus.Connected;
 
@@ -49,11 +49,11 @@ namespace Chip.Net.Providers.Lidgren {
 					case NetIncomingMessageType.StatusChanged:
 						switch (inc.SenderConnection.Status) {
 							case NetConnectionStatus.Connected:
-								OnConnected?.Invoke(new ProviderEventArgs());
+								OnConnected?.Invoke(this, new ProviderEventArgs());
 								break;
 
 							case NetConnectionStatus.Disconnected:
-								OnDisconnected?.Invoke(new ProviderEventArgs());
+								OnDisconnected?.Invoke(this, new ProviderEventArgs());
 								break;
 						}
 						break;

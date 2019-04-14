@@ -7,8 +7,8 @@ namespace Chip.Net.Providers.Direct
 {
 	public class DirectClientProvider : INetClientProvider
 	{
-		public ProviderEvent OnConnected { get; set; }
-		public ProviderEvent OnDisconnected { get; set; }
+		public EventHandler<ProviderEventArgs> OnConnected { get; set; }
+		public EventHandler<ProviderEventArgs> OnDisconnected { get; set; }
 
 		private Queue<DataBuffer> Incoming { get; set; }
 
@@ -17,7 +17,7 @@ namespace Chip.Net.Providers.Direct
 
 		public void AcceptConnection(DirectServerProvider Server) {
 			IsConnected = true;
-			OnConnected?.Invoke(new ProviderEventArgs());
+			OnConnected?.Invoke(this, new ProviderEventArgs());
 			ActiveServer = Server;
 		}
 
@@ -28,7 +28,7 @@ namespace Chip.Net.Providers.Direct
 
 		public void DisconnectFrom(DirectServerProvider Server) {
 			IsConnected = false;
-			OnDisconnected?.Invoke(new ProviderEventArgs());
+			OnDisconnected?.Invoke(this, new ProviderEventArgs());
 		}
 
 		public void ReceiveMessage(DataBuffer buffer) {
@@ -59,7 +59,7 @@ namespace Chip.Net.Providers.Direct
 			if(IsConnected) {
 				IsConnected = false;
 				ActiveServer.DisconnectClient(this);
-				OnDisconnected?.Invoke(new ProviderEventArgs());
+				OnDisconnected?.Invoke(this, new ProviderEventArgs());
 
 				Incoming.Clear();
 				Incoming = null;

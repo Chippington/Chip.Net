@@ -36,8 +36,8 @@ namespace Chip.Net.Controllers.Basic
 
 		public void StartClient(INetClientProvider provider) {
 			this.provider = provider;
-			provider.OnConnected += i => { IsConnected = true; OnConnected?.Invoke(this, new NetEventArgs()); };
-			provider.OnDisconnected += i => { IsConnected = false; OnDisconnected?.Invoke(this, new NetEventArgs()); };
+			provider.OnConnected += (s, i) => { IsConnected = true; OnConnected?.Invoke(this, new NetEventArgs()); };
+			provider.OnDisconnected += (s, i) => { IsConnected = false; OnDisconnected?.Invoke(this, new NetEventArgs()); };
 
 			Context.Services.StartServices();
 			provider.Connect(Context);

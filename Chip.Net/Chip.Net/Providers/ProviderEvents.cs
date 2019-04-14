@@ -8,6 +8,4 @@ namespace Chip.Net.Providers
 	public class ProviderEventArgs {
 		public object UserKey { get; set; }
 	}
-
-	public delegate void ProviderEvent(ProviderEventArgs args);
 }
