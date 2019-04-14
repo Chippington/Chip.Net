@@ -239,7 +239,7 @@ namespace Chip.Net.UnitTests.Controllers {
 		[TestMethod]
 		public virtual void Server_InitializeServer_ContextLocked() {
 			var sv = NewServer();
-			Assert.IsTrue(sv.Context.Locked);
+			Assert.IsTrue(sv.Context.IsLocked);
 		}
 
 		[TestMethod]
@@ -281,7 +281,7 @@ namespace Chip.Net.UnitTests.Controllers {
 		[TestMethod]
 		public virtual void Client_InitializeClient_ContextLocked() {
 			var cl = NewClient();
-			Assert.IsTrue(cl.Context.Locked);
+			Assert.IsTrue(cl.Context.IsLocked);
 		}
 
 		[TestMethod]

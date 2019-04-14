@@ -5,8 +5,11 @@ using System.Text;
 
 namespace Chip.Net.Providers {
 	public interface INetServerProvider : IDisposable {
-		EventHandler<ProviderEventArgs> OnUserConnected { get; set; }
-		EventHandler<ProviderEventArgs> OnUserDisconnected { get; set; }
+		EventHandler<ProviderUserEventArgs> UserConnected { get; set; }
+		EventHandler<ProviderUserEventArgs> UserDisconnected { get; set; }
+
+		EventHandler<ProviderDataEventArgs> DataSent { get; set; }
+		EventHandler<ProviderDataEventArgs> DataReceived { get; set; }
 
 		bool IsActive { get; }
 		bool AcceptIncomingConnections { get; set; }
@@ -18,8 +21,6 @@ namespace Chip.Net.Providers {
 
 		IEnumerable<object> GetClientKeys();
 		void DisconnectUser(object userKey);
-
-		IEnumerable<Tuple<object, DataBuffer>> GetIncomingMessages();
 
 		void SendMessage(DataBuffer data, object excludeKey = null);
 		void SendMessage(object recipientKey, DataBuffer data);

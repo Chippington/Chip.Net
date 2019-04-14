@@ -8,15 +8,17 @@ using System.Linq;
 
 namespace Chip.Net.Providers.Sockets {
     public class SocketServerProvider : SocketProviderBase, INetServerProvider {
-		public EventHandler<ProviderEventArgs> OnUserConnected { get; set; }
-		public EventHandler<ProviderEventArgs> OnUserDisconnected { get; set; }
+		public EventHandler<ProviderUserEventArgs> UserConnected { get; set; }
+		public EventHandler<ProviderUserEventArgs> UserDisconnected { get; set; }
+
+		public EventHandler<ProviderDataEventArgs> DataSent { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+		public EventHandler<ProviderDataEventArgs> DataReceived { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
 		public bool IsActive { get; }
 		public bool AcceptIncomingConnections { get; set; }
 
 		private Socket Listener;
 
-		private Queue<Tuple<object, DataBuffer>> Incoming;
 		private List<Socket> Clients;
 		private object LockObject = new object();
 
@@ -26,7 +28,7 @@ namespace Chip.Net.Providers.Sockets {
 			client.Close();
 
 			Clients.Remove(client);
-			OnUserDisconnected?.Invoke(this, new ProviderEventArgs() {
+			UserDisconnected?.Invoke(this, new ProviderUserEventArgs() {
 				UserKey = client,
 			});
 		}
@@ -38,14 +40,6 @@ namespace Chip.Net.Providers.Sockets {
 
 		public IEnumerable<object> GetClientKeys() {
 			return Clients.AsReadOnly();
-		}
-
-		public IEnumerable<Tuple<object, DataBuffer>> GetIncomingMessages() {
-			lock(LockObject) {
-				var t = new Queue<Tuple<object, DataBuffer>>(Incoming);
-				Incoming = new Queue<Tuple<object, DataBuffer>>();
-				return t;
-			}
 		}
 
 		public void SendMessage(DataBuffer data, object excludeKey = null) {
@@ -70,7 +64,6 @@ namespace Chip.Net.Providers.Sockets {
 			IPEndPoint localEndPoint = new IPEndPoint(ipAddress, context.Port);
 
 			Clients = new List<Socket>();
-			Incoming = new Queue<Tuple<object, DataBuffer>>();
 			Listener = new Socket(ipAddress.AddressFamily,
 				SocketType.Stream, ProtocolType.Tcp);
 
@@ -85,7 +78,7 @@ namespace Chip.Net.Providers.Sockets {
 			Listener.BeginAccept(OnSocketBeginAccept, Listener);
 
 			Clients.Add(client);
-			OnUserConnected?.Invoke(this, new ProviderEventArgs() {
+			UserConnected?.Invoke(this, new ProviderUserEventArgs() {
 				UserKey = client,
 			});
 
@@ -106,9 +99,7 @@ namespace Chip.Net.Providers.Sockets {
 				Array.Copy(state.buffer, arr, bytesRead);
 
 				DataBuffer buffer = new DataBuffer(arr);
-
-				lock(LockObject)
-					Incoming.Enqueue(new Tuple<object, DataBuffer>(client, buffer));
+				DataReceived?.Invoke(this, new ProviderDataEventArgs(client, true, buffer, bytesRead));
 			}
 		}
 

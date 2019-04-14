@@ -180,7 +180,7 @@ namespace Chip.Net.UnitTests.Providers
 			bool serverUserConnected = false;
 
 			client.UserConnected += (s, u) => clientConnected = true;
-			Server.OnUserConnected += (s, u) => serverUserConnected = true;
+			Server.UserConnected += (s, u) => serverUserConnected = true;
 
 			Server.StartServer(ctx);
 			client.Connect(ctx);
@@ -206,7 +206,7 @@ namespace Chip.Net.UnitTests.Providers
 			bool serverUserDisconnected = false;
 
 			client.UserDisconnected += (s, u) => clientDisconnected = true;
-			Server.OnUserDisconnected += (s, u) => serverUserDisconnected = true;
+			Server.UserDisconnected += (s, u) => serverUserDisconnected = true;
 
 			Server.StartServer(ctx);
 			client.Connect(ctx);
@@ -254,15 +254,15 @@ namespace Chip.Net.UnitTests.Providers
 			packet.WriteTo(buffer);
 
 			DataBuffer inc = null;
+			client.DataReceived += (s, a) => {
+				inc = a.Data;
+			};
+
 			Server.SendMessage(buffer);
 			Wait(() =>
 			{
 				Server.UpdateServer();
 				client.UpdateClient();
-
-				var incoming = client.GetIncomingMessages();
-				if (incoming.Any())
-					inc = incoming.First();
 
 				return inc != null;
 			}, 250);
@@ -296,26 +296,24 @@ namespace Chip.Net.UnitTests.Providers
 			DataBuffer buffer = new DataBuffer();
 			packet.WriteTo(buffer);
 
+
 			int received = 0;
+			foreach (var cl in Clients)
+				cl.DataReceived += (s, a) => {
+					var inc = a.Data;
+					Assert.IsNotNull(inc);
+					TestPacket result = new TestPacket();
+					result.ReadFrom(inc);
+					Assert.AreEqual(result.Data, data);
+					received++;
+				};
+
 			Server.SendMessage(Server.GetClientKeys().First(), buffer);
 			Wait(() =>
 			{
 				Server.UpdateServer();
 				foreach (var client in Clients)
-				{
 					client.UpdateClient();
-
-					var incoming = client.GetIncomingMessages();
-					if (incoming.Any())
-					{
-						var inc = incoming.First();
-						Assert.IsNotNull(inc);
-						TestPacket result = new TestPacket();
-						result.ReadFrom(inc);
-						Assert.AreEqual(result.Data, data);
-						received++;
-					}
-				}
 
 				return received == 1;
 			}, 250);
@@ -349,25 +347,23 @@ namespace Chip.Net.UnitTests.Providers
 			packet.WriteTo(buffer);
 
 			int received = 0;
+			foreach (var cl in Clients)
+				cl.DataReceived += (s, a) => {
+					var inc = a.Data;
+
+					Assert.IsNotNull(inc);
+					TestPacket result = new TestPacket();
+					result.ReadFrom(inc);
+					Assert.AreEqual(result.Data, data);
+					received++;
+				};
+
 			Server.SendMessage(buffer);
 			Wait(() =>
 			{
 				Server.UpdateServer();
 				foreach (var client in Clients)
-				{
 					client.UpdateClient();
-
-					var incoming = client.GetIncomingMessages();
-					if (incoming.Any())
-					{
-						var inc = incoming.First();
-						Assert.IsNotNull(inc);
-						TestPacket result = new TestPacket();
-						result.ReadFrom(inc);
-						Assert.AreEqual(result.Data, data);
-						received++;
-					}
-				}
 
 				return received == Clients.Count;
 			}, 250);
@@ -487,7 +483,7 @@ namespace Chip.Net.UnitTests.Providers
 			bool clientConnectedToServer = false;
 			bool serverClientConnected = false;
 
-			Server.OnUserConnected += (s, u) => serverClientConnected = true;
+			Server.UserConnected += (s, u) => serverClientConnected = true;
 			client.UserConnected += (s, u) => clientConnectedToServer = true;
 
 			Server.StartServer(ctx);
@@ -512,7 +508,7 @@ namespace Chip.Net.UnitTests.Providers
 			bool clientDisconnectedFromServer = false;
 			bool serverClientDisconnected = false;
 
-			Server.OnUserDisconnected += (s, u) => serverClientDisconnected = true;
+			Server.UserDisconnected += (s, u) => serverClientDisconnected = true;
 			client.UserDisconnected += (s, u) => clientDisconnectedFromServer = true;
 
 			Server.StartServer(ctx);
@@ -558,15 +554,16 @@ namespace Chip.Net.UnitTests.Providers
 			packet.WriteTo(buffer);
 
 			DataBuffer inc = null;
+			Server.DataReceived += (s, a) => {
+				inc = a.Data;
+			};
+
 			client.SendMessage(buffer);
+
 			Wait(() =>
 			{
 				Server.UpdateServer();
 				client.UpdateClient();
-
-				var incoming = Server.GetIncomingMessages();
-				if (incoming.Any())
-					inc = incoming.First().Item2;
 
 				return inc != null;
 			}, 250);

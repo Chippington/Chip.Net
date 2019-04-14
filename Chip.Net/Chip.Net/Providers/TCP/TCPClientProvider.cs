@@ -6,11 +6,13 @@ using Chip.Net.Data;
 
 namespace Chip.Net.Providers.TCP {
 	public class TCPClientProvider : TCPProviderBase, INetClientProvider {
-		public EventHandler<ProviderEventArgs> UserConnected { get; set; }
-		public EventHandler<ProviderEventArgs> UserDisconnected { get; set; }
+		public EventHandler<ProviderUserEventArgs> UserConnected { get; set; }
+		public EventHandler<ProviderUserEventArgs> UserDisconnected { get; set; }
+		public EventHandler<ProviderDataEventArgs> DataSent { get; set; }
+		public EventHandler<ProviderDataEventArgs> DataReceived { get; set; }
+
 		public bool IsConnected { get; private set; }
 
-		private Queue<DataBuffer> incoming;
 		private TcpClient client;
 		private byte[] message;
 
@@ -19,7 +21,6 @@ namespace Chip.Net.Providers.TCP {
 				Disconnect();
 			}
 
-			incoming = new Queue<DataBuffer>();
 			message = new byte[1024 * 512];
 
 			client = new TcpClient {
@@ -30,7 +31,7 @@ namespace Chip.Net.Providers.TCP {
 			client.Connect(context.IPAddress, context.Port);
 
 			if (client.Connected) {
-				UserConnected?.Invoke(this, new ProviderEventArgs());
+				UserConnected?.Invoke(this, new ProviderUserEventArgs());
 				IsConnected = true;
 			}
 		} 
@@ -44,7 +45,7 @@ namespace Chip.Net.Providers.TCP {
 			if (client.Connected == false)
 			{
 				if (UserDisconnected != null)
-					UserDisconnected(this, new ProviderEventArgs());
+					UserDisconnected(this, new ProviderUserEventArgs());
 
 				return;
 			}
@@ -79,19 +80,13 @@ namespace Chip.Net.Providers.TCP {
 					msgBuffer.Seek(0);
 
 					//Delegate that other classes can attach to, mainly the network handler
-					incoming.Enqueue(msgBuffer);
+					DataReceived?.Invoke(this, new ProviderDataEventArgs(null, true, msgBuffer, bytesRead));
 				}
 			}
 		}
 
 		public void Disconnect() {
 			Dispose();
-		}
-
-		public IEnumerable<DataBuffer> GetIncomingMessages() {
-			var ret = incoming;
-			incoming = new Queue<DataBuffer>();
-			return ret;
 		}
 
 		public void SendMessage(DataBuffer buffer) {
@@ -112,7 +107,7 @@ namespace Chip.Net.Providers.TCP {
 
 				client.Close();
 
-				UserDisconnected?.Invoke(this, new ProviderEventArgs());
+				UserDisconnected?.Invoke(this, new ProviderUserEventArgs());
 			}
 
 			IsConnected = false;

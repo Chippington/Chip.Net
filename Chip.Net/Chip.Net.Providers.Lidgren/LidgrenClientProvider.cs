@@ -6,17 +6,17 @@ using System.Text;
 
 namespace Chip.Net.Providers.Lidgren {
 	public class LidgrenClientProvider : INetClientProvider {
-		public EventHandler<ProviderEventArgs> UserConnected { get; set; }
-		public EventHandler<ProviderEventArgs> UserDisconnected { get; set; }
+		public EventHandler<ProviderUserEventArgs> UserConnected { get; set; }
+		public EventHandler<ProviderUserEventArgs> UserDisconnected { get; set; }
+
+		public EventHandler<ProviderDataEventArgs> DataSent { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+		public EventHandler<ProviderDataEventArgs> DataReceived { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
 		public bool IsConnected => client == null ? false : client.ConnectionStatus == NetConnectionStatus.Connected;
 
 		private NetClient client;
-		private Queue<DataBuffer> incoming;
 
 		public void Connect(NetContext context) {
-			incoming = new Queue<DataBuffer>();
-
 			NetPeerConfiguration config = new NetPeerConfiguration(context.ApplicationName);
 			client = new NetClient(config);
 			client.Start();
@@ -26,12 +26,6 @@ namespace Chip.Net.Providers.Lidgren {
 		public void Dispose() {
 			if (client != null)
 				Disconnect();
-		}
-
-		public IEnumerable<DataBuffer> GetIncomingMessages() {
-			var ret = incoming;
-			incoming = new Queue<DataBuffer>();
-			return ret;
 		}
 
 		public void SendMessage(DataBuffer data) {
@@ -49,18 +43,18 @@ namespace Chip.Net.Providers.Lidgren {
 					case NetIncomingMessageType.StatusChanged:
 						switch (inc.SenderConnection.Status) {
 							case NetConnectionStatus.Connected:
-								UserConnected?.Invoke(this, new ProviderEventArgs());
+								UserConnected?.Invoke(this, new ProviderUserEventArgs());
 								break;
 
 							case NetConnectionStatus.Disconnected:
-								UserDisconnected?.Invoke(this, new ProviderEventArgs());
+								UserDisconnected?.Invoke(this, new ProviderUserEventArgs());
 								break;
 						}
 						break;
 
 					case NetIncomingMessageType.Data:
 						var bytes = inc.ReadBytes(inc.LengthBytes);
-						incoming.Enqueue(new DataBuffer(bytes));
+						DataReceived?.Invoke(this, new ProviderDataEventArgs(null, true, new DataBuffer(bytes), inc.LengthBytes));
 						break;
 
 					case NetIncomingMessageType.Error:

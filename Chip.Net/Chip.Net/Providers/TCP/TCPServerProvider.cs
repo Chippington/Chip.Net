@@ -9,8 +9,13 @@ using Chip.Net.Data;
 namespace Chip.Net.Providers.TCP
 {
 	public class TCPServerProvider : TCPProviderBase, INetServerProvider {
-		public EventHandler<ProviderEventArgs> OnUserConnected { get; set; }
-		public EventHandler<ProviderEventArgs> OnUserDisconnected { get; set; }
+		public EventHandler<ProviderUserEventArgs> UserConnected { get; set; }
+		public EventHandler<ProviderUserEventArgs> UserDisconnected { get; set; }
+
+		public EventHandler<ProviderDataEventArgs> DataSent { get; set; }
+		public EventHandler<ProviderDataEventArgs> DataReceived { get; set; }
+
+		public bool IsActive { get; private set; }
 		public bool AcceptIncomingConnections
 		{
 			get
@@ -34,10 +39,8 @@ namespace Chip.Net.Providers.TCP
 				}
 			}
 		}
-		public bool IsActive { get; private set; }
 
 		private HashSet<TcpClient> connected;
-		private Queue<Tuple<object, DataBuffer>> incoming;
 		private List<TcpClient> clientList;
 		private TcpListener clientListener;
 
@@ -55,7 +58,6 @@ namespace Chip.Net.Providers.TCP
 			//clientList = new List<ClientInfo>();
 			message = new byte[1024 * 512];
 			clientList = new List<TcpClient>();
-			incoming = new Queue<Tuple<object, DataBuffer>>();
 			connected = new HashSet<TcpClient>();
 
 			IsActive = true;
@@ -77,7 +79,7 @@ namespace Chip.Net.Providers.TCP
 					clientList.Add(newClient);
 
 					//Delegate
-					OnUserConnected?.Invoke(this, new ProviderEventArgs()
+					UserConnected?.Invoke(this, new ProviderUserEventArgs()
 					{
 						UserKey = newClient,
 					});
@@ -129,8 +131,7 @@ namespace Chip.Net.Providers.TCP
 						msgBuffer.Seek(0);
 
 						//Delegate that other classes can attach to, mainly the network handler
-						incoming.Enqueue(new Tuple<object, DataBuffer>(
-							tcpClient, msgBuffer));
+						DataReceived?.Invoke(this, new ProviderDataEventArgs(tcpClient, true, msgBuffer, msgBuffer.GetLength()));
 					}
 				}
 			}
@@ -153,19 +154,13 @@ namespace Chip.Net.Providers.TCP
 					SendMessage(tcpClient, new DataBuffer(arr));
 				} catch { }
 
-				OnUserDisconnected?.Invoke(this, new ProviderEventArgs() {
+				UserDisconnected?.Invoke(this, new ProviderUserEventArgs() {
 					UserKey = tcpClient,
 				});
 
 				tcpClient.Close();
 				clientList.Remove(tcpClient);
 			}
-		}
-
-		public IEnumerable<Tuple<object, DataBuffer>> GetIncomingMessages() {
-			var ret = incoming;
-			incoming = new Queue<Tuple<object, DataBuffer>>();
-			return ret;
 		}
 
 		public void SendMessage(DataBuffer packet, object excludeKey = null) {

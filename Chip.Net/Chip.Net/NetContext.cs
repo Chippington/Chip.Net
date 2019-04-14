@@ -11,7 +11,7 @@ namespace Chip.Net {
 		public string IPAddress { get; set; }
 		public int MaxConnections { get; set; }
 		public int Port { get; set; }
-		public bool Locked { get; private set; }
+		public bool IsLocked { get; private set; }
 
 		public DynamicSerializer Serializer { get; private set; }
 		public NetServiceCollection Services { get; private set; }
@@ -21,16 +21,16 @@ namespace Chip.Net {
 			Serializer = new DynamicSerializer();
 			Packets = new PacketRegistry();
 			Services = new NetServiceCollection();
-			Locked = false;
+			IsLocked = false;
 		}
 
 		public void LockContext() {
-			if (Locked == true)
+			if (IsLocked == true)
 				throw new Exception("NetContext can only be initialized once.");
 
 			Services.LockServices();
 			Packets.LockPackets();
-			Locked = true;
+			IsLocked = true;
 
 			var isServer = Services.Get<INetServerController>() != null;
 			var isClient = Services.Get<INetClientController>() != null;

@@ -8,21 +8,21 @@ using Chip.Net.Data;
 namespace Chip.Net.Providers.Sockets
 {
 	public class SocketClientProvider : SocketProviderBase, INetClientProvider {
-		public EventHandler<ProviderEventArgs> UserConnected { get; set; }
-		public EventHandler<ProviderEventArgs> UserDisconnected { get; set; }
+		public EventHandler<ProviderUserEventArgs> UserConnected { get; set; }
+		public EventHandler<ProviderUserEventArgs> UserDisconnected { get; set; }
 
 		public bool IsConnected { get; }
+		public EventHandler<ProviderDataEventArgs> DataSent { get; set; }
+		public EventHandler<ProviderDataEventArgs> DataReceived { get; set; }
 
 		private object LockObject = new object();
 		private Socket Connection;
-		private Queue<DataBuffer> Incoming;
 
 		public void Connect(NetContext context) {
 			IPHostEntry ipHostInfo = Dns.GetHostEntry(context.IPAddress);
 			IPAddress ipAddress = ipHostInfo.AddressList[0];
 			IPEndPoint localEndPoint = new IPEndPoint(ipAddress, context.Port);
 
-			Incoming = new Queue<DataBuffer>();
 			Connection = new Socket(ipAddress.AddressFamily,
 				SocketType.Stream, ProtocolType.Tcp);
 
@@ -35,7 +35,7 @@ namespace Chip.Net.Providers.Sockets
 			conn.EndConnect(ar);
 
 			if (conn.Connected) {
-				UserConnected?.Invoke(this, new ProviderEventArgs() { UserKey = conn });
+				UserConnected?.Invoke(this, new ProviderUserEventArgs() { UserKey = conn });
 
 				StateObject state = new StateObject();
 				state.socket = conn;
@@ -55,9 +55,7 @@ namespace Chip.Net.Providers.Sockets
 				Array.Copy(state.buffer, arr, bytesRead);
 
 				DataBuffer buffer = new DataBuffer(arr);
-
-				lock(LockObject)
-					Incoming.Enqueue(buffer);
+				DataReceived?.Invoke(this, new ProviderDataEventArgs(null, true, buffer, bytesRead));
 			}
 		}
 
@@ -67,21 +65,13 @@ namespace Chip.Net.Providers.Sockets
 				Connection.Close();
 				Connection = null;
 
-				UserDisconnected?.Invoke(this, new ProviderEventArgs());
+				UserDisconnected?.Invoke(this, new ProviderUserEventArgs());
 			}
 		}
 
 		public void Dispose() {
 			if (Connection != null)
 				Disconnect();
-		}
-
-		public IEnumerable<DataBuffer> GetIncomingMessages() {
-			lock(LockObject) {
-				var t = new Queue<DataBuffer>(Incoming);
-				Incoming = new Queue<DataBuffer>();
-				return t;
-			}
 		}
 
 		public void SendMessage(DataBuffer data) {

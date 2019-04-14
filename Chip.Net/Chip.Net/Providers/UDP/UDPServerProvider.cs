@@ -6,12 +6,14 @@ using Chip.Net.Data;
 namespace Chip.Net.Providers.UDP
 {
 	public class UDPServerProvider : INetServerProvider {
-		public EventHandler<ProviderEventArgs> OnUserConnected { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-		public EventHandler<ProviderEventArgs> OnUserDisconnected { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+		public EventHandler<ProviderUserEventArgs> UserConnected { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+		public EventHandler<ProviderUserEventArgs> UserDisconnected { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
-		public bool IsActive => throw new NotImplementedException();
+		public EventHandler<ProviderDataEventArgs> DataSent { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+		public EventHandler<ProviderDataEventArgs> DataReceived { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
 		public bool AcceptIncomingConnections { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+		public bool IsActive => throw new NotImplementedException();
 
 		public void DisconnectUser(object userKey) {
 			throw new NotImplementedException();
@@ -22,10 +24,6 @@ namespace Chip.Net.Providers.UDP
 		}
 
 		public IEnumerable<object> GetClientKeys() {
-			throw new NotImplementedException();
-		}
-
-		public IEnumerable<Tuple<object, DataBuffer>> GetIncomingMessages() {
 			throw new NotImplementedException();
 		}
 

@@ -6,12 +6,15 @@ using Lidgren.Network;
 
 namespace Chip.Net.Providers.Lidgren {
 	public class LidgrenServerProvider : INetServerProvider {
-		public EventHandler<ProviderEventArgs> OnUserConnected { get; set; }
-		public EventHandler<ProviderEventArgs> OnUserDisconnected { get; set; }
+		public EventHandler<ProviderUserEventArgs> UserConnected { get; set; }
+		public EventHandler<ProviderUserEventArgs> UserDisconnected { get; set; }
 
-		public bool IsActive { get; private set; }
+
+		public EventHandler<ProviderDataEventArgs> DataSent { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+		public EventHandler<ProviderDataEventArgs> DataReceived { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
 		public bool AcceptIncomingConnections { get; set; }
+		public bool IsActive { get; private set; }
 
 		private NetServer server;
 		private List<NetConnection> connections;
@@ -39,14 +42,14 @@ namespace Chip.Net.Providers.Lidgren {
 						switch (inc.SenderConnection.Status) {
 							case NetConnectionStatus.Connected:
 								connections.Add(inc.SenderConnection);
-								OnUserConnected?.Invoke(this, new ProviderEventArgs() {
+								UserConnected?.Invoke(this, new ProviderUserEventArgs() {
 									UserKey = inc.SenderConnection,
 								});
 								break;
 
 							case NetConnectionStatus.Disconnected:
 								connections.Remove(inc.SenderConnection);
-								OnUserDisconnected?.Invoke(this, new ProviderEventArgs() {
+								UserDisconnected?.Invoke(this, new ProviderUserEventArgs() {
 									UserKey = inc.SenderConnection,
 								});
 								break;
@@ -119,7 +122,7 @@ namespace Chip.Net.Providers.Lidgren {
 		public void StopServer() {
 			if (server != null) {
 				foreach(var connection in connections) {
-					OnUserDisconnected?.Invoke(this, new ProviderEventArgs() {
+					UserDisconnected?.Invoke(this, new ProviderUserEventArgs() {
 						UserKey = connection,
 					});
 				}

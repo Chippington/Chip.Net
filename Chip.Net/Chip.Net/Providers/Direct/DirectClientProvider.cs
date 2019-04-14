@@ -7,17 +7,18 @@ namespace Chip.Net.Providers.Direct
 {
 	public class DirectClientProvider : INetClientProvider
 	{
-		public EventHandler<ProviderEventArgs> UserConnected { get; set; }
-		public EventHandler<ProviderEventArgs> UserDisconnected { get; set; }
+		public EventHandler<ProviderUserEventArgs> UserConnected { get; set; }
+		public EventHandler<ProviderUserEventArgs> UserDisconnected { get; set; }
 
-		private Queue<DataBuffer> Incoming { get; set; }
+		public EventHandler<ProviderDataEventArgs> DataSent { get; set; }
+		public EventHandler<ProviderDataEventArgs> DataReceived { get; set; }
 
 		public bool IsConnected { get; private set; }
 		public DirectServerProvider ActiveServer { get; set; }
 
 		public void AcceptConnection(DirectServerProvider Server) {
 			IsConnected = true;
-			UserConnected?.Invoke(this, new ProviderEventArgs());
+			UserConnected?.Invoke(this, new ProviderUserEventArgs());
 			ActiveServer = Server;
 		}
 
@@ -28,18 +29,16 @@ namespace Chip.Net.Providers.Direct
 
 		public void DisconnectFrom(DirectServerProvider Server) {
 			IsConnected = false;
-			UserDisconnected?.Invoke(this, new ProviderEventArgs());
+			UserDisconnected?.Invoke(this, new ProviderUserEventArgs());
 		}
 
 		public void ReceiveMessage(DataBuffer buffer) {
 			DataBuffer b = new DataBuffer(buffer.ToBytes());
-			Incoming.Enqueue(b);
+			DataReceived?.Invoke(this, new ProviderDataEventArgs(null, true, b, buffer.GetLength()));
 		}
 
 		public void Connect(NetContext context)
 		{
-			Incoming = new Queue<DataBuffer>();
-
 			var server = DirectServerProvider.GetServer(context.IPAddress, context.Port);
 			if (server == null) {
 				long tick = Environment.TickCount;
@@ -59,10 +58,7 @@ namespace Chip.Net.Providers.Direct
 			if(IsConnected) {
 				IsConnected = false;
 				ActiveServer.DisconnectClient(this);
-				UserDisconnected?.Invoke(this, new ProviderEventArgs());
-
-				Incoming.Clear();
-				Incoming = null;
+				UserDisconnected?.Invoke(this, new ProviderUserEventArgs());
 			}
 		}
 
@@ -70,16 +66,6 @@ namespace Chip.Net.Providers.Direct
 		{
 			if (IsConnected)
 				Disconnect();
-		}
-
-		public IEnumerable<DataBuffer> GetIncomingMessages()
-		{
-			if (Incoming == null)
-				return new DataBuffer[0];
-
-			var inc = Incoming;
-			Incoming = new Queue<DataBuffer>();
-			return inc;
 		}
 
 		public void SendMessage(DataBuffer data)

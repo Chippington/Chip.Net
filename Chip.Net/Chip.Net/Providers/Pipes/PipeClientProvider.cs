@@ -7,8 +7,11 @@ namespace Chip.Net.Providers.Pipes
 {
 	public class PipeClientProvider : INetClientProvider
 	{
-		public EventHandler<ProviderEventArgs> UserConnected { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-		public EventHandler<ProviderEventArgs> UserDisconnected { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+		public EventHandler<ProviderUserEventArgs> UserConnected { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+		public EventHandler<ProviderUserEventArgs> UserDisconnected { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+		public EventHandler<ProviderDataEventArgs> DataSent { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+		public EventHandler<ProviderDataEventArgs> DataReceived { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
 		public bool IsConnected => throw new NotImplementedException();
 
@@ -23,11 +26,6 @@ namespace Chip.Net.Providers.Pipes
 		}
 
 		public void Dispose()
-		{
-			throw new NotImplementedException();
-		}
-
-		public IEnumerable<DataBuffer> GetIncomingMessages()
 		{
 			throw new NotImplementedException();
 		}

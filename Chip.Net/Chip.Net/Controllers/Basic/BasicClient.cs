@@ -39,8 +39,29 @@ namespace Chip.Net.Controllers.Basic
 			provider.UserConnected += (s, i) => { IsConnected = true; OnConnected?.Invoke(this, new NetEventArgs()); };
 			provider.UserDisconnected += (s, i) => { IsConnected = false; OnDisconnected?.Invoke(this, new NetEventArgs()); };
 
+			provider.DataReceived += OnDataReceived;
+
 			Context.Services.StartServices();
 			provider.Connect(Context);
+		}
+
+		private void OnDataReceived(object sender, ProviderDataEventArgs e) {
+			var msg = e.Data;
+			if (msg.GetLength() == 0)
+				return;
+
+			var buffer = msg;
+			var pid = buffer.ReadInt16();
+			var sid = buffer.ReadByte();
+			var service = Context.Services.GetServiceFromId(sid);
+			var packet = Context.Packets.CreateFromId(pid);
+			packet.ReadFrom(buffer);
+
+			service.Router.InvokeClient(packet);
+
+			OnPacketReceived?.Invoke(this, new NetEventArgs() {
+				Packet = packet,
+			});
 		}
 
 		public void StopClient() {
@@ -69,24 +90,6 @@ namespace Chip.Net.Controllers.Basic
 			}
 
 			provider.UpdateClient();
-			var incoming = provider.GetIncomingMessages();
-			foreach (var msg in incoming) {
-				if (msg.GetLength() == 0)
-					continue;
-
-				var buffer = msg;
-				var pid = buffer.ReadInt16();
-				var sid = buffer.ReadByte();
-				var service = Context.Services.GetServiceFromId(sid);
-				var packet = Context.Packets.CreateFromId(pid);
-				packet.ReadFrom(buffer);
-
-				service.Router.InvokeClient(packet);
-
-				OnPacketReceived?.Invoke(this, new NetEventArgs() {
-					Packet = packet,
-				});
-			}
 		}
 
 		public void SendPacket(Packet packet) {

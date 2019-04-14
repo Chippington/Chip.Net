@@ -47,15 +47,37 @@ namespace Chip.Net.Controllers.Basic
 			userMap.Clear();
 			userList.Clear();
 
-			provider.OnUserConnected += OnProviderUserConnected;
-			provider.OnUserDisconnected += OnProviderUserDisconnected;
+			provider.UserConnected += OnProviderUserConnected;
+			provider.UserDisconnected += OnProviderUserDisconnected;
+
+			provider.DataReceived += OnDataReceived;
 
 			provider.StartServer(Context);
 			Context.Services.StartServices();
 			IsActive = true;
 		}
 
-		private void OnProviderUserConnected(object sender, ProviderEventArgs args) {
+		private void OnDataReceived(object sender, ProviderDataEventArgs e) {
+			var buffer = e.Data;
+			if (buffer.GetLength() == 0)
+				return;
+
+			var user = userMap[e.UserKey];
+			var pid = buffer.ReadInt16();
+			var sid = buffer.ReadByte();
+			var service = Context.Services.GetServiceFromId(sid);
+			var packet = Context.Packets.CreateFromId(pid);
+			packet.ReadFrom(buffer);
+
+			packet.Sender = user;
+			service.Router.InvokeServer(packet);
+			PacketReceived?.Invoke(this, new NetEventArgs() {
+				User = user,
+				Packet = packet,
+			});
+		}
+
+		private void OnProviderUserConnected(object sender, ProviderUserEventArgs args) {
 			var user = new NetUser(args.UserKey, nextUserId);
 			userMap[user.UserKey] = user;
 			userList.Add(user);
@@ -65,7 +87,7 @@ namespace Chip.Net.Controllers.Basic
 			});
 		}
 
-		private void OnProviderUserDisconnected(object sender, ProviderEventArgs args) {
+		private void OnProviderUserDisconnected(object sender, ProviderUserEventArgs args) {
 			var user = userMap[args.UserKey];
 			UserDisconnected?.Invoke(this, new NetEventArgs() {
 				User = user,
@@ -107,26 +129,6 @@ namespace Chip.Net.Controllers.Basic
 			}
 
 			provider.UpdateServer();
-			var incoming = provider.GetIncomingMessages();
-			foreach(var msg in incoming) {
-				if (msg.Item2.GetLength() == 0)
-					continue;
-
-				var user = userMap[msg.Item1];
-				var buffer = msg.Item2;
-				var pid = buffer.ReadInt16();
-				var sid = buffer.ReadByte();
-				var service = Context.Services.GetServiceFromId(sid);
-				var packet = Context.Packets.CreateFromId(pid);
-				packet.ReadFrom(buffer);
-
-				packet.Sender = user;
-				service.Router.InvokeServer(packet);
-				PacketReceived?.Invoke(this, new NetEventArgs() {
-					User = user,
-					Packet = packet,
-				});
-			}
 		}
 
 		public void StopServer() {

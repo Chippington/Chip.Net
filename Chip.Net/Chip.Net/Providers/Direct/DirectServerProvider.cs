@@ -21,14 +21,15 @@ namespace Chip.Net.Providers.Direct
 		}
 
 		public List<DirectClientProvider> Clients { get; private set; }
-		private Queue<Tuple<object, DataBuffer>> Incoming { get; set; }
 
-		public EventHandler<ProviderEventArgs> OnUserConnected { get; set; }
-		public EventHandler<ProviderEventArgs> OnUserDisconnected { get; set; }
+		public EventHandler<ProviderUserEventArgs> UserConnected { get; set; }
+		public EventHandler<ProviderUserEventArgs> UserDisconnected { get; set; }
 
 		public bool IsActive { get; private set; }
 
 		public bool AcceptIncomingConnections { get; set; }
+		public EventHandler<ProviderDataEventArgs> DataSent { get; set; }
+		public EventHandler<ProviderDataEventArgs> DataReceived { get; set; }
 
 		public void StartServer(NetContext context)
 		{
@@ -40,7 +41,6 @@ namespace Chip.Net.Providers.Direct
 				Servers.Add(key, this);
 			}
 
-			Incoming = new Queue<Tuple<object, DataBuffer>>();
 			Clients = new List<DirectClientProvider>();
 			AcceptIncomingConnections = true;
 			IsActive = true;
@@ -51,7 +51,7 @@ namespace Chip.Net.Providers.Direct
 				Clients.Add(client);
 				client.AcceptConnection(this);
 
-				OnUserConnected?.Invoke(this, new ProviderEventArgs() {
+				UserConnected?.Invoke(this, new ProviderUserEventArgs() {
 					UserKey = client,
 				});
 			} else {
@@ -61,29 +61,19 @@ namespace Chip.Net.Providers.Direct
 
 		public void DisconnectClient(DirectClientProvider client) {
 			Clients.Remove(client);
-			OnUserDisconnected?.Invoke(this, new ProviderEventArgs() {
+			UserDisconnected?.Invoke(this, new ProviderUserEventArgs() {
 				UserKey = client,
 			});
 		}
 
 		public void ReceiveMessage(DirectClientProvider client, DataBuffer data) {
 			DataBuffer d = new DataBuffer(data.ToBytes());
-			Incoming.Enqueue(new Tuple<object, DataBuffer>(client, d));
+			DataReceived?.Invoke(this, new ProviderDataEventArgs(client, true, d, d.GetLength()));
 		}
 
 		public IEnumerable<object> GetClientKeys()
 		{
 			return Clients;
-		}
-
-		public IEnumerable<Tuple<object, DataBuffer>> GetIncomingMessages()
-		{
-			if (Incoming == null)
-				return new Tuple<object, DataBuffer>[0];
-
-			var inc = Incoming;
-			Incoming = new Queue<Tuple<object, DataBuffer>>();
-			return inc;
 		}
 
 		public void SendMessage(DataBuffer data, object excludeKey = null)
@@ -113,11 +103,7 @@ namespace Chip.Net.Providers.Direct
 				Clients.Clear();
 			}
 
-			if (Incoming != null)
-				Incoming.Clear();
-
 			Clients = null;
-			Incoming = null;
 		}
 
 		public void DisconnectUser(object userKey)
@@ -125,7 +111,7 @@ namespace Chip.Net.Providers.Direct
 			Clients.Remove(userKey as DirectClientProvider);
 			(userKey as DirectClientProvider).DisconnectFrom(this);
 
-			OnUserDisconnected?.Invoke(this, new ProviderEventArgs() {
+			UserDisconnected?.Invoke(this, new ProviderUserEventArgs() {
 				UserKey = userKey,
 			});
 		}
