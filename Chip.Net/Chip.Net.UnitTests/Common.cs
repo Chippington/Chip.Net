@@ -26,18 +26,6 @@ namespace Chip.Net.UnitTests {
 			Disposed = true;
 		}
 
-		public IEnumerable<Packet> GetOutgoingClientPackets() {
-			var ret = outQueue;
-			outQueue = new Queue<Packet>();
-			return ret;
-		}
-
-		public IEnumerable<Packet> GetOutgoingServerPackets() {
-			var ret = outQueue;
-			outQueue = new Queue<Packet>();
-			return ret;
-		}
-
 		public void InitializeService(NetContext context) {
 			outQueue = new Queue<Packet>();
 			Router = new PacketRouter();
@@ -66,6 +54,13 @@ namespace Chip.Net.UnitTests {
 
 		public void Send(TestPacket p) {
 			outQueue.Enqueue(p);
+		}
+
+		public Packet GetNextOutgoingPacket() {
+			if (outQueue.Count == 0)
+				return null;
+
+			return outQueue.Dequeue();
 		}
 	}
 

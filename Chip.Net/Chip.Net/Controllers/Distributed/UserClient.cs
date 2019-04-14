@@ -38,14 +38,6 @@ namespace Chip.Net.Controllers.Distributed {
 			throw new NotImplementedException();
 		}
 
-		public IEnumerable<Packet> GetOutgoingClientPackets() {
-			throw new NotImplementedException();
-		}
-
-		public IEnumerable<Packet> GetOutgoingServerPackets() {
-			throw new NotImplementedException();
-		}
-
 		public void InitializeClient(NetContext context) {
 			throw new NotImplementedException();
 		}
@@ -100,6 +92,10 @@ namespace Chip.Net.Controllers.Distributed {
 
 		public void SendToShards(Packet Pack, IEnumerable<TShard> Exclude) {
 
+		}
+
+		public Packet GetNextOutgoingPacket() {
+			throw new NotImplementedException();
 		}
 	}
 }

@@ -40,14 +40,6 @@ namespace Chip.Net.Controllers.Distributed
 			throw new NotImplementedException();
 		}
 
-		public IEnumerable<Packet> GetOutgoingClientPackets() {
-			throw new NotImplementedException();
-		}
-
-		public IEnumerable<Packet> GetOutgoingServerPackets() {
-			throw new NotImplementedException();
-		}
-
 		public void InitializeClient(NetContext context) {
 			throw new NotImplementedException();
 		}
@@ -102,6 +94,10 @@ namespace Chip.Net.Controllers.Distributed
 
 		public void SendToUsers(Packet Pack, IEnumerable<TUser> Exclude) {
 
+		}
+
+		public Packet GetNextOutgoingPacket() {
+			throw new NotImplementedException();
 		}
 	}
 }

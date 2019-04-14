@@ -14,21 +14,18 @@ namespace Chip.Net.Services
 		protected NetContext Context { get; private set; }
 
 		private object LockObject = new object();
-		private Queue<Packet> clientOutQueue;
-		private Queue<Packet> serverOutQueue;
+		private Queue<Packet> outQueue;
 		private List<Tuple<DateTime, Action>> scheduledEvents;
 
 		public virtual void InitializeService(NetContext context) {
 			Context = context;
 			Router = new PacketRouter();
-			clientOutQueue = new Queue<Packet>();
-			serverOutQueue = new Queue<Packet>();
+			outQueue = new Queue<Packet>();
 			scheduledEvents = new List<Tuple<DateTime, Action>>();
 		}
 
 		public virtual void StartService() {
-			clientOutQueue.Clear();
-			serverOutQueue.Clear();
+			outQueue.Clear();
 			scheduledEvents.Clear();
 		}
 
@@ -46,22 +43,6 @@ namespace Chip.Net.Services
 
 		public virtual void StopService() { }
 
-		public IEnumerable<Packet> GetOutgoingClientPackets() {
-			lock(LockObject) {
-				var ret = clientOutQueue;
-				clientOutQueue = new Queue<Packet>();
-				return ret;
-			}
-		}
-
-		public IEnumerable<Packet> GetOutgoingServerPackets() {
-			lock(LockObject) {
-				var ret = serverOutQueue;
-				serverOutQueue = new Queue<Packet>();
-				return ret;
-			}
-		}
-
 		public void SendPacketToClients(Packet packet) {
 			if (packet == null)
 				throw new Exception("Packet is null");
@@ -69,7 +50,7 @@ namespace Chip.Net.Services
 			packet.Recipient = null;
 
 			lock(LockObject)
-				clientOutQueue.Enqueue(packet);
+				outQueue.Enqueue(packet);
 		}
 
 		public void SendPacketToClient(NetUser user, Packet packet) {
@@ -79,7 +60,7 @@ namespace Chip.Net.Services
 			packet.Recipient = user;
 
 			lock (LockObject)
-				serverOutQueue.Enqueue(packet);
+				outQueue.Enqueue(packet);
 		}
 
 		public void SendPacketToServer(Packet packet) {
@@ -87,7 +68,7 @@ namespace Chip.Net.Services
 				throw new Exception("Packet is null");
 
 			lock(LockObject)
-				clientOutQueue.Enqueue(packet);
+				outQueue.Enqueue(packet);
 		}
 
 		public void SendPacket(Packet packet) {
@@ -95,8 +76,7 @@ namespace Chip.Net.Services
 				throw new Exception("Packet is null");
 
 			lock (LockObject) {
-				if (IsServer) serverOutQueue.Enqueue(packet);
-				if (IsClient) clientOutQueue.Enqueue(packet);
+				outQueue.Enqueue(packet);
 			}
 		}
 
@@ -106,14 +86,12 @@ namespace Chip.Net.Services
 
 			packet.Recipient = user;
 			lock (LockObject) {
-				if (IsServer) serverOutQueue.Enqueue(packet);
-				if (IsClient) clientOutQueue.Enqueue(packet);
+				outQueue.Enqueue(packet);
 			}
 		}
 
 		public void Dispose() {
-			if (clientOutQueue != null) clientOutQueue.Clear();
-			if (serverOutQueue != null) serverOutQueue.Clear();
+			if (outQueue != null) outQueue.Clear();
 		}
 
 		public void ScheduleEvent(TimeSpan time, Action action) {
@@ -124,6 +102,13 @@ namespace Chip.Net.Services
 		public void ScheduleEvent(int milliseconds, Action action) {
 			var endt = DateTime.Now.Add(new TimeSpan(0, 0, 0, 0, milliseconds));
 			scheduledEvents.Add(new Tuple<DateTime, Action>(endt, action));
+		}
+
+		public Packet GetNextOutgoingPacket() {
+			if (outQueue.Count == 0)
+				return null;
+
+			return outQueue.Dequeue();
 		}
 	}
 }

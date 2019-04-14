@@ -104,25 +104,21 @@ namespace Chip.Net.Controllers.Basic
 			Context.Services.UpdateServices();
 
 			foreach (var svc in Context.Services.Get()) {
-				var outgoing = svc.GetOutgoingServerPackets();
-				if (outgoing == null)
-					continue;
-
 				var sid = Context.Services.GetServiceId(svc);
-
-				foreach (var p in outgoing) {
+				Packet p = null;
+				while((p = svc.GetNextOutgoingPacket()) != null) {
 					var pid = Context.Packets.GetID(p.GetType());
 					DataBuffer buffer = new DataBuffer();
 					buffer.Write((Int16)pid);
 					buffer.Write((byte)sid);
 					p.WriteTo(buffer);
 
-					if(p.Recipient == null) {
-						foreach(var user in userList)
-							if(user != p.Exclude?.UserKey)
+					if (p.Recipient == null) {
+						foreach (var user in userList)
+							if (user != p.Exclude?.UserKey)
 								provider.SendMessage(user.UserKey, buffer);
 					} else {
-						if(p.Recipient != p.Exclude?.UserKey)
+						if (p.Recipient != p.Exclude?.UserKey)
 							provider.SendMessage(p.Recipient?.UserKey, buffer);
 					}
 				}
@@ -185,14 +181,11 @@ namespace Chip.Net.Controllers.Basic
 
 		}
 
-		public IEnumerable<Packet> GetOutgoingClientPackets() {
-			return null;
-		}
+		public Packet GetNextOutgoingPacket() {
+			if (packetQueue.Count == 0)
+				return null;
 
-		public IEnumerable<Packet> GetOutgoingServerPackets() {
-			var ret = packetQueue;
-			packetQueue = new Queue<Packet>();
-			return ret;
+			return packetQueue.Dequeue();
 		}
 		#endregion
 	}

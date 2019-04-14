@@ -73,13 +73,9 @@ namespace Chip.Net.Controllers.Basic
 		public void UpdateClient() {
 			Context.Services.UpdateServices();
 			foreach(var svc in Context.Services.Get()) {
-				var outgoing = svc.GetOutgoingClientPackets();
-				if (outgoing == null)
-					continue;
-
+				Packet p = null;
 				var sid = Context.Services.GetServiceId(svc);
-
-				foreach(var p in outgoing) {
+				while((p = svc.GetNextOutgoingPacket()) != null) {
 					var pid = Context.Packets.GetID(p.GetType());
 					DataBuffer buffer = new DataBuffer();
 					buffer.Write((Int16)pid);
@@ -126,14 +122,11 @@ namespace Chip.Net.Controllers.Basic
 
 		}
 
-		public IEnumerable<Packet> GetOutgoingClientPackets() {
-			var ret = packetQueue;
-			packetQueue = new Queue<Packet>();
-			return ret;
-		}
+		public Packet GetNextOutgoingPacket() {
+			if (packetQueue.Count == 0)
+				return null;
 
-		public IEnumerable<Packet> GetOutgoingServerPackets() {
-			return null;
+			return packetQueue.Dequeue();
 		}
 		#endregion
 	}

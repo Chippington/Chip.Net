@@ -14,7 +14,6 @@ namespace Chip.Net.Services {
 		void StopService();
 		void UpdateService();
 
-		IEnumerable<Packet> GetOutgoingClientPackets();
-		IEnumerable<Packet> GetOutgoingServerPackets();
+		Packet GetNextOutgoingPacket();
 	}
 }
