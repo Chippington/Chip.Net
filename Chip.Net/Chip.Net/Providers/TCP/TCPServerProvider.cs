@@ -163,12 +163,6 @@ namespace Chip.Net.Providers.TCP
 			}
 		}
 
-		public void SendMessage(DataBuffer packet, object excludeKey = null) {
-			for (int i = clientList.Count - 1; i >= 0; i--)
-				if(clientList[i] != excludeKey)
-					SendMessage(clientList[i], packet);
-		}
-
 		public void SendMessage(object recipientKey, DataBuffer buffer) {
 			var msg = Compress(buffer.ToBytes());
 
@@ -177,6 +171,8 @@ namespace Chip.Net.Providers.TCP
 				tcpClient.GetStream().Write(BitConverter.GetBytes((Int16)msg.Length), 0, 2);
 				tcpClient.GetStream().Write(msg, 0, msg.Length);
 				tcpClient.GetStream().Flush();
+
+				DataSent?.Invoke(this, new ProviderDataEventArgs(recipientKey, false, null, msg.Length));
 			} catch(Exception ex) {
 				if(connected.Contains(recipientKey as TcpClient))
 					DisconnectUser(recipientKey);

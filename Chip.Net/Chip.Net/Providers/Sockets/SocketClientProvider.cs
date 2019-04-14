@@ -77,6 +77,7 @@ namespace Chip.Net.Providers.Sockets
 		public void SendMessage(DataBuffer data) {
 			var bytes = data.ToBytes();
 			Connection.BeginSend(bytes, 0, bytes.Length, 0, OnSend, Connection);
+			DataSent?.Invoke(this, new ProviderDataEventArgs(null, false, null, bytes.Length));
 		}
 
 		private void OnSend(IAsyncResult ar) {

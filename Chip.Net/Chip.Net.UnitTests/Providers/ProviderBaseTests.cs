@@ -633,7 +633,7 @@ namespace Chip.Net.UnitTests.Providers
 				Assert.IsTrue(e.ByteCount > 0);
 			};
 
-			Server.SendMessage(Server.GetClientKeys().First(), buffer);
+			client.SendMessage(buffer);
 			Assert.IsTrue(received);
 		}
 	}

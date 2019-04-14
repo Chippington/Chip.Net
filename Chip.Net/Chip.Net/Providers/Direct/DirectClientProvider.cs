@@ -71,6 +71,7 @@ namespace Chip.Net.Providers.Direct
 		public void SendMessage(DataBuffer data)
 		{
 			ActiveServer.ReceiveMessage(this, data);
+			DataSent?.Invoke(this, new ProviderDataEventArgs(null, false, null, data.GetLength()));
 		}
 
 		public void UpdateClient()

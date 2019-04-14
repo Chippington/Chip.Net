@@ -96,6 +96,8 @@ namespace Chip.Net.Providers.TCP {
 			client.GetStream().Write(BitConverter.GetBytes((Int16)msg.Length), 0, 2);
 			client.GetStream().Write(msg, 0, msg.Length);
 			client.GetStream().Flush();
+
+			DataSent?.Invoke(this, new ProviderDataEventArgs(null, false, null, msg.Length));
 		}
 
 		public void Dispose() {

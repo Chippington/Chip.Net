@@ -76,16 +76,10 @@ namespace Chip.Net.Providers.Direct
 			return Clients;
 		}
 
-		public void SendMessage(DataBuffer data, object excludeKey = null)
-		{
-			foreach (var client in Clients)
-				if (client != excludeKey)
-					client.ReceiveMessage(data);
-		}
-
 		public void SendMessage(object recipientKey, DataBuffer data)
 		{
 			(recipientKey as DirectClientProvider).ReceiveMessage(data);
+			DataSent?.Invoke(this, new ProviderDataEventArgs(recipientKey, false, null, data.GetLength()));
 		}
 
 		public void UpdateServer()
