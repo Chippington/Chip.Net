@@ -9,10 +9,10 @@ namespace Chip.Net.Controllers.Basic
 {
 	public class BasicClient : INetClientController {
 		#region INetClient
-		public NetEvent OnConnected { get; set; }
-		public NetEvent OnDisconnected { get; set; }
-		public NetEvent OnPacketReceived { get; set; }
-		public NetEvent OnPacketSent { get; set; }
+		public EventHandler<NetEventArgs> OnConnected { get; set; }
+		public EventHandler<NetEventArgs> OnDisconnected { get; set; }
+		public EventHandler<NetEventArgs> OnPacketReceived { get; set; }
+		public EventHandler<NetEventArgs> OnPacketSent { get; set; }
 
 		public PacketRouter Router { get; protected set; }
 		public NetContext Context { get; protected set; }
@@ -36,8 +36,8 @@ namespace Chip.Net.Controllers.Basic
 
 		public void StartClient(INetClientProvider provider) {
 			this.provider = provider;
-			provider.OnConnected += i => { IsConnected = true; OnConnected?.Invoke(new NetEventArgs()); };
-			provider.OnDisconnected += i => { IsConnected = false; OnDisconnected?.Invoke(new NetEventArgs()); };
+			provider.OnConnected += i => { IsConnected = true; OnConnected?.Invoke(this, new NetEventArgs()); };
+			provider.OnDisconnected += i => { IsConnected = false; OnDisconnected?.Invoke(this, new NetEventArgs()); };
 
 			Context.Services.StartServices();
 			provider.Connect(Context);
@@ -83,7 +83,7 @@ namespace Chip.Net.Controllers.Basic
 
 				service.Router.InvokeClient(packet);
 
-				OnPacketReceived?.Invoke(new NetEventArgs() {
+				OnPacketReceived?.Invoke(this, new NetEventArgs() {
 					Packet = packet,
 				});
 			}

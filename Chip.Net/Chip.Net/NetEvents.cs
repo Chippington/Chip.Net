@@ -10,6 +10,4 @@ namespace Chip.Net
 		public NetUser User { get; set; }
 		public Packet Packet { get; set; }
 	}
-
-	public delegate void NetEvent(NetEventArgs args);
 }

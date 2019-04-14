@@ -41,7 +41,7 @@ namespace Chip.Net.Services.SharedData
 			}
 		}
 
-		private void OnUserConnected(NetEventArgs args) {
+		private void OnUserConnected(object sender, NetEventArgs args) {
 			var user = args.User;
 			user.SetLocal<SharedDataService>(Key_Service, this);
 			user.SetLocal<Dictionary<int, byte[]>>(Key_UserMap, new Dictionary<int, byte[]>());
@@ -49,7 +49,7 @@ namespace Chip.Net.Services.SharedData
 			user.SetLocal<int>(Key_UserId, nextId++);
 		}
 
-		private void OnUserDisconnected(NetEventArgs args) {
+		private void OnUserDisconnected(object sender, NetEventArgs args) {
 			var user = args.User;
 			user.SetLocal<SharedDataService>(Key_Service, null);
 			user.SetLocal<Dictionary<int, byte[]>>(Key_UserMap, null);

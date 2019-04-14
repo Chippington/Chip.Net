@@ -52,7 +52,7 @@ namespace Chip.Net.Services.Ping {
 			}
 		}
 
-		private void OnUserDisconnected(NetEventArgs args) {
+		private void OnUserDisconnected(object sender, NetEventArgs args) {
 			connectedUsers.Remove(args.User);
 		}
 
@@ -60,7 +60,7 @@ namespace Chip.Net.Services.Ping {
 			return user.GetLocal<double>(LatencyKey);
 		}
 
-		private void OnUserConnected(NetEventArgs args) {
+		private void OnUserConnected(object sender, NetEventArgs args) {
 			var timer = GetTimer(args.User);
 			P_Ping ping = new P_Ping();
 			SendPacketToClient(args.User, ping);

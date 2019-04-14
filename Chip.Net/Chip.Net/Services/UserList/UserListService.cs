@@ -60,11 +60,11 @@ namespace Chip.Net.Services.UserList {
 			this.userList.AddRange(obj.Where(i => userList.Any(o => o.UserId != i.UserId)));
 		}
 
-		private void onUserDisconnected(NetEventArgs args) {
+		private void onUserDisconnected(object sender, NetEventArgs args) {
 			userList.Remove(args.User);
 		}
 
-		private void onUserConnected(NetEventArgs args) {
+		private void onUserConnected(object sender, NetEventArgs args) {
 			userList.Add(args.User);
 
 			SetCurrentUser(args.User);

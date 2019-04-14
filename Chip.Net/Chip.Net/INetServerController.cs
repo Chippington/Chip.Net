@@ -8,10 +8,10 @@ using System.Text;
 namespace Chip.Net
 {
 	public interface INetServerController : INetService, IDisposable {
-		NetEvent OnUserConnected { get; set; }
-		NetEvent OnUserDisconnected { get; set; }
-		NetEvent OnPacketReceived { get; set; }
-		NetEvent OnPacketSent { get; set; }
+		EventHandler<NetEventArgs> OnUserConnected { get; set; }
+		EventHandler<NetEventArgs> OnUserDisconnected { get; set; }
+		EventHandler<NetEventArgs> OnPacketReceived { get; set; }
+		EventHandler<NetEventArgs> OnPacketSent { get; set; }
 
 		NetContext Context { get; }
 		bool IsActive { get; }

@@ -12,10 +12,10 @@ namespace Chip.Net.Controllers.Distributed
 		where TShard : IShardModel
 		where TUser : IUserModel {
 
-		public NetEvent OnUserConnected { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-		public NetEvent OnUserDisconnected { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-		public NetEvent OnPacketReceived { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-		public NetEvent OnPacketSent { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+		public EventHandler<NetEventArgs> OnUserConnected { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+		public EventHandler<NetEventArgs> OnUserDisconnected { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+		public EventHandler<NetEventArgs> OnPacketReceived { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+		public EventHandler<NetEventArgs> OnPacketSent { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
 		public EventHandler<TRouter> RouterConfiguredEvent { get; set; }
 		public EventHandler<TUser> UserConnectedEvent { get; set; }
@@ -66,6 +66,15 @@ namespace Chip.Net.Controllers.Distributed
 		}
 
 		public void StartServer(INetServerProvider provider) {
+			StartRouterServer(provider);
+			StartUserServer(provider);
+		}
+
+		public void StartRouterServer(INetServerProvider shardProvider) {
+			throw new NotImplementedException();
+		}
+
+		public void StartUserServer(INetServerProvider userProvider) {
 			throw new NotImplementedException();
 		}
 

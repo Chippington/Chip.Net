@@ -102,7 +102,7 @@ namespace Chip.Net.UnitTests.Controllers {
 			var sv = StartNewServer();
 			bool eventInvoked = false;
 			NetUser user = null;
-			sv.OnUserConnected += i => { user = i.User; eventInvoked = true; };
+			sv.OnUserConnected += (s, i) => { user = i.User; eventInvoked = true; };
 
 
 			var cl = StartNewClient();
@@ -129,8 +129,8 @@ namespace Chip.Net.UnitTests.Controllers {
 			bool eventInvoked = false;
 			NetUser user1 = null;
 			NetUser user2 = null;
-			sv.OnUserConnected += i => { user1 = i.User; };
-			sv.OnUserDisconnected += i => { user2 = i.User; eventInvoked = true; };
+			sv.OnUserConnected += (s, i) => { user1 = i.User; };
+			sv.OnUserDisconnected += (s, i) => { user2 = i.User; eventInvoked = true; };
 
 			var cl = StartNewClient();
 			Wait(() => {
@@ -158,7 +158,7 @@ namespace Chip.Net.UnitTests.Controllers {
 			var sv = StartNewServer();
 			var cl = NewClient();
 			bool eventInvoked = false;
-			cl.OnConnected += i => { eventInvoked = true; };
+			cl.OnConnected += (s, i) => { eventInvoked = true; };
 			cl.StartClient(new DirectClientProvider());
 
 			Wait(() => {
@@ -182,7 +182,7 @@ namespace Chip.Net.UnitTests.Controllers {
 			var sv = StartNewServer();
 			var cl = NewClient();
 			bool eventInvoked = false;
-			cl.OnDisconnected += i => { eventInvoked = true; };
+			cl.OnDisconnected += (s, i) => { eventInvoked = true; };
 			cl.StartClient(new DirectClientProvider());
 
 			Wait(() => {
@@ -207,7 +207,7 @@ namespace Chip.Net.UnitTests.Controllers {
 		public virtual void Server_ClientConnected_HasUser() {
 			var sv = StartNewServer();
 			NetUser user = null;
-			sv.OnUserConnected += i => {
+			sv.OnUserConnected += (s, i) => {
 				user = i.User;
 			};
 
@@ -337,7 +337,7 @@ namespace Chip.Net.UnitTests.Controllers {
 		public virtual void Server_SendPacket_ClientReceivesPacket() {
 			var sv = StartNewServer();
 			NetUser user = null;
-			sv.OnUserConnected += i => {
+			sv.OnUserConnected += (s, i) => {
 				user = i.User;
 			};
 
@@ -370,7 +370,7 @@ namespace Chip.Net.UnitTests.Controllers {
 		public virtual void Server_SendPacketToUser_ClientReceivesPacket() {
 			var sv = StartNewServer();
 			NetUser user = null;
-			sv.OnUserConnected += i => {
+			sv.OnUserConnected += (s, i) => {
 				user = i.User;
 			};
 
@@ -430,7 +430,7 @@ namespace Chip.Net.UnitTests.Controllers {
 		public virtual void Client_SendPacket_PacketHasRecipient() {
 			var sv = StartNewServer();
 			NetUser user = null;
-			sv.OnUserConnected += i => {
+			sv.OnUserConnected += (s, i) => {
 				user = i.User;
 			};
 

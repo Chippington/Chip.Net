@@ -12,10 +12,10 @@ namespace Chip.Net.Controllers.Distributed
 		where TShard : IShardModel
 		where TUser : IUserModel {
 
-		public NetEvent OnConnected { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-		public NetEvent OnDisconnected { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-		public NetEvent OnPacketReceived { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-		public NetEvent OnPacketSent { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+		public EventHandler<NetEventArgs> OnConnected { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+		public EventHandler<NetEventArgs> OnDisconnected { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+		public EventHandler<NetEventArgs> OnPacketReceived { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+		public EventHandler<NetEventArgs> OnPacketSent { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
 		public EventHandler<TUser> UserAssignedEvent { get; set; }
 		public EventHandler<TUser> UserUnassignedEvent { get; set; }

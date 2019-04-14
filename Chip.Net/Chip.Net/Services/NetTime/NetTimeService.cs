@@ -69,7 +69,7 @@ namespace Chip.Net.Services.NetTime {
 			}
 		}
 
-		private void OnConnected(NetEventArgs args) {
+		private void OnConnected(object sender, NetEventArgs args) {
 			P_GetNetTime msg = new P_GetNetTime();
 			SendPacketToServer(msg);
 

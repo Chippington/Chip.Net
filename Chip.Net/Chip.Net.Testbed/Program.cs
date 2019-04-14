@@ -320,7 +320,7 @@ namespace Chip.Net.Testbed
 
 			INetClientController cl = new BasicClient();
 			cl.InitializeClient(Context);
-			cl.OnConnected += (arg) => {
+			cl.OnConnected += (sender, arg) => {
 				TestSerializable s = new TestSerializable();
 				s.data = "Hello world!";
 				s.data1 = "Data 1";
