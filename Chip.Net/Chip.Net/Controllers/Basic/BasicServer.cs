@@ -9,10 +9,10 @@ namespace Chip.Net.Controllers.Basic
 {
 	public class BasicServer : INetServerController {
 		#region INetServer
-		public EventHandler<NetEventArgs> OnUserConnected { get; set; }
-		public EventHandler<NetEventArgs> OnUserDisconnected { get; set; }
-		public EventHandler<NetEventArgs> OnPacketReceived { get; set; }
-		public EventHandler<NetEventArgs> OnPacketSent { get; set; }
+		public EventHandler<NetEventArgs> UserConnected { get; set; }
+		public EventHandler<NetEventArgs> UserDisconnected { get; set; }
+		public EventHandler<NetEventArgs> PacketReceived { get; set; }
+		public EventHandler<NetEventArgs> PacketSent { get; set; }
 
 		public NetContext Context { get; protected set; }
 		public PacketRouter Router { get; protected set; }
@@ -60,14 +60,14 @@ namespace Chip.Net.Controllers.Basic
 			userMap[user.UserKey] = user;
 			userList.Add(user);
 
-			OnUserConnected?.Invoke(this, new NetEventArgs() {
+			UserConnected?.Invoke(this, new NetEventArgs() {
 				User = user,
 			});
 		}
 
 		private void OnProviderUserDisconnected(object sender, ProviderEventArgs args) {
 			var user = userMap[args.UserKey];
-			OnUserDisconnected?.Invoke(this, new NetEventArgs() {
+			UserDisconnected?.Invoke(this, new NetEventArgs() {
 				User = user,
 			});
 
@@ -122,7 +122,7 @@ namespace Chip.Net.Controllers.Basic
 
 				packet.Sender = user;
 				service.Router.InvokeServer(packet);
-				OnPacketReceived?.Invoke(this, new NetEventArgs() {
+				PacketReceived?.Invoke(this, new NetEventArgs() {
 					User = user,
 					Packet = packet,
 				});

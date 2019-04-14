@@ -8,8 +8,8 @@ using Chip.Net.Data;
 namespace Chip.Net.Providers.Sockets
 {
 	public class SocketClientProvider : SocketProviderBase, INetClientProvider {
-		public EventHandler<ProviderEventArgs> OnConnected { get; set; }
-		public EventHandler<ProviderEventArgs> OnDisconnected { get; set; }
+		public EventHandler<ProviderEventArgs> UserConnected { get; set; }
+		public EventHandler<ProviderEventArgs> UserDisconnected { get; set; }
 
 		public bool IsConnected { get; }
 
@@ -35,7 +35,7 @@ namespace Chip.Net.Providers.Sockets
 			conn.EndConnect(ar);
 
 			if (conn.Connected) {
-				OnConnected?.Invoke(this, new ProviderEventArgs() { UserKey = conn });
+				UserConnected?.Invoke(this, new ProviderEventArgs() { UserKey = conn });
 
 				StateObject state = new StateObject();
 				state.socket = conn;
@@ -67,7 +67,7 @@ namespace Chip.Net.Providers.Sockets
 				Connection.Close();
 				Connection = null;
 
-				OnDisconnected?.Invoke(this, new ProviderEventArgs());
+				UserDisconnected?.Invoke(this, new ProviderEventArgs());
 			}
 		}
 

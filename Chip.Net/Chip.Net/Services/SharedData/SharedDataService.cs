@@ -36,8 +36,8 @@ namespace Chip.Net.Services.SharedData
 			base.StartService();
 			if (IsServer) {
 				var sv = Context.Services.Get<INetServerController>();
-				sv.OnUserConnected += OnUserConnected;
-				sv.OnUserDisconnected += OnUserDisconnected;
+				sv.UserConnected += OnUserConnected;
+				sv.UserDisconnected += OnUserDisconnected;
 			}
 		}
 

@@ -179,7 +179,7 @@ namespace Chip.Net.UnitTests.Providers
 			bool clientConnected = false;
 			bool serverUserConnected = false;
 
-			client.OnConnected += (s, u) => clientConnected = true;
+			client.UserConnected += (s, u) => clientConnected = true;
 			Server.OnUserConnected += (s, u) => serverUserConnected = true;
 
 			Server.StartServer(ctx);
@@ -205,7 +205,7 @@ namespace Chip.Net.UnitTests.Providers
 			bool clientDisconnected = false;
 			bool serverUserDisconnected = false;
 
-			client.OnDisconnected += (s, u) => clientDisconnected = true;
+			client.UserDisconnected += (s, u) => clientDisconnected = true;
 			Server.OnUserDisconnected += (s, u) => serverUserDisconnected = true;
 
 			Server.StartServer(ctx);
@@ -488,7 +488,7 @@ namespace Chip.Net.UnitTests.Providers
 			bool serverClientConnected = false;
 
 			Server.OnUserConnected += (s, u) => serverClientConnected = true;
-			client.OnConnected += (s, u) => clientConnectedToServer = true;
+			client.UserConnected += (s, u) => clientConnectedToServer = true;
 
 			Server.StartServer(ctx);
 			client.Connect(ctx);
@@ -513,7 +513,7 @@ namespace Chip.Net.UnitTests.Providers
 			bool serverClientDisconnected = false;
 
 			Server.OnUserDisconnected += (s, u) => serverClientDisconnected = true;
-			client.OnDisconnected += (s, u) => clientDisconnectedFromServer = true;
+			client.UserDisconnected += (s, u) => clientDisconnectedFromServer = true;
 
 			Server.StartServer(ctx);
 			client.Connect(ctx);

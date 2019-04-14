@@ -5,8 +5,8 @@ using System.Text;
 
 namespace Chip.Net.Providers {
 	public interface INetClientProvider : IDisposable {
-		EventHandler<ProviderEventArgs> OnConnected { get; set; }
-		EventHandler<ProviderEventArgs> OnDisconnected { get; set; }
+		EventHandler<ProviderEventArgs> UserConnected { get; set; }
+		EventHandler<ProviderEventArgs> UserDisconnected { get; set; }
 
 		bool IsConnected { get; }
 

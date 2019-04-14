@@ -27,8 +27,8 @@ namespace Chip.Net.Services.Ping {
 
 			if(IsServer) {
 				var sv = Context.Services.Get<INetServerController>();
-				sv.OnUserConnected += OnUserConnected;
-				sv.OnUserDisconnected += OnUserDisconnected;
+				sv.UserConnected += OnUserConnected;
+				sv.UserDisconnected += OnUserDisconnected;
 			}
 		}
 
