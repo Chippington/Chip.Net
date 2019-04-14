@@ -51,11 +51,11 @@ namespace Chip.Net.Services.RFC {
 
 			if (IsServer) {
 				var sv = context.Services.Get<INetServerController>();
-				sv.UserConnected += (s, arg) => {
+				sv.NetUserConnected += (s, arg) => {
 					userList.Add(arg.User);
 				};
 
-				sv.UserDisconnected += (s, arg) => {
+				sv.NetUserDisconnected += (s, arg) => {
 					userList.Remove(arg.User);
 				};
 			}

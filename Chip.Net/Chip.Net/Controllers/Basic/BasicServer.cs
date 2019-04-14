@@ -9,8 +9,8 @@ namespace Chip.Net.Controllers.Basic
 {
 	public class BasicServer : INetServerController {
 		#region INetServer
-		public EventHandler<NetEventArgs> UserConnected { get; set; }
-		public EventHandler<NetEventArgs> UserDisconnected { get; set; }
+		public EventHandler<NetEventArgs> NetUserConnected { get; set; }
+		public EventHandler<NetEventArgs> NetUserDisconnected { get; set; }
 		public EventHandler<NetEventArgs> PacketReceived { get; set; }
 		public EventHandler<NetEventArgs> PacketSent { get; set; }
 
@@ -82,14 +82,14 @@ namespace Chip.Net.Controllers.Basic
 			userMap[user.UserKey] = user;
 			userList.Add(user);
 
-			UserConnected?.Invoke(this, new NetEventArgs() {
+			NetUserConnected?.Invoke(this, new NetEventArgs() {
 				User = user,
 			});
 		}
 
 		private void OnProviderUserDisconnected(object sender, ProviderUserEventArgs args) {
 			var user = userMap[args.UserKey];
-			UserDisconnected?.Invoke(this, new NetEventArgs() {
+			NetUserDisconnected?.Invoke(this, new NetEventArgs() {
 				User = user,
 			});
 

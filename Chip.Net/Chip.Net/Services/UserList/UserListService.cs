@@ -27,8 +27,8 @@ namespace Chip.Net.Services.UserList {
 
 			if(IsServer) {
 				var sv = context.Services.Get<INetServerController>();
-				sv.UserConnected += onUserConnected;
-				sv.UserDisconnected += onUserDisconnected;
+				sv.NetUserConnected += onUserConnected;
+				sv.NetUserDisconnected += onUserDisconnected;
 			}
 
 			ClSetUser = ClientAction<NetUser>(_clSetUser);
