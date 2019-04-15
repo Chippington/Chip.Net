@@ -21,6 +21,7 @@ namespace Chip.Net.Controllers.Basic
 		public bool IsClient { get; set; } = true;
 
 		private INetClientProvider provider;
+		private Queue<Packet> packetQueue;
 		private bool disposed;
 
 		public void InitializeClient(NetContext context) {
@@ -29,13 +30,13 @@ namespace Chip.Net.Controllers.Basic
 			this.Context = context;
 			disposed = false;
 
-			context.Services.Register<INetClientController>(this);
-			context.Services.InitializeServices(context);
-			context.LockContext();
+			packetQueue = new Queue<Packet>();
+			context.LockContext(client: this);
 		}
 
 		public void StartClient(INetClientProvider provider) {
 			this.provider = provider;
+			packetQueue.Clear();
 			provider.UserConnected += (s, i) => { IsConnected = true; OnConnected?.Invoke(this, new NetEventArgs()); };
 			provider.UserDisconnected += (s, i) => { IsConnected = false; OnDisconnected?.Invoke(this, new NetEventArgs()); };
 
@@ -53,11 +54,19 @@ namespace Chip.Net.Controllers.Basic
 			var buffer = msg;
 			var pid = buffer.ReadInt16();
 			var sid = buffer.ReadByte();
-			var service = Context.Services.GetServiceFromId(sid);
+
 			var packet = Context.Packets.CreateFromId(pid);
 			packet.ReadFrom(buffer);
 
-			service.Router.InvokeClient(packet);
+			if (sid == 0)
+			{
+				Router.InvokeClient(packet);
+			}
+			else
+			{
+				var service = Context.Services.GetServiceFromId(sid);
+				service.Router.InvokeClient(packet);
+			}
 
 			OnPacketReceived?.Invoke(this, new NetEventArgs() {
 				Packet = packet,
@@ -72,8 +81,8 @@ namespace Chip.Net.Controllers.Basic
 
 		public void UpdateClient() {
 			Context.Services.UpdateServices();
+			Packet p = null;
 			foreach(var svc in Context.Services.Get()) {
-				Packet p = null;
 				var sid = Context.Services.GetServiceId(svc);
 				while((p = svc.GetNextOutgoingPacket()) != null) {
 					var pid = Context.Packets.GetID(p.GetType());
@@ -83,6 +92,16 @@ namespace Chip.Net.Controllers.Basic
 					p.WriteTo(buffer);
 					provider.SendMessage(buffer);
 				}
+			}
+
+			while (packetQueue.Count != 0 && (p = packetQueue.Dequeue()) != null)
+			{
+				var pid = Context.Packets.GetID(p.GetType());
+				DataBuffer buffer = new DataBuffer();
+				buffer.Write((Int16)pid);
+				buffer.Write((byte)0);
+				p.WriteTo(buffer);
+				provider.SendMessage(buffer);
 			}
 
 			provider.UpdateClient();
@@ -100,33 +119,6 @@ namespace Chip.Net.Controllers.Basic
 				disposed = true;
 				Context.Services.Dispose();
 			}
-		}
-		#endregion
-
-		#region INetService 
-		private Queue<Packet> packetQueue;
-
-		public void InitializeService(NetContext context) {
-			packetQueue = new Queue<Packet>();
-		}
-
-		public void StartService() {
-			packetQueue.Clear();
-		}
-
-		public void StopService() {
-
-		}
-
-		public void UpdateService() {
-
-		}
-
-		public Packet GetNextOutgoingPacket() {
-			if (packetQueue.Count == 0)
-				return null;
-
-			return packetQueue.Dequeue();
 		}
 		#endregion
 	}

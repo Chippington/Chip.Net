@@ -1,4 +1,5 @@
-﻿using Chip.Net.Data;
+﻿using Chip.Net.Controllers;
+using Chip.Net.Data;
 using Chip.Net.Services;
 using System;
 using System.Collections.Generic;
@@ -9,6 +10,9 @@ namespace Chip.Net.UnitTests {
 		public PacketRouter Router { get; private set; }
 
 		public NetContext Context { get; private set; }
+
+		public INetServerController Server { get; set; }
+		public INetClientController Client { get; set; }
 
 		public bool Started { get; private set; } = false;
 		public bool Updated { get; private set; } = false;

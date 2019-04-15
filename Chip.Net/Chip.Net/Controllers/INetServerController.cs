@@ -5,9 +5,11 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Chip.Net
+namespace Chip.Net.Controllers
 {
-	public interface INetServerController : INetService, IDisposable {
+	public interface INetServerController : IDisposable {
+		PacketRouter Router { get; }
+
 		EventHandler<NetEventArgs> NetUserConnected { get; set; }
 		EventHandler<NetEventArgs> NetUserDisconnected { get; set; }
 		EventHandler<NetEventArgs> PacketReceived { get; set; }

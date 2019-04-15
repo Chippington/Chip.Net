@@ -50,12 +50,11 @@ namespace Chip.Net.Services.RFC {
 			Router.Route<RFCExecute>(onExecute);
 
 			if (IsServer) {
-				var sv = context.Services.Get<INetServerController>();
-				sv.NetUserConnected += (s, arg) => {
+				Server.NetUserConnected += (s, arg) => {
 					userList.Add(arg.User);
 				};
 
-				sv.NetUserDisconnected += (s, arg) => {
+				Server.NetUserDisconnected += (s, arg) => {
 					userList.Remove(arg.User);
 				};
 			}

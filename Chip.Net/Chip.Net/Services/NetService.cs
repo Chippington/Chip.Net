@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Chip.Net.Controllers;
 using Chip.Net.Data;
 
 namespace Chip.Net.Services
@@ -10,6 +11,9 @@ namespace Chip.Net.Services
 
 		public bool IsServer { get; set; } = false;
 		public bool IsClient { get; set; } = false;
+
+		public INetServerController Server { get; set; }
+		public INetClientController Client { get; set; }
 
 		protected NetContext Context { get; private set; }
 

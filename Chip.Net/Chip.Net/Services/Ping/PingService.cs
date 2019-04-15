@@ -1,4 +1,5 @@
-﻿using Chip.Net.Data;
+﻿using Chip.Net.Controllers;
+using Chip.Net.Data;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -26,9 +27,8 @@ namespace Chip.Net.Services.Ping {
 			connectedUsers.Clear();
 
 			if(IsServer) {
-				var sv = Context.Services.Get<INetServerController>();
-				sv.NetUserConnected += OnUserConnected;
-				sv.NetUserDisconnected += OnUserDisconnected;
+				Server.NetUserConnected += OnUserConnected;
+				Server.NetUserDisconnected += OnUserDisconnected;
 			}
 		}
 

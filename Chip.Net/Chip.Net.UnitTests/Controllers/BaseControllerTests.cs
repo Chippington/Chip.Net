@@ -1,4 +1,5 @@
-﻿using Chip.Net.Data;
+﻿using Chip.Net.Controllers;
+using Chip.Net.Data;
 using Chip.Net.Providers.Direct;
 using Chip.Net.Providers.TCP;
 using Microsoft.VisualStudio.TestTools.UnitTesting;

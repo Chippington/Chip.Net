@@ -1,4 +1,5 @@
-﻿using Chip.Net.Data;
+﻿using Chip.Net.Controllers;
+using Chip.Net.Data;
 using Chip.Net.Providers;
 using Chip.Net.Services;
 using System;
@@ -24,19 +25,23 @@ namespace Chip.Net {
 			IsLocked = false;
 		}
 
-		public void LockContext() {
+		public void LockContext(INetServerController server = null, INetClientController client = null) {
 			if (IsLocked == true)
 				throw new Exception("NetContext can only be initialized once.");
 
+			Services.InitializeServices(this);
 			Services.LockServices();
 			Packets.LockPackets();
 			IsLocked = true;
 
-			var isServer = Services.Get<INetServerController>() != null;
-			var isClient = Services.Get<INetClientController>() != null;
+			var isServer = server != null;
+			var isClient = client != null;
 			foreach (var svc in Services.Get()) {
 				svc.IsClient = isClient;
 				svc.IsServer = isServer;
+
+				svc.Server = server;
+				svc.Client = client;
 			}
 		}
 

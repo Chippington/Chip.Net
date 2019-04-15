@@ -20,12 +20,7 @@ namespace Chip.Net.Services {
 		}
 
 		public void InitializeServices(NetContext context) {
-			var sv = serviceMap.ContainsKey(typeof(INetServerController));
-			var cl = serviceMap.ContainsKey(typeof(INetClientController));
-
 			for (int i = 0; i < serviceList.Count; i++) {
-				serviceList[i].IsServer = sv;
-				serviceList[i].IsClient = cl;
 				serviceList[i].InitializeService(context);
 			}
 		}
@@ -40,8 +35,8 @@ namespace Chip.Net.Services {
 
 			var ordered = serviceList.OrderBy(i => i.GetType().Name).ToList();
 			for (int i = 0; i < ordered.Count; i++) {
-				idToService.Add(i, ordered[i]);
-				serviceToId.Add(ordered[i], i);
+				idToService.Add(i + 1, ordered[i]);
+				serviceToId.Add(ordered[i], i + 1);
 			}
 		}
 
