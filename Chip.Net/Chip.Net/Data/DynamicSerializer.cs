@@ -142,6 +142,20 @@ namespace Chip.Net.Data
 				.Where(i => i.CustomAttributes.Any(o => o.AttributeType == typeof(IgnoreProperty)) == false)
 				.ToArray();
 		}
+
+		public DynamicSerializer Clone()
+		{
+			DynamicSerializer d = new DynamicSerializer();
+			foreach (var w in Writers)
+				if (d.Writers.ContainsKey(w.Key) == false)
+					d.Writers.Add(w.Key, w.Value);
+
+			foreach (var r in Readers)
+				if (d.Readers.ContainsKey(r.Key) == false)
+					d.Readers.Add(r.Key, r.Value);
+
+			return d;
+		}
 	}
 
 	public class DataWriter {

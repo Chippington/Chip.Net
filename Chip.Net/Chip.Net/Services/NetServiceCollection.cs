@@ -112,6 +112,22 @@ namespace Chip.Net.Services {
 			return serviceMap[type];
 		}
 
+		public NetServiceCollection Clone()
+		{
+			NetServiceCollection c = new NetServiceCollection();
+
+			foreach (var type in serviceTypeSet)
+				c.serviceTypeSet.Add(type);
+
+			foreach (var conf in configMap)
+				c.configMap.Add(conf.Key, conf.Value);
+
+			if(IsLocked)
+				c.LockServices();
+
+			return c;
+		}
+
 		public void Dispose() {
 			if (serviceTypeSet  != null) serviceTypeSet.Clear();
 			if (idToService != null) idToService.Clear();

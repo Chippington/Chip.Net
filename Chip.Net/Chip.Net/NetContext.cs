@@ -48,7 +48,17 @@ namespace Chip.Net {
 
 		public NetContext Clone()
 		{
-			return null;
+			NetContext ctx = new NetContext();
+			ctx.Serializer = Serializer.Clone();
+			ctx.Services = Services.Clone();
+			ctx.Packets = Packets.Clone();
+
+			ctx.ApplicationName = ApplicationName;
+			ctx.MaxConnections = MaxConnections;
+			ctx.IPAddress = IPAddress;
+			ctx.Port = Port;
+			ctx.IsLocked = IsLocked;
+			return ctx;
 		}
 
 		#region Providers

@@ -111,7 +111,7 @@ namespace Chip.Net.UnitTests.Data
 			registry.Register<TestPacket>();
 			registry.LockPackets();
 
-			Assert.IsTrue(registry.Locked);
+			Assert.IsTrue(registry.IsLocked);
 		}
 
 		[TestMethod]

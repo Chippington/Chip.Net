@@ -11,15 +11,15 @@ namespace Chip.Net.Data
 		private Dictionary<Type, int> typeToId;
 		private Dictionary<int, Type> idToType;
 
-		public bool Locked { get; private set; }
+		public bool IsLocked { get; private set; }
 
 		public PacketRegistry() {
-			Locked = false;
+			IsLocked = false;
 			tempTypeList = new List<Type>();
 		}
 
 		public void Register<T>() where T : Packet {
-			if (Locked)
+			if (IsLocked)
 				throw new Exception("Packet registry has been locked");
 
 			if(tempTypeList.Contains(typeof(T)) == false)
@@ -27,10 +27,8 @@ namespace Chip.Net.Data
 		}
 
 		public void LockPackets() {
-			if (Locked)
+			if (IsLocked)
 				throw new Exception("Packet registry can only be locked once");
-
-			Locked = true;
 
 			typeToId = new Dictionary<Type, int>();
 			idToType = new Dictionary<int, Type>();
@@ -42,6 +40,7 @@ namespace Chip.Net.Data
 			}
 
 			tempTypeList = null;
+			IsLocked = true;
 		}
 
 		public int GetID<T>() where T : Packet {
@@ -58,6 +57,26 @@ namespace Chip.Net.Data
 
 		public Packet CreateFromId(int id) {
 			return (Packet)Activator.CreateInstance(GetType(id));
+		}
+
+		public PacketRegistry Clone()
+		{
+			PacketRegistry r = new PacketRegistry();
+			if(IsLocked)
+			{
+				foreach (var kvp in typeToId)
+					r.tempTypeList.Add(kvp.Key);
+			}
+			else
+			{
+				foreach (var t in tempTypeList)
+					r.tempTypeList.Add(t);
+			}
+
+			if (IsLocked)
+				r.LockPackets();
+
+			return r;
 		}
     }
 }
