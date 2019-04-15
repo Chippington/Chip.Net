@@ -12,6 +12,8 @@ namespace Chip.Net.UnitTests.Services {
 		public void NetServiceCollection_RegisterService_HasService() {
 			NetServiceCollection c = new NetServiceCollection();
 			c.Register<TestNetService>();
+			c.LockServices();
+
 			var result = c.Get<TestNetService>();
 
 			Assert.IsNotNull(result);
@@ -35,6 +37,7 @@ namespace Chip.Net.UnitTests.Services {
 		public void NetServiceCollection_UpdateServices_ServiceUpdated() {
 			NetServiceCollection c = new NetServiceCollection();
 			c.Register<TestNetService>();
+			c.LockServices();
 			c.UpdateServices();
 
 			Assert.IsTrue(c.Get<TestNetService>().Updated == true);
@@ -44,6 +47,7 @@ namespace Chip.Net.UnitTests.Services {
 		public void NetServiceCollection_GetServices_HasServices() {
 			NetServiceCollection c = new NetServiceCollection();
 			c.Register<TestNetService>();
+			c.LockServices();
 
 			Assert.IsTrue(c.Get().Count() == 1);
 			Assert.IsTrue(c.Get().First() == c.Get<TestNetService>());
@@ -53,6 +57,7 @@ namespace Chip.Net.UnitTests.Services {
 		public void NetServiceCollection_Initialized_ServiceInitialized() {
 			NetServiceCollection c = new NetServiceCollection();
 			c.Register<TestNetService>();
+			c.LockServices();
 			c.InitializeServices(new NetContext());
 
 			Assert.IsTrue(c.Get<TestNetService>().Initialized == true);
@@ -62,6 +67,7 @@ namespace Chip.Net.UnitTests.Services {
 		public void NetServiceCollection_Disposed_ServiceDisposed() {
 			NetServiceCollection c = new NetServiceCollection();
 			var svc = c.Register<TestNetService>();
+			c.LockServices();
 			c.Dispose();
 
 			Assert.IsTrue(svc.Disposed == true);

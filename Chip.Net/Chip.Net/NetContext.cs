@@ -19,9 +19,9 @@ namespace Chip.Net {
 		public PacketRegistry Packets { get; private set; }
 
 		public NetContext() {
+			Services = new NetServiceCollection();
 			Serializer = new DynamicSerializer();
 			Packets = new PacketRegistry();
-			Services = new NetServiceCollection();
 			IsLocked = false;
 		}
 
