@@ -33,7 +33,7 @@ namespace Chip.Net.UnitTests.Controllers.Distributed.Services
 		[TestCleanup]
 		public void Cleanup()
 		{
-			if (Router.IsActive) Router.StopServer();
+			if (Router.IsActive) Router.Shutdown();
 			if (Shard.IsConnected) Shard.StopClient();
 			if (User.IsConnected) User.StopClient();
 
@@ -202,8 +202,6 @@ namespace Chip.Net.UnitTests.Controllers.Distributed.Services
 
 		[TestInitialize]
 		public void Initialize() {
-			var port = Common.Port;
-
 			Router = new RouterServer<TestRouterModel, TestShardModel, TestUserModel>();
 			Shards = new List<ShardClient<TestRouterModel, TestShardModel, TestUserModel>>();
 			Users = new List<UserClient<TestRouterModel, TestShardModel, TestUserModel>>();
@@ -216,15 +214,16 @@ namespace Chip.Net.UnitTests.Controllers.Distributed.Services
 				Users.Add(new UserClient<TestRouterModel, TestShardModel, TestUserModel>());
 			}
 
-			Router.InitializeServer(GetContext(port));
+			Router.InitializeServer(GetContext(0));
 			foreach (var shard in Shards) {
-				shard.InitializeClient(GetContext(port));
+				shard.InitializeClient(GetContext(0));
 			}
 			foreach (var user in Users) {
-				user.InitializeClient(GetContext(port));
+				user.InitializeClient(GetContext(1));
 			}
 
-			Router.StartServer(new DirectServerProvider());
+			Router.StartShardServer(0, new DirectServerProvider());
+			Router.StartUserServer(1, new DirectServerProvider());
 			foreach (var shard in Shards) {
 				shard.StartClient(new DirectClientProvider());
 			}
@@ -236,7 +235,7 @@ namespace Chip.Net.UnitTests.Controllers.Distributed.Services
 		[TestCleanup]
 		public void Cleanup()
 		{
-			if (Router.IsActive) Router.StopServer();
+			if (Router.IsActive) Router.Shutdown();
 			foreach (var shard in Shards) if (shard.IsConnected) shard.StopClient();
 			foreach (var user in Users) if (user.IsConnected) user.StopClient();
 

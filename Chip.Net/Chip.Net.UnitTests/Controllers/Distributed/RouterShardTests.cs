@@ -9,11 +9,12 @@ using System.Text;
 namespace Chip.Net.UnitTests.Controllers.Distributed
 {
 	[TestClass]
-    public class RouterShardTests : BaseControllerTests<RouterServer<TestRouterModel, TestShardModel, TestUserModel>, ShardClient<TestRouterModel, TestShardModel, TestUserModel>> {
+    public class RouterShardTests : BaseControllerTests<INetServerController, ShardClient<TestRouterModel, TestShardModel, TestUserModel>> {
 		protected override INetServerController StartNewServer() {
 			var sv = NewServer() as RouterServer<TestRouterModel, TestShardModel, TestUserModel>;
-			sv.StartShardServer(new DirectServerProvider());
-			return sv;
+			sv.StartShardServer(0, new DirectServerProvider());
+			sv.StartUserServer(1, new DirectServerProvider());
+			return sv.ShardController;
 		}
 	}
 }
