@@ -82,7 +82,7 @@ namespace Chip.Net.Controllers.Basic
 		public void UpdateClient() {
 			Context.Services.UpdateServices();
 			Packet p = null;
-			foreach(var svc in Context.Services.Get()) {
+			foreach(var svc in Context.Services.ServiceList) {
 				var sid = Context.Services.GetServiceId(svc);
 				while((p = svc.GetNextOutgoingPacket()) != null) {
 					var pid = Context.Packets.GetID(p.GetType());

@@ -24,6 +24,8 @@ namespace Chip.Net.UnitTests {
 		public bool IsServer { get; set; }
 		public bool IsClient { get; set; }
 
+		public bool Configured { get; set; }
+
 		private Queue<Packet> outQueue;
 
 		public void Dispose() {

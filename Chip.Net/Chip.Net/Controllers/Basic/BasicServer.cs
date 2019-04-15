@@ -114,7 +114,7 @@ namespace Chip.Net.Controllers.Basic
 			Context.Services.UpdateServices();
 
 			Packet p = null;
-			foreach (var svc in Context.Services.Get())
+			foreach (var svc in Context.Services.ServiceList)
 			{
 				var sid = Context.Services.GetServiceId(svc);
 				while ((p = svc.GetNextOutgoingPacket()) != null)

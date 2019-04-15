@@ -5,109 +5,134 @@ using System.Text;
 
 namespace Chip.Net.Services {
 	public class NetServiceCollection : IDisposable {
+		public IReadOnlyList<INetService> ServiceList { get; set; }
+
+		private Dictionary<Type, Action<object>> configMap;
+		private HashSet<Type> serviceTypeSet;
+		private List<INetService> services;
+
 		private Dictionary<Type, INetService> serviceMap;
-		private List<INetService> serviceList;
+		private Dictionary<INetService, byte> serviceToId;
+		private Dictionary<byte, INetService> idToService;
 
-		private Dictionary<int, INetService> idToService;
-		private Dictionary<INetService, int> serviceToId;
-
-		public bool Locked { get; private set; }
+		public bool IsLocked { get; private set; }
 
 		public NetServiceCollection() {
-			serviceMap = new Dictionary<Type, INetService>();
-			serviceList = new List<INetService>();
-			Locked = false;
-		}
+			serviceTypeSet = new HashSet<Type>();
+			configMap = new Dictionary<Type, Action<object>>();
+			services = new List<INetService>();
+			ServiceList = services.AsReadOnly();
 
-		public void InitializeServices(NetContext context) {
-			for (int i = 0; i < serviceList.Count; i++) {
-				serviceList[i].InitializeService(context);
-			}
+			serviceMap = new Dictionary<Type, INetService>();
+			serviceToId = new Dictionary<INetService, byte>();
+			idToService = new Dictionary<byte, INetService>();
+
+			IsLocked = false;
 		}
 
 		public void LockServices() {
-			if (Locked)
-				throw new Exception("Services can only be locked once");
+			var instances = serviceTypeSet.OrderBy(i => i.FullName).Select(i =>
+			{
+				var svc = Activator.CreateInstance(i) as INetService;
+				if (configMap.ContainsKey(i))
+					configMap[i].Invoke(svc);
 
-			Locked = true;
-			idToService = new Dictionary<int, INetService>();
-			serviceToId = new Dictionary<INetService, int>();
+				serviceMap.Add(i, svc);
+				return svc;
+			});
 
-			var ordered = serviceList.OrderBy(i => i.GetType().Name).ToList();
-			for (int i = 0; i < ordered.Count; i++) {
-				idToService.Add(i + 1, ordered[i]);
-				serviceToId.Add(ordered[i], i + 1);
+			services = instances.ToList();
+			ServiceList = services.AsReadOnly();
+
+			for(byte i = 0; i < services.Count; i++)
+			{
+				serviceToId.Add(services[i], (byte)(i + 1));
+				idToService.Add((byte)(i + 1), services[i]); 
 			}
+
+			IsLocked = true;
 		}
 
-		public int GetServiceId(INetService svc) {
+		public byte GetServiceId(INetService svc) {
 			return serviceToId[svc];
 		}
 
-		public INetService GetServiceFromId(int id) {
+		public INetService GetServiceFromId(byte id) {
 			return idToService[id];
 		}
 
+		public void InitializeServices(NetContext context)
+		{
+			for (int i = 0; i < services.Count; i++)
+				services[i].InitializeService(context);
+		}
+
 		public void StartServices() {
-			for (int i = 0; i < serviceList.Count; i++) {
-				serviceList[i].StartService();
-			}
-		}
-		public void UpdateServices() {
-			for (int i = 0; i < serviceList.Count; i++) {
-				serviceList[i].UpdateService();
-			}
+			for (int i = 0; i < services.Count; i++)
+				services[i].StartService();
 		}
 
-		public void StopServices() {
-			for (int i = 0; i < serviceList.Count; i++) {
-				serviceList[i].StopService();
-			}
+		public void UpdateServices()
+		{
+			for (int i = 0; i < services.Count; i++)
+				services[i].UpdateService();
 		}
 
-		public T Register<T>() where T : INetService {
-			if (Locked)
-				throw new Exception("Services have been locked");
-
-			var inst = Activator.CreateInstance<T>();
-			return Register(inst);
+		public void StopServices()
+		{
+			for (int i = 0; i < services.Count; i++)
+				services[i].StopService();
 		}
 
-		public T Register<T>(T inst) where T : INetService {
-			if (Locked)
-				throw new Exception("Services have been locked");
-
-			if(typeof(T) != inst.GetType()) {
-				serviceMap.Add(inst.GetType(), inst);
-			}
-
-			if (serviceMap.ContainsKey(typeof(T)))
-				return (T)serviceMap[typeof(T)];
-
-			serviceMap.Add(typeof(T), inst);
-			serviceList.Add(inst);
-			return inst;
+		public void Register<T>() where T : INetService {
+			if(serviceTypeSet.Contains(typeof(T)) == false)
+				serviceTypeSet.Add(typeof(T));
 		}
 
-		public T Get<T>() {
+		public void Configure<T>(Action<T> config) where T : INetService {
+			if (configMap.ContainsKey(typeof(T)))
+				throw new Exception("NetService already has configuration set.");
+
+			configMap.Add(typeof(T), (o) => config((T)o));
+			Register<T>();
+		}
+
+		public T Get<T>() where T : INetService {
 			if (serviceMap.ContainsKey(typeof(T)) == false)
 				return default(T);
 
 			return (T)serviceMap[typeof(T)];
 		}
 
-		public IEnumerable<INetService> Get() {
-			return serviceList.AsReadOnly();
+		public INetService Get(Type type)
+		{
+			if (serviceMap.ContainsKey(type) == false)
+				return null;
+
+			return serviceMap[type];
 		}
 
 		public void Dispose() {
-			foreach (var svc in serviceList)
-				svc.Dispose();
+			if (serviceTypeSet  != null) serviceTypeSet.Clear();
+			if (idToService != null) idToService.Clear();
+			if (serviceToId != null) serviceToId.Clear();
+			if (serviceMap != null) serviceMap.Clear();
+			if (configMap != null) configMap.Clear();
 
-			serviceList.Clear();
-			serviceList = null;
-			serviceMap.Clear();
+			if (services != null)
+			{
+				foreach (var svc in services)
+					svc.Dispose();
+
+				services.Clear();
+			}
+
+			serviceTypeSet = null;
+			idToService = null;
+			serviceToId = null;
 			serviceMap = null;
+			configMap = null;
+			services = null;
 		}
 	}
 }

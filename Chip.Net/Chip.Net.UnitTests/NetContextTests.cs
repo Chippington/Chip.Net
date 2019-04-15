@@ -54,10 +54,10 @@ namespace Chip.Net.UnitTests
 			var context = CreateContext();
 			var clone = context.Clone();
 
-			Assert.IsTrue(clone.Services.Get().Count() == context.Services.Get().Count());
-			foreach(var svc in context.Services.Get())
+			Assert.IsTrue(clone.Services.ServiceList.Count == context.Services.ServiceList.Count);
+			foreach(var svc in context.Services.ServiceList)
 			{
-				var match = clone.Services.Get().FirstOrDefault(i => i.GetType() == svc.GetType());
+				var match = clone.Services.ServiceList.FirstOrDefault(i => i.GetType() == svc.GetType());
 				Assert.IsNotNull(match);
 				Assert.AreEqual(
 					context.Services.GetServiceId(svc), 

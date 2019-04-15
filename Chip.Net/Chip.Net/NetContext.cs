@@ -29,20 +29,21 @@ namespace Chip.Net {
 			if (IsLocked == true)
 				throw new Exception("NetContext can only be initialized once.");
 
-			Services.InitializeServices(this);
 			Services.LockServices();
-			Packets.LockPackets();
 			IsLocked = true;
 
 			var isServer = server != null;
 			var isClient = client != null;
-			foreach (var svc in Services.Get()) {
+			foreach (var svc in Services.ServiceList) {
 				svc.IsClient = isClient;
 				svc.IsServer = isServer;
 
 				svc.Server = server;
 				svc.Client = client;
 			}
+
+			Services.InitializeServices(this);
+			Packets.LockPackets();
 		}
 
 		public NetContext Clone()

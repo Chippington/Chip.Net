@@ -20,17 +20,16 @@ namespace Chip.Net.UnitTests.Services {
 		}
 
 		[TestMethod]
-		public void NetServiceCollection_RegisterServiceInstance_HasService() {
+		public void NetServiceCollection_RegisterServiceWithConfigure_ServiceConfigured() {
 			NetServiceCollection c = new NetServiceCollection();
-			var real = new TestNetService();
-			var first = c.Register<TestNetService>(real);
-			var second = c.Get<TestNetService>();
+			c.Register<TestNetService>();
+			c.Configure<TestNetService>((o) => { o.Configured = true; });
+			c.LockServices();
 
-			Assert.IsNotNull(real);
-			Assert.IsNotNull(first);
-			Assert.IsNotNull(second);
-			Assert.AreEqual(real, first);
-			Assert.AreEqual(first, second);
+			var svc = c.Get<TestNetService>();
+
+			Assert.IsNotNull(svc);
+			Assert.IsTrue(svc.Configured);
 		}
 
 		[TestMethod]
@@ -49,8 +48,8 @@ namespace Chip.Net.UnitTests.Services {
 			c.Register<TestNetService>();
 			c.LockServices();
 
-			Assert.IsTrue(c.Get().Count() == 1);
-			Assert.IsTrue(c.Get().First() == c.Get<TestNetService>());
+			Assert.IsTrue(c.ServiceList.Count() == 1);
+			Assert.IsTrue(c.ServiceList.First() == c.Get<TestNetService>());
 		}
 
 		[TestMethod]
@@ -66,8 +65,9 @@ namespace Chip.Net.UnitTests.Services {
 		[TestMethod]
 		public void NetServiceCollection_Disposed_ServiceDisposed() {
 			NetServiceCollection c = new NetServiceCollection();
-			var svc = c.Register<TestNetService>();
+			c.Register<TestNetService>();
 			c.LockServices();
+			var svc = c.Get<TestNetService>();
 			c.Dispose();
 
 			Assert.IsTrue(svc.Disposed == true);

@@ -29,7 +29,7 @@ namespace Chip.Net.Services.SharedData
 			context.Packets.Register<P_AddUser>();
 			context.Packets.Register<P_RemoveUser>();
 
-			netTimeService = context.Services.Register<NetTimeService>();
+			netTimeService = context.Services.Get<NetTimeService>();
 		}
 
 		public override void StartService() {
