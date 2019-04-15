@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Chip.Net.UnitTests.Providers
 {
-	[TestClass]
+	//[TestClass]
     public class SocketProviderTests : ProviderBaseTests<SocketServerProvider, SocketClientProvider> {
     }
 }

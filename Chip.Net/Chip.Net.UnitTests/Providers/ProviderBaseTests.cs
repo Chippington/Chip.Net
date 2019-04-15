@@ -85,6 +85,7 @@ namespace Chip.Net.UnitTests.Providers
 		protected NetContext CreateContext()
 		{
 			NetContext ctx = new NetContext();
+			ctx.ApplicationName = "TestApp";
 			ctx.IPAddress = "localhost";
 			ctx.Port = Common.Port;
 			ctx.MaxConnections = 10;
