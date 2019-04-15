@@ -40,6 +40,11 @@ namespace Chip.Net {
 			}
 		}
 
+		public NetContext Clone()
+		{
+			return null;
+		}
+
 		#region Providers
 		private Func<NetContext, INetClientProvider> clientFactory { get; set; }
 		private Func<NetContext, INetServerProvider> serverFactory { get; set; }
