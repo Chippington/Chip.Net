@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Chip.Net.Controllers.Basic;
 using Chip.Net.Controllers.Distributed.Models;
@@ -32,12 +33,9 @@ namespace Chip.Net.Controllers.Distributed
 		}
 
 		public struct UserDataEventArgs {
-			public TUser Shard { get; set; }
+			public TUser User { get; set; }
 			public Packet Data { get; set; }
 		}
-
-		public IReadOnlyList<TShard> Shards { get; private set; }
-		public IReadOnlyList<TUser> Users { get; private set; }
 
 		public PacketRouter Router { get; private set; }
 		public NetContext Context { get; private set; }
@@ -49,13 +47,11 @@ namespace Chip.Net.Controllers.Distributed
 		public NetContext ShardContext { get; private set; }
 		public NetContext UserContext { get; private set; }
 
-		private ModelTrackerCollection<TShard> shards;
+		public ModelTrackerCollection<TShard> Shards { get; private set; }
+		public ModelTrackerCollection<TUser> Users { get; private set; }
 
-		private List<TShard> shardList;
-		private List<TUser> userList;
-
-		private Dictionary<uint, TShard> shardMap;
-		private Dictionary<uint, TUser> userMap;
+		private readonly string UK_Shard = "Router-ShardConnection";
+		private readonly string UK_User = "Router-UserConnection";
 
 		public void InitializeServer(int shardPort, int userPort, NetContext context) {
 			ShardContext = context.Clone();
@@ -76,39 +72,59 @@ namespace Chip.Net.Controllers.Distributed
 			UserController.NetUserDisconnected += OnUserDisconnected;
 			UserController.PacketReceived += OnUserDataReceived;
 
-			shardList = new List<TShard>();
-			userList = new List<TUser>();
-
-			Shards = shardList.AsReadOnly();
-			Users = userList.AsReadOnly();
-
-			shardMap = new Dictionary<uint, TShard>();
-			userMap = new Dictionary<uint, TUser>();
+			Shards = new ModelTrackerCollection<TShard>();
+			Users = new ModelTrackerCollection<TUser>();
 		}
 
 		#region Event Handling
 		private void OnShardConnected(object sender, NetEventArgs e) {
-			throw new NotImplementedException();
+			var shard = Activator.CreateInstance<TShard>();
+			Shards.Add(shard);
+
+			SetShard(e.User, shard);
+			ShardConnectedEvent?.Invoke(this, shard);
 		}
 
 		private void OnShardDisconnected(object sender, NetEventArgs e) {
-			throw new NotImplementedException();
+			var shard = GetShard(e.User);
+			Shards.Remove(shard);
+
+			ShardDisconnectedEvent?.Invoke(this, shard);
 		}
 
 		private void OnShardDataReceived(object sender, NetEventArgs e) {
-			throw new NotImplementedException();
+			var shard = GetShard(e.User);
+
+			ShardDataReceivedEvent?.Invoke(this, new ShardDataEventArgs()
+			{
+				Data = e.Packet,
+				Shard = shard
+			});
 		}
 
 		private void OnUserConnected(object sender, NetEventArgs e) {
-			throw new NotImplementedException();
+			var user = Activator.CreateInstance<TUser>();
+			Users.Add(user);
+
+			SetUserModel(e.User, user);
+			UserConnectedEvent?.Invoke(this, user);
 		}
 
 		private void OnUserDisconnected(object sender, NetEventArgs e) {
-			throw new NotImplementedException();
+			var user = GetUserModel(e.User);
+			Users.Remove(user);
+
+			UserDisconnectedEvent?.Invoke(this, user);
 		}
 
 		private void OnUserDataReceived(object sender, NetEventArgs e) {
-			throw new NotImplementedException();
+			var user = GetUserModel(e.User);
+
+			UserDataReceivedEvent?.Invoke(this, new UserDataEventArgs()
+			{
+				Data = e.Packet,
+				User = user,
+			});
 		}
 		#endregion
 
@@ -122,15 +138,28 @@ namespace Chip.Net.Controllers.Distributed
 
 		public void UpdateServer()
 		{
-			throw new NotImplementedException();
+			if (ShardController != null && ShardController.IsActive) ShardController.UpdateServer();
+			if (UserController != null && UserController.IsActive) UserController.UpdateServer();
 		}
 
-		public IEnumerable<NetUser> GetUsers() {
-			throw new NotImplementedException();
+		private void SetShard(NetUser user, TShard shardModel)
+		{
+			user.SetLocal<TShard>(UK_Shard, shardModel);
 		}
 
-		public void Shutdown() {
-			throw new NotImplementedException();
+		public TShard GetShard(NetUser user)
+		{
+			return user.GetLocal<TShard>(UK_Shard);
+		}
+
+		private void SetUserModel(NetUser user, TUser userModel)
+		{
+			user.SetLocal<TUser>(UK_User, userModel);
+		}
+
+		public TUser GetUserModel(NetUser user)
+		{
+			return user.GetLocal<TUser>(UK_User);
 		}
 
 		public void SendToShard(TShard Shard, Packet Pack) {
@@ -164,6 +193,12 @@ namespace Chip.Net.Controllers.Distributed
 		public void SendToUsers(Packet Pack, IEnumerable<TUser> Exclude) {
 			throw new NotImplementedException();
 		}
+
+		public void Shutdown()
+		{
+			throw new NotImplementedException();
+		}
+
 		public void Dispose() {
 			throw new NotImplementedException();
 		}
