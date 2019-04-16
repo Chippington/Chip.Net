@@ -6,6 +6,6 @@ namespace Chip.Net.Controllers.Distributed.Models
 {
     public interface IDistributedModel : ISerializable
     {
-		uint Id { get; set; }
+		int Id { get; set; }
     }
 }

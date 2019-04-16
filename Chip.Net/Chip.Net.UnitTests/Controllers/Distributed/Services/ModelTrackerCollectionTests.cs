@@ -10,16 +10,16 @@ using System.Text;
 namespace Chip.Net.UnitTests.Controllers.Distributed.Services
 {
 	public class TestModel : IDistributedModel {
-		public uint Id { get; set; }
+		public int Id { get; set; }
 		public string Data { get; set; }
 
 		public void ReadFrom(DataBuffer buffer) {
-			Id = buffer.ReadUInt32();
+			Id = buffer.ReadInt32();
 			Data = buffer.ReadString();
 		}
 
 		public void WriteTo(DataBuffer buffer) {
-			buffer.Write((uint)Id);
+			buffer.Write((int)Id);
 			buffer.Write((string)Data);
 		}
 	}
@@ -172,6 +172,14 @@ namespace Chip.Net.UnitTests.Controllers.Distributed.Services
 		[TestMethod]
 		public void ModelTrackerCollection_NewCollection_GetFromIndex_ReturnsNull() {
 			Assert.IsNull(Empty[0]);
+		}
+
+		[TestMethod]
+		public void ModelTrackerCollection_ExistingCollection_UpdateModel_ModelUpdated() {
+			var ex = Existing.First();
+			ex.Data = "new data";
+			Existing.Update(ex.Id, ex);
+
 		}
 
 		[TestMethod]

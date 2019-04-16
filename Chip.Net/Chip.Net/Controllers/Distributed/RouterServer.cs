@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Chip.Net.Controllers.Basic;
 using Chip.Net.Controllers.Distributed.Models;
+using Chip.Net.Controllers.Distributed.Services.ModelTracking;
 using Chip.Net.Data;
 using Chip.Net.Providers;
 using Chip.Net.Providers.Direct;
@@ -13,17 +15,26 @@ namespace Chip.Net.Controllers.Distributed
 		where TShard : IShardModel
 		where TUser : IUserModel {
 
-		public EventHandler<NetEventArgs> NetUserConnected { get; set; }
-		public EventHandler<NetEventArgs> NetUserDisconnected { get; set; }
-
-		public EventHandler<NetEventArgs> PacketReceived { get; set; }
-		public EventHandler<NetEventArgs> PacketSent { get; set; }
-
 		public EventHandler<TRouter> RouterConfiguredEvent { get; set; }
 		public EventHandler<TShard> ShardDisconnectedEvent { get; set; }
 		public EventHandler<TShard> ShardConnectedEvent { get; set; }
 		public EventHandler<TUser> UserDisconnectedEvent { get; set; }
 		public EventHandler<TUser> UserConnectedEvent { get; set; }
+
+		public EventHandler<ShardDataEventArgs> ShardDataReceivedEvent { get; set; }
+		public EventHandler<UserDataEventArgs> UserDataReceivedEvent { get; set; }
+		public EventHandler<ShardDataEventArgs> ShardDataSentEvent { get; set; }
+		public EventHandler<UserDataEventArgs> UserDataSentEvent { get; set; }
+
+		public struct ShardDataEventArgs {
+			public TShard Shard { get; set; }
+			public Packet Data { get; set; }
+		}
+
+		public struct UserDataEventArgs {
+			public TUser Shard { get; set; }
+			public Packet Data { get; set; }
+		}
 
 		public IReadOnlyList<TShard> Shards { get; private set; }
 		public IReadOnlyList<TUser> Users { get; private set; }
@@ -32,19 +43,81 @@ namespace Chip.Net.Controllers.Distributed
 		public NetContext Context { get; private set; }
 		public bool IsActive { get; private set; }
 
-		public INetServerController ShardController { get; private set; }
-		public INetServerController UserController { get; private set; }
+		public BasicServer ShardController { get; private set; }
+		public BasicServer UserController { get; private set; }
 
-		public void InitializeServer(NetContext context) {
+		public NetContext ShardContext { get; private set; }
+		public NetContext UserContext { get; private set; }
 
+		private ModelTrackerCollection<TShard> shards;
+
+		private List<TShard> shardList;
+		private List<TUser> userList;
+
+		private Dictionary<uint, TShard> shardMap;
+		private Dictionary<uint, TUser> userMap;
+
+		public void InitializeServer(int shardPort, int userPort, NetContext context) {
+			ShardContext = context.Clone();
+			UserContext = context.Clone();
+
+			ShardContext.Port = shardPort;
+			UserContext.Port = userPort;
+
+			ShardController = new BasicServer();
+			ShardController.InitializeServer(ShardContext);
+			ShardController.NetUserConnected += OnShardConnected;
+			ShardController.NetUserDisconnected += OnShardDisconnected;
+			ShardController.PacketReceived += OnShardDataReceived;
+
+			UserController = new BasicServer();
+			UserController.InitializeServer(UserContext);
+			UserController.NetUserConnected += OnUserConnected;
+			UserController.NetUserDisconnected += OnUserDisconnected;
+			UserController.PacketReceived += OnUserDataReceived;
+
+			shardList = new List<TShard>();
+			userList = new List<TUser>();
+
+			Shards = shardList.AsReadOnly();
+			Users = userList.AsReadOnly();
+
+			shardMap = new Dictionary<uint, TShard>();
+			userMap = new Dictionary<uint, TUser>();
 		}
 
-		public void StartShardServer(int port, INetServerProvider shardProvider) {
-			
+		#region Event Handling
+		private void OnShardConnected(object sender, NetEventArgs e) {
+			throw new NotImplementedException();
 		}
 
-		public void StartUserServer(int port, INetServerProvider userProvider) {
+		private void OnShardDisconnected(object sender, NetEventArgs e) {
+			throw new NotImplementedException();
+		}
 
+		private void OnShardDataReceived(object sender, NetEventArgs e) {
+			throw new NotImplementedException();
+		}
+
+		private void OnUserConnected(object sender, NetEventArgs e) {
+			throw new NotImplementedException();
+		}
+
+		private void OnUserDisconnected(object sender, NetEventArgs e) {
+			throw new NotImplementedException();
+		}
+
+		private void OnUserDataReceived(object sender, NetEventArgs e) {
+			throw new NotImplementedException();
+		}
+		#endregion
+
+		public void StartShardServer(INetServerProvider shardProvider) {
+			ShardController.StartServer(shardProvider);
+		}
+
+		public void StartUserServer(INetServerProvider userProvider) {
+			UserController.StartServer(userProvider);
 		}
 
 		public void UpdateServer()

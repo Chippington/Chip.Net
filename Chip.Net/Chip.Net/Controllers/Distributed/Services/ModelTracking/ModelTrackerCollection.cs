@@ -10,6 +10,10 @@ namespace Chip.Net.Controllers.Distributed.Services.ModelTracking
 		public int Count => throw new NotImplementedException();
 		public bool Disposed { get; private set; }
 
+		public EventHandler<TModel> ModelAddedEvent { get; set; }
+		public EventHandler<TModel> ModelUpdatedEvent { get; set; }
+		public EventHandler<TModel> ModelRemovedEvent { get; set; }
+
 		public TModel this[int id] {
 			get {
 				return default(TModel);
@@ -25,6 +29,10 @@ namespace Chip.Net.Controllers.Distributed.Services.ModelTracking
 		public bool IsReadOnly => throw new NotImplementedException();
 
 		public void Add(TModel item) {
+			throw new NotImplementedException();
+		}
+
+		public void Update(int itemId, TModel item) {
 			throw new NotImplementedException();
 		}
 

@@ -55,31 +55,31 @@ namespace Chip.Net.UnitTests.Controllers.Distributed.Services
 
 		[TestMethod]
 		public void DistributedService_RouterServer_Initialize_IsRouterIsTrue() {
-			Router.InitializeServer(GetContext());
+			Router.InitializeServer(0, 1, GetContext());
 			Assert.IsTrue(Router.Context.Services.Get<TestService>().IsRouter);
 		}
 
 		[TestMethod]
 		public void DistributedService_RouterServer_Initialize_IsShardIsFalse() {
-			Router.InitializeServer(GetContext());
+			Router.InitializeServer(0, 1, GetContext());
 			Assert.IsFalse(Router.Context.Services.Get<TestService>().IsShard);
 		}
 
 		[TestMethod]
 		public void DistributedService_RouterServer_Initialize_IsUserIsFalse() {
-			Router.InitializeServer(GetContext());
+			Router.InitializeServer(0, 1, GetContext());
 			Assert.IsFalse(Router.Context.Services.Get<TestService>().IsUser);
 		}
 
 		[TestMethod]
 		public void DistributedService_RouterServer_Initialize_IsServerIsTrue() {
-			Router.InitializeServer(GetContext());
+			Router.InitializeServer(0, 1, GetContext());
 			Assert.IsTrue(Router.Context.Services.Get<TestService>().IsServer);
 		}
 
 		[TestMethod]
 		public void DistributedService_RouterServer_Initialize_IsClientIsFalse() {
-			Router.InitializeServer(GetContext());
+			Router.InitializeServer(0, 1, GetContext());
 			Assert.IsFalse(Router.Context.Services.Get<TestService>().IsClient);
 		}
 
@@ -87,7 +87,7 @@ namespace Chip.Net.UnitTests.Controllers.Distributed.Services
 		public void DistributedService_RouterServer_Initialize_ConfiguredEventInvoked() {
 			bool configured = false;
 			Router.RouterConfiguredEvent += (s, e) => { configured = true; };
-			Router.InitializeServer(GetContext());
+			Router.InitializeServer(0, 1, GetContext());
 
 			Assert.IsTrue(configured);
 		}
@@ -214,7 +214,7 @@ namespace Chip.Net.UnitTests.Controllers.Distributed.Services
 				Users.Add(new UserClient<TestRouterModel, TestShardModel, TestUserModel>());
 			}
 
-			Router.InitializeServer(GetContext(0));
+			Router.InitializeServer(0, 1, GetContext(0));
 			foreach (var shard in Shards) {
 				shard.InitializeClient(GetContext(0));
 			}
@@ -222,8 +222,8 @@ namespace Chip.Net.UnitTests.Controllers.Distributed.Services
 				user.InitializeClient(GetContext(1));
 			}
 
-			Router.StartShardServer(0, new DirectServerProvider());
-			Router.StartUserServer(1, new DirectServerProvider());
+			Router.StartShardServer(new DirectServerProvider());
+			Router.StartUserServer(new DirectServerProvider());
 			foreach (var shard in Shards) {
 				shard.StartClient(new DirectClientProvider());
 			}
