@@ -9,7 +9,7 @@ using System.Text;
 
 namespace Chip.Net.UnitTests.Controllers.Distributed.Services
 {
-	public class TestModel : IDistributedModel {
+	public struct TestModel : IDistributedModel {
 		public int Id { get; set; }
 		public string Data { get; set; }
 
@@ -49,6 +49,55 @@ namespace Chip.Net.UnitTests.Controllers.Distributed.Services
 				int index = r.Next(ExistingCount - i);
 				Existing.Remove(index);
 			}
+		}
+
+		[TestMethod]
+		public void ModelTrackerCollection_NewCollection_AddModel_EventInvoked() {
+			bool added = false;
+			var m = new TestModel();
+			Empty.ModelAddedEvent += (s, e) => {
+				Assert.AreEqual(e.Model.Id, m.Id);
+				Assert.AreEqual(e.Model.Data, m.Data);
+				added = true;
+			};
+
+			Empty.Add(m);
+			Assert.IsTrue(added);
+		}
+
+		[TestMethod]
+		public void ModelTrackerCollection_ExistingCollection_UpdateModel_EventInvoked() {
+			var m = Existing.Skip(1).First();
+			var oldData = m.Data;
+			var oldId = m.Id;
+			m.Data = Guid.NewGuid().ToString();
+
+			bool updated = false;
+			Existing.ModelUpdatedEvent += (s, e) => {
+				Assert.AreEqual(e.UpdatedModel.Data, m.Data);
+				Assert.AreEqual(e.UpdatedModel.Id, m.Id);
+				Assert.AreEqual(e.OldModel.Data, oldData);
+				Assert.AreEqual(e.OldModel.Id, oldId);
+				updated = true;
+			};
+
+			Existing.Update(m.Id, m);
+			Assert.IsTrue(updated);
+		}
+
+		[TestMethod]
+		public void ModelTrackerCollection_ExistingCollection_RemoveModel_EventInvoked() {
+			var m = Existing.Skip(1).First();
+			bool removed = false;
+			Existing.ModelRemovedEvent += (s, e) => {
+
+				Assert.AreEqual(m.Data, e.Model.Data);
+				Assert.AreEqual(m.Id, e.Model.Id);
+				removed = true;
+			};
+
+			Existing.Remove(m.Id);
+			Assert.IsTrue(removed);
 		}
 
 		[TestMethod]

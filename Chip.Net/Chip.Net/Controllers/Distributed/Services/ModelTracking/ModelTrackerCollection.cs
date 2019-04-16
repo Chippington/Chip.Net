@@ -10,9 +10,16 @@ namespace Chip.Net.Controllers.Distributed.Services.ModelTracking
 		public int Count => throw new NotImplementedException();
 		public bool Disposed { get; private set; }
 
-		public EventHandler<TModel> ModelAddedEvent { get; set; }
-		public EventHandler<TModel> ModelUpdatedEvent { get; set; }
-		public EventHandler<TModel> ModelRemovedEvent { get; set; }
+		public struct ModelAddedEventArgs { public TModel Model { get; set; } }
+		public struct ModelRemovedEventArgs { public TModel Model { get; set; } }
+		public struct ModelUpdatedEventArgs {
+			public TModel UpdatedModel { get; set; }
+			public TModel OldModel { get; set; }
+		}
+
+		public EventHandler<ModelAddedEventArgs> ModelAddedEvent { get; set; }
+		public EventHandler<ModelUpdatedEventArgs> ModelUpdatedEvent { get; set; }
+		public EventHandler<ModelRemovedEventArgs> ModelRemovedEvent { get; set; }
 
 		public TModel this[int id] {
 			get {
