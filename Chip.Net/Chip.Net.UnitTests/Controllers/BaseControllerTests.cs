@@ -10,8 +10,8 @@ using System.Text;
 
 namespace Chip.Net.UnitTests.Controllers {
 	public abstract class BaseControllerTests<TServer, TClient>
-		where TServer : INetServerController
-		where TClient : INetClientController {
+		where TServer : class, INetServerController
+		where TClient : class, INetClientController {
 
 		private int _port = 0;
 		private int Port {
@@ -65,6 +65,14 @@ namespace Chip.Net.UnitTests.Controllers {
 				System.Threading.Thread.Sleep(10);
 		}
 
+		protected virtual void UpdateServer(TServer server) {
+			server.UpdateServer();
+		}
+
+		protected virtual void UpdateClient(TClient client) {
+			client.UpdateClient();
+		}
+
 		[TestMethod]
 		public virtual void Server_StartServer_RouterNotNull() {
 			var sv = StartNewServer();
@@ -90,8 +98,8 @@ namespace Chip.Net.UnitTests.Controllers {
 			var cl = StartNewClient();
 
 			Wait(() => {
-				sv.UpdateServer();
-				cl.UpdateClient();
+				UpdateServer(sv as TServer);
+				UpdateClient(cl as TClient);
 				return cl.IsConnected;
 			});
 
@@ -108,14 +116,14 @@ namespace Chip.Net.UnitTests.Controllers {
 
 			var cl = StartNewClient();
 			Wait(() => {
-				sv.UpdateServer();
-				cl.UpdateClient();
+				UpdateServer(sv as TServer);
+				UpdateClient(cl as TClient);
 				return cl.IsConnected;
 			});
 
 			Wait(() => {
-				sv.UpdateServer();
-				cl.UpdateClient();
+				UpdateServer(sv as TServer);
+				UpdateClient(cl as TClient);
 				return eventInvoked;
 			});
 
@@ -135,16 +143,16 @@ namespace Chip.Net.UnitTests.Controllers {
 
 			var cl = StartNewClient();
 			Wait(() => {
-				sv.UpdateServer();
-				cl.UpdateClient();
+				UpdateServer(sv as TServer);
+				UpdateClient(cl as TClient);
 				return cl.IsConnected;
 			});
 
 			cl.StopClient();
 
 			Wait(() => {
-				sv.UpdateServer();
-				cl.UpdateClient();
+				UpdateServer(sv as TServer);
+				UpdateClient(cl as TClient);
 				return eventInvoked;
 			});
 
@@ -163,14 +171,14 @@ namespace Chip.Net.UnitTests.Controllers {
 			cl.StartClient(new DirectClientProvider());
 
 			Wait(() => {
-				sv.UpdateServer();
-				cl.UpdateClient();
+				UpdateServer(sv as TServer);
+				UpdateClient(cl as TClient);
 				return cl.IsConnected;
 			});
 
 			Wait(() => {
-				sv.UpdateServer();
-				cl.UpdateClient();
+				UpdateServer(sv as TServer);
+				UpdateClient(cl as TClient);
 				return eventInvoked;
 			});
 
@@ -187,16 +195,16 @@ namespace Chip.Net.UnitTests.Controllers {
 			cl.StartClient(new DirectClientProvider());
 
 			Wait(() => {
-				sv.UpdateServer();
-				cl.UpdateClient();
+				UpdateServer(sv as TServer);
+				UpdateClient(cl as TClient);
 				return cl.IsConnected;
 			});
 
 			cl.StopClient();
 
 			Wait(() => {
-				sv.UpdateServer();
-				cl.UpdateClient();
+				UpdateServer(sv as TServer);
+				UpdateClient(cl as TClient);
 				return eventInvoked;
 			});
 
@@ -215,8 +223,8 @@ namespace Chip.Net.UnitTests.Controllers {
 			var cl = StartNewClient();
 
 			Wait(() => {
-				sv.UpdateServer();
-				cl.UpdateClient();
+				UpdateServer(sv as TServer);
+				UpdateClient(cl as TClient);
 				return cl.IsConnected;
 			});
 
@@ -254,7 +262,7 @@ namespace Chip.Net.UnitTests.Controllers {
 		public virtual void Server_UpdateServer_ServicesUpdated() {
 			var sv = NewServer();
 			sv.StartServer(new DirectServerProvider());
-			sv.UpdateServer();
+			UpdateServer(sv as TServer);
 			Assert.IsTrue(sv.Context.Services.Get<TestNetService>().Updated);
 
 		}
@@ -263,7 +271,7 @@ namespace Chip.Net.UnitTests.Controllers {
 		public virtual void Server_StopServer_ServicesStopped() {
 			var sv = NewServer();
 			sv.StartServer(new DirectServerProvider());
-			sv.UpdateServer();
+			UpdateServer(sv as TServer);
 			sv.StopServer();
 			Assert.IsTrue(sv.Context.Services.Get<TestNetService>().Stopped);
 		}
@@ -273,7 +281,7 @@ namespace Chip.Net.UnitTests.Controllers {
 			var sv = NewServer();
 			var svc = sv.Context.Services.Get<TestNetService>();
 			sv.StartServer(new DirectServerProvider());
-			sv.UpdateServer();
+			UpdateServer(sv as TServer);
 			sv.StopServer();
 			sv.Dispose();
 			Assert.IsTrue(svc.Disposed);
@@ -310,7 +318,7 @@ namespace Chip.Net.UnitTests.Controllers {
 		public virtual void Client_UpdateClient_ServicesUpdated() {
 			var sv = StartNewServer();
 			var cl = StartNewClient();
-			cl.UpdateClient();
+			UpdateClient(cl as TClient);
 			Assert.IsTrue(cl.Context.Services.Get<TestNetService>().Updated);
 		}
 
@@ -318,7 +326,7 @@ namespace Chip.Net.UnitTests.Controllers {
 		public virtual void Client_StopClient_ServicesStopped() {
 			var sv = StartNewServer();
 			var cl = StartNewClient();
-			cl.UpdateClient();
+			UpdateClient(cl as TClient);
 			cl.StopClient();
 			Assert.IsTrue(cl.Context.Services.Get<TestNetService>().Stopped);
 		}
@@ -328,7 +336,7 @@ namespace Chip.Net.UnitTests.Controllers {
 			var sv = StartNewServer();
 			var cl = StartNewClient();
 			var svc = cl.Context.Services.Get<TestNetService>();
-			cl.UpdateClient();
+			UpdateClient(cl as TClient);
 			cl.StopClient();
 			cl.Dispose();
 			Assert.IsTrue(svc.Disposed);
@@ -350,8 +358,8 @@ namespace Chip.Net.UnitTests.Controllers {
 			});
 
 			Wait(() => {
-				sv.UpdateServer();
-				cl.UpdateClient();
+				UpdateServer(sv as TServer);
+				UpdateClient(cl as TClient);
 				return cl.IsConnected;
 			});
 
@@ -359,8 +367,8 @@ namespace Chip.Net.UnitTests.Controllers {
 			sv.SendPacket(new TestPacket());
 
 			Wait(() => {
-				sv.UpdateServer();
-				cl.UpdateClient();
+				UpdateServer(sv as TServer);
+				UpdateClient(cl as TClient);
 				return received;
 			});
 
@@ -383,8 +391,8 @@ namespace Chip.Net.UnitTests.Controllers {
 			});
 
 			Wait(() => {
-				sv.UpdateServer();
-				cl.UpdateClient();
+				UpdateServer(sv as TServer);
+				UpdateClient(cl as TClient);
 				return cl.IsConnected;
 			});
 
@@ -392,8 +400,8 @@ namespace Chip.Net.UnitTests.Controllers {
 			sv.SendPacket(user, new TestPacket());
 
 			Wait(() => {
-				sv.UpdateServer();
-				cl.UpdateClient();
+				UpdateServer(sv as TServer);
+				UpdateClient(cl as TClient);
 				return received;
 			});
 
@@ -411,16 +419,16 @@ namespace Chip.Net.UnitTests.Controllers {
 			});
 
 			Wait(() => {
-				sv.UpdateServer();
-				cl.UpdateClient();
+				UpdateServer(sv as TServer);
+				UpdateClient(cl as TClient);
 				return cl.IsConnected;
 			});
 
 			cl.SendPacket(new TestPacket());
 
 			Wait(() => {
-				sv.UpdateServer();
-				cl.UpdateClient();
+				UpdateServer(sv as TServer);
+				UpdateClient(cl as TClient);
 				return received;
 			});
 
@@ -445,16 +453,16 @@ namespace Chip.Net.UnitTests.Controllers {
 			});
 
 			Wait(() => {
-				sv.UpdateServer();
-				cl.UpdateClient();
+				UpdateServer(sv as TServer);
+				UpdateClient(cl as TClient);
 				return cl.IsConnected;
 			});
 
 			cl.SendPacket(new TestPacket());
 
 			Wait(() => {
-				sv.UpdateServer();
-				cl.UpdateClient();
+				UpdateServer(sv as TServer);
+				UpdateClient(cl as TClient);
 				return received;
 			});
 
@@ -470,8 +478,8 @@ namespace Chip.Net.UnitTests.Controllers {
 			string data = "Hello world" + Port;
 
 			Wait(() => {
-				sv.UpdateServer();
-				cl.UpdateClient();
+				UpdateServer(sv as TServer);
+				UpdateClient(cl as TClient);
 				return cl.IsConnected;
 			});
 
@@ -482,8 +490,8 @@ namespace Chip.Net.UnitTests.Controllers {
 			});
 
 			Wait(() => {
-				sv.UpdateServer();
-				cl.UpdateClient();
+				UpdateServer(sv as TServer);
+				UpdateClient(cl as TClient);
 				return cl_svc.Received;
 			});
 
@@ -498,8 +506,8 @@ namespace Chip.Net.UnitTests.Controllers {
 			string data = "Hello world" + Port;
 
 			Wait(() => {
-				sv.UpdateServer();
-				cl.UpdateClient();
+				UpdateServer(sv as TServer);
+				UpdateClient(cl as TClient);
 				return cl.IsConnected;
 			});
 
@@ -511,8 +519,8 @@ namespace Chip.Net.UnitTests.Controllers {
 			});
 
 			Wait(() => {
-				sv.UpdateServer();
-				cl.UpdateClient();
+				UpdateServer(sv as TServer);
+				UpdateClient(cl as TClient);
 				return cl_svc.Received;
 			});
 
@@ -527,8 +535,8 @@ namespace Chip.Net.UnitTests.Controllers {
 			string data = "Hello world" + Port;
 
 			Wait(() => {
-				sv.UpdateServer();
-				cl.UpdateClient();
+				UpdateServer(sv as TServer);
+				UpdateClient(cl as TClient);
 				return cl.IsConnected;
 			});
 
@@ -539,8 +547,8 @@ namespace Chip.Net.UnitTests.Controllers {
 			});
 
 			Wait(() => {
-				sv.UpdateServer();
-				cl.UpdateClient();
+				UpdateServer(sv as TServer);
+				UpdateClient(cl as TClient);
 				return sv_svc.Received;
 			});
 
