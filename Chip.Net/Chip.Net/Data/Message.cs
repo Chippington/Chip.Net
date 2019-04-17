@@ -4,22 +4,19 @@ using System.Text;
 
 namespace Chip.Net.Data
 {
-	public class IncomingMessage {
+	public class Message {
 		public Packet Data { get; set; }
+	}
+
+	public class IncomingMessage : Message {
 		public NetUser Sender { get; set; }
 	}
 
 	public class IncomingMessage<T> : IncomingMessage where T : Packet {
-		public T Data { get; set; }
-		public NetUser Sender { get; set; }
+		new public T Data { get; set; }
 	}
 
-	public class OutgoingMessage {
-		public Packet Data { get; set; }
+	public class OutgoingMessage : Message {
 		public IEnumerable<NetUser> Recipients { get; set; }
-	}
-
-	public class OutgoingMessage<T> : OutgoingMessage where T : Packet {
-		public T Data { get; set; }
 	}
 }
