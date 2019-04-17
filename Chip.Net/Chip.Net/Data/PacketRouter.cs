@@ -27,7 +27,6 @@ namespace Chip.Net.Data {
 		}
 	}
 
-
 	public class PacketRouter {
 		public bool UseParentTypes { get; set; } = false;
 
