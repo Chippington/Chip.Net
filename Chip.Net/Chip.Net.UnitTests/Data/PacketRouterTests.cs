@@ -38,7 +38,7 @@ namespace Chip.Net.UnitTests.Data
 				test--;
 			});
 
-			router.InvokeServer(new TestPacket());
+			router.InvokeServer(new TestPacket(), null);
 			Assert.IsTrue(test == 1);
 		}
 
@@ -62,7 +62,7 @@ namespace Chip.Net.UnitTests.Data
 				test++;
 			});
 
-			router.InvokeServer(new TestPacket());
+			router.InvokeServer(new TestPacket(), null);
 			Assert.IsTrue(test == 1);
 		}
 	}

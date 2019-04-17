@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Chip.Net.Data;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
@@ -34,8 +35,8 @@ namespace Chip.Net.Services.NetTime {
 			Router.RouteServer<P_GetNetTime>(OnGetNetTime);
 		}
 
-		private void OnSetNetTime(P_SetNetTime obj) {
-			var svNetTime = obj.NetTime;
+		private void OnSetNetTime(IncomingMessage<P_SetNetTime> obj) {
+			var svNetTime = obj.Data.NetTime;
 			var diff = pingTimer.Elapsed.TotalSeconds;
 			svNetTime += diff / 2d;
 
@@ -49,7 +50,7 @@ namespace Chip.Net.Services.NetTime {
 			});
 		}
 
-		private void OnGetNetTime(P_GetNetTime obj) {
+		private void OnGetNetTime(IncomingMessage<P_GetNetTime> obj) {
 			P_SetNetTime reply = new P_SetNetTime();
 			reply.NetTime = GetNetTime();
 			SendPacketToClient(obj.Sender, reply);

@@ -41,7 +41,7 @@ namespace Chip.Net.UnitTests {
 			context.Packets.Register<TestPacket>();
 			Router.Route<TestPacket>(i => {
 				Received = true;
-				ReceivedData = i.data;
+				ReceivedData = i.Data.data;
 			});
 		}
 

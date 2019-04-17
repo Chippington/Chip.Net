@@ -32,7 +32,7 @@ namespace Chip.Net.Services.Ping {
 			}
 		}
 
-		private void OnPingReceived(P_Ping obj) {
+		private void OnPingReceived(IncomingMessage<P_Ping> obj) {
 			if (IsServer) {
 				var timer = GetTimer(obj.Sender);
 				obj.Sender.SetLocal<double>(LatencyKey, timer.Elapsed.TotalSeconds);
@@ -48,7 +48,7 @@ namespace Chip.Net.Services.Ping {
 			}
 
 			if (IsClient) {
-				SendPacket(obj);
+				SendPacket(obj.Data);
 			}
 		}
 

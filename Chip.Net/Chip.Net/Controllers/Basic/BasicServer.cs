@@ -73,12 +73,12 @@ namespace Chip.Net.Controllers.Basic
 
 			if (sid == 0)
 			{
-				Router.InvokeServer(packet);
+				Router.InvokeServer(packet, user);
 			}
 			else
 			{
 				var service = Context.Services.GetServiceFromId(sid);
-				service.Router.InvokeServer(packet);
+				service.Router.InvokeServer(packet, user);
 			}
 			
 			PacketReceived?.Invoke(this, new NetEventArgs() {

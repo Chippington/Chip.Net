@@ -202,23 +202,23 @@ namespace Chip.Net.Services.RFC {
 			}
 		}
 
-		private void onExecute(RFCExecute obj) {
+		private void onExecute(IncomingMessage<RFCExecute> obj) {
 			object[] param = null;
 			Type[] modelTypes = null;
 
-			var buff = new DataBuffer(obj.FunctionParameters);
+			var buff = new DataBuffer(obj.Data.FunctionParameters);
 			buff.Seek(0);
 
 			Action<object[], bool> action = null;
 			if (IsServer) {
 				SetCurrentUser(obj.Sender);
-				action = svActionMap[obj.FunctionId];
-				modelTypes = svTypeMap[obj.FunctionId];
+				action = svActionMap[obj.Data.FunctionId];
+				modelTypes = svTypeMap[obj.Data.FunctionId];
 			}
 
 			if (IsClient) {
-				action = clActionMap[obj.FunctionId];
-				modelTypes = clTypeMap[obj.FunctionId];
+				action = clActionMap[obj.Data.FunctionId];
+				modelTypes = clTypeMap[obj.Data.FunctionId];
 			}
 
 			param = new object[modelTypes.Length];
@@ -226,7 +226,7 @@ namespace Chip.Net.Services.RFC {
 				var modelType = modelTypes[i];
 
 				var serializer = Context.Serializer;
-				if (useContextMap[obj.FunctionId] == false) {
+				if (useContextMap[obj.Data.FunctionId] == false) {
 					serializer = DynamicSerializer.Instance;
 				}
 
