@@ -53,7 +53,10 @@ namespace Chip.Net.Controllers.Distributed
 		private readonly string UK_Shard = "Router-ShardConnection";
 		private readonly string UK_User = "Router-UserConnection";
 
-		public void InitializeServer(int shardPort, int userPort, NetContext context) {
+		public void InitializeServer(NetContext context, 
+			INetServerProvider shardProvider, int shardPort, 
+			INetServerProvider userProvider, int userPort) {
+
 			ShardContext = context.Clone();
 			UserContext = context.Clone();
 
@@ -61,13 +64,13 @@ namespace Chip.Net.Controllers.Distributed
 			UserContext.Port = userPort;
 
 			ShardController = new BasicServer();
-			ShardController.InitializeServer(ShardContext);
+			ShardController.InitializeServer(ShardContext, shardProvider);
 			ShardController.NetUserConnected += OnShardConnected;
 			ShardController.NetUserDisconnected += OnShardDisconnected;
 			ShardController.PacketReceived += OnShardDataReceived;
 
 			UserController = new BasicServer();
-			UserController.InitializeServer(UserContext);
+			UserController.InitializeServer(UserContext, userProvider);
 			UserController.NetUserConnected += OnUserConnected;
 			UserController.NetUserDisconnected += OnUserDisconnected;
 			UserController.PacketReceived += OnUserDataReceived;
@@ -128,12 +131,12 @@ namespace Chip.Net.Controllers.Distributed
 		}
 		#endregion
 
-		public void StartShardServer(INetServerProvider shardProvider) {
-			ShardController.StartServer(shardProvider);
+		public void StartShardServer() {
+			ShardController.StartServer();
 		}
 
-		public void StartUserServer(INetServerProvider userProvider) {
-			UserController.StartServer(userProvider);
+		public void StartUserServer() {
+			UserController.StartServer();
 		}
 
 		public void UpdateServer()

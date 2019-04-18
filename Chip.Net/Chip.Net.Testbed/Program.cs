@@ -316,11 +316,11 @@ namespace Chip.Net.Testbed
 			//result.ReadFrom(bb);
 
 			INetServerController sv = new BasicServer();
-			sv.InitializeServer(Context);
-			sv.StartServer(new TCPServerProvider());
+			sv.InitializeServer(Context, new TCPServerProvider());
+			sv.StartServer();
 
 			INetClientController cl = new BasicClient();
-			cl.InitializeClient(Context);
+			cl.InitializeClient(Context, new TCPClientProvider());
 			cl.OnConnected += (sender, arg) => {
 				TestSerializable s = new TestSerializable();
 				s.data = "Hello world!";
@@ -345,7 +345,7 @@ namespace Chip.Net.Testbed
 				cl.Context.Services.Get<TestRFCService>().ServerMethod(s);
 			};
 
-			cl.StartClient(new TCPClientProvider());
+			cl.StartClient();
 
 			while(true) {
 				System.Threading.Thread.Sleep(10);

@@ -55,31 +55,31 @@ namespace Chip.Net.UnitTests.Controllers.Distributed.Services
 
 		[TestMethod]
 		public void DistributedService_RouterServer_Initialize_IsRouterIsTrue() {
-			Router.InitializeServer(0, 1, GetContext());
+			Router.InitializeServer(GetContext(), new DirectServerProvider(), 0, new DirectServerProvider(), 1);
 			Assert.IsTrue(Router.Context.Services.Get<TestService>().IsRouter);
 		}
 
 		[TestMethod]
 		public void DistributedService_RouterServer_Initialize_IsShardIsFalse() {
-			Router.InitializeServer(0, 1, GetContext());
+			Router.InitializeServer(GetContext(), new DirectServerProvider(), 0, new DirectServerProvider(), 1);
 			Assert.IsFalse(Router.Context.Services.Get<TestService>().IsShard);
 		}
 
 		[TestMethod]
 		public void DistributedService_RouterServer_Initialize_IsUserIsFalse() {
-			Router.InitializeServer(0, 1, GetContext());
+			Router.InitializeServer(GetContext(), new DirectServerProvider(), 0, new DirectServerProvider(), 1);
 			Assert.IsFalse(Router.Context.Services.Get<TestService>().IsUser);
 		}
 
 		[TestMethod]
 		public void DistributedService_RouterServer_Initialize_IsServerIsTrue() {
-			Router.InitializeServer(0, 1, GetContext());
+			Router.InitializeServer(GetContext(), new DirectServerProvider(), 0, new DirectServerProvider(), 1);
 			Assert.IsTrue(Router.Context.Services.Get<TestService>().IsServer);
 		}
 
 		[TestMethod]
 		public void DistributedService_RouterServer_Initialize_IsClientIsFalse() {
-			Router.InitializeServer(0, 1, GetContext());
+			Router.InitializeServer(GetContext(), new DirectServerProvider(), 0, new DirectServerProvider(), 1);
 			Assert.IsFalse(Router.Context.Services.Get<TestService>().IsClient);
 		}
 
@@ -87,7 +87,7 @@ namespace Chip.Net.UnitTests.Controllers.Distributed.Services
 		public void DistributedService_RouterServer_Initialize_ConfiguredEventInvoked() {
 			bool configured = false;
 			Router.RouterConfiguredEvent += (s, e) => { configured = true; };
-			Router.InitializeServer(0, 1, GetContext());
+			Router.InitializeServer(GetContext(), new DirectServerProvider(), 0, new DirectServerProvider(), 1);
 
 			Assert.IsTrue(configured);
 		}
@@ -98,31 +98,31 @@ namespace Chip.Net.UnitTests.Controllers.Distributed.Services
 
 		[TestMethod]
 		public void DistributedService_ShardClient_Initialize_IsRouterIsFalse() {
-			Shard.InitializeClient(GetContext());
+			Shard.InitializeClient(GetContext(), new DirectClientProvider());
 			Assert.IsFalse(Shard.Context.Services.Get<TestService>().IsRouter);
 		}
 
 		[TestMethod]
 		public void DistributedService_ShardClient_Initialize_IsShardIsTrue() {
-			Shard.InitializeClient(GetContext());
+			Shard.InitializeClient(GetContext(), new DirectClientProvider());
 			Assert.IsTrue(Shard.Context.Services.Get<TestService>().IsShard);
 		}
 
 		[TestMethod]
 		public void DistributedService_ShardClient_Initialize_IsUserIsFalse() {
-			Shard.InitializeClient(GetContext());
+			Shard.InitializeClient(GetContext(), new DirectClientProvider());
 			Assert.IsFalse(Shard.Context.Services.Get<TestService>().IsUser);
 		}
 
 		[TestMethod]
 		public void DistributedService_ShardClient_Initialize_IsServerIsFalse() {
-			Shard.InitializeClient(GetContext());
+			Shard.InitializeClient(GetContext(), new DirectClientProvider());
 			Assert.IsFalse(Shard.Context.Services.Get<TestService>().IsServer);
 		}
 
 		[TestMethod]
 		public void DistributedService_ShardClient_Initialize_IsClientIsTrue() {
-			Shard.InitializeClient(GetContext());
+			Shard.InitializeClient(GetContext(), new DirectClientProvider());
 			Assert.IsTrue(Shard.Context.Services.Get<TestService>().IsClient);
 		}
 
@@ -132,31 +132,31 @@ namespace Chip.Net.UnitTests.Controllers.Distributed.Services
 
 		[TestMethod]
 		public void DistributedService_UserClient_Initialize_IsRouterIsFalse() {
-			User.InitializeClient(GetContext());
+			User.InitializeClient(GetContext(), new DirectClientProvider());
 			Assert.IsFalse(User.Context.Services.Get<TestService>().IsRouter);
 		}
 
 		[TestMethod]
 		public void DistributedService_UserClient_Initialize_IsShardIsFalse() {
-			User.InitializeClient(GetContext());
+			User.InitializeClient(GetContext(), new DirectClientProvider());
 			Assert.IsFalse(User.Context.Services.Get<TestService>().IsShard);
 		}
 
 		[TestMethod]
 		public void DistributedService_UserClient_Initialize_IsUserIsTrue() {
-			User.InitializeClient(GetContext());
+			User.InitializeClient(GetContext(), new DirectClientProvider());
 			Assert.IsTrue(User.Context.Services.Get<TestService>().IsUser);
 		}
 
 		[TestMethod]
 		public void DistributedService_UserClient_Initialize_IsServerIsFalse() {
-			User.InitializeClient(GetContext());
+			User.InitializeClient(GetContext(), new DirectClientProvider());
 			Assert.IsFalse(User.Context.Services.Get<TestService>().IsServer);
 		}
 
 		[TestMethod]
 		public void DistributedService_UserClient_Initialize_IsClientIsTrue() {
-			User.InitializeClient(GetContext());
+			User.InitializeClient(GetContext(), new DirectClientProvider());
 			Assert.IsTrue(User.Context.Services.Get<TestService>().IsClient);
 		}
 
@@ -214,21 +214,21 @@ namespace Chip.Net.UnitTests.Controllers.Distributed.Services
 				Users.Add(new UserClient<TestRouterModel, TestShardModel, TestUserModel>());
 			}
 
-			Router.InitializeServer(0, 1, GetContext(0));
+			Router.InitializeServer(GetContext(0), new DirectServerProvider(), 0, new DirectServerProvider(), 1);
 			foreach (var shard in Shards) {
-				shard.InitializeClient(GetContext(0));
+				shard.InitializeClient(GetContext(0), new DirectClientProvider());
 			}
 			foreach (var user in Users) {
-				user.InitializeClient(GetContext(1));
+				user.InitializeClient(GetContext(1), new DirectClientProvider());
 			}
 
-			Router.StartShardServer(new DirectServerProvider());
-			Router.StartUserServer(new DirectServerProvider());
+			Router.StartShardServer();
+			Router.StartUserServer();
 			foreach (var shard in Shards) {
-				shard.StartClient(new DirectClientProvider());
+				shard.StartClient();
 			}
 			foreach (var user in Users) {
-				user.StartClient(new DirectClientProvider());
+				user.StartClient();
 			}
 		}
 

@@ -33,13 +33,13 @@ namespace Chip.Net.UnitTests.Services
 
 			string ip = Guid.NewGuid().ToString();
 			int port = Common.Port;
-			Server.InitializeServer(GetContext(ip, port));
-			Client.InitializeClient(GetContext(ip, port));
+			Server.InitializeServer(GetContext(ip, port), new DirectServerProvider());
+			Client.InitializeClient(GetContext(ip, port), new DirectClientProvider());
 
-			Server.StartServer(new DirectServerProvider());
+			Server.StartServer();
 			var sv = DirectServerProvider.Servers;
 
-			Client.StartClient(new DirectClientProvider());
+			Client.StartClient();
 
 			ServerService = Server.Context.Services.Get<TService>();
 			ClientService = Client.Context.Services.Get<TService>();

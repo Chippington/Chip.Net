@@ -24,10 +24,10 @@ namespace Chip.Net.UnitTests.Controllers.Distributed
 		protected override INetServerController StartNewServer() {
 			var ctx = CreateContext();
 			var sv = NewServer() as RouterServer<TestRouterModel, TestShardModel, TestUserModel>;
-			sv.InitializeServer(0, 1, ctx);
+			sv.InitializeServer(ctx, new DirectServerProvider(), 0, new	DirectServerProvider(), 1);
 
-			sv.StartShardServer(new DirectServerProvider());
-			sv.StartUserServer(new DirectServerProvider());
+			sv.StartShardServer();
+			sv.StartUserServer();
 
 			lock (routerMap)
 				routerMap.Add(sv.Context.ApplicationName, sv);
@@ -37,8 +37,8 @@ namespace Chip.Net.UnitTests.Controllers.Distributed
 
 		protected override INetClientController StartNewClient() {
 			var cl = NewClient();
-			cl.InitializeClient(CreateContext());
-			cl.StartClient(new DirectClientProvider());
+			cl.InitializeClient(CreateContext(), new DirectClientProvider());
+			cl.StartClient();
 			return cl;
 		}
 

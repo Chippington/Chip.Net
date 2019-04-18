@@ -37,25 +37,25 @@ namespace Chip.Net.UnitTests.Controllers {
 
 		protected virtual INetServerController StartNewServer() {
 			var sv = NewServer();
-			sv.StartServer(new DirectServerProvider());
+			sv.StartServer();
 			return sv;
 		}
 
 		protected virtual INetServerController NewServer() {
 			var sv = Activator.CreateInstance<TServer>();
-			sv.InitializeServer(Context);
+			sv.InitializeServer(Context, new DirectServerProvider());
 			return sv;
 		}
 
 		protected virtual INetClientController StartNewClient() {
 			var cl = NewClient();
-			cl.StartClient(new DirectClientProvider());
+			cl.StartClient();
 			return cl;
 		}
 
 		protected virtual INetClientController NewClient() {
 			var cl = Activator.CreateInstance<TClient>();
-			cl.InitializeClient(Context);
+			cl.InitializeClient(Context, new DirectClientProvider());
 			return cl;
 		}
 
@@ -168,7 +168,7 @@ namespace Chip.Net.UnitTests.Controllers {
 			var cl = NewClient();
 			bool eventInvoked = false;
 			cl.OnConnected += (s, i) => { eventInvoked = true; };
-			cl.StartClient(new DirectClientProvider());
+			cl.StartClient();
 
 			Wait(() => {
 				UpdateServer(sv as TServer);
@@ -192,7 +192,7 @@ namespace Chip.Net.UnitTests.Controllers {
 			var cl = NewClient();
 			bool eventInvoked = false;
 			cl.OnDisconnected += (s, i) => { eventInvoked = true; };
-			cl.StartClient(new DirectClientProvider());
+			cl.StartClient();
 
 			Wait(() => {
 				UpdateServer(sv as TServer);
@@ -254,14 +254,14 @@ namespace Chip.Net.UnitTests.Controllers {
 		[TestMethod]
 		public virtual void Server_StartServer_ServicesStarted() {
 			var sv = NewServer();
-			sv.StartServer(new DirectServerProvider());
+			sv.StartServer();
 			Assert.IsTrue(sv.Context.Services.Get<TestNetService>().Started);
 		}
 
 		[TestMethod]
 		public virtual void Server_UpdateServer_ServicesUpdated() {
 			var sv = NewServer();
-			sv.StartServer(new DirectServerProvider());
+			sv.StartServer();
 			UpdateServer(sv as TServer);
 			Assert.IsTrue(sv.Context.Services.Get<TestNetService>().Updated);
 
@@ -270,7 +270,7 @@ namespace Chip.Net.UnitTests.Controllers {
 		[TestMethod]
 		public virtual void Server_StopServer_ServicesStopped() {
 			var sv = NewServer();
-			sv.StartServer(new DirectServerProvider());
+			sv.StartServer();
 			UpdateServer(sv as TServer);
 			sv.StopServer();
 			Assert.IsTrue(sv.Context.Services.Get<TestNetService>().Stopped);
@@ -280,7 +280,7 @@ namespace Chip.Net.UnitTests.Controllers {
 		public virtual void Server_DisposeServer_ServicesDisposed() {
 			var sv = NewServer();
 			var svc = sv.Context.Services.Get<TestNetService>();
-			sv.StartServer(new DirectServerProvider());
+			sv.StartServer();
 			UpdateServer(sv as TServer);
 			sv.StopServer();
 			sv.Dispose();

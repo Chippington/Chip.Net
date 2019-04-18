@@ -28,7 +28,8 @@ namespace Chip.Net.Controllers.Basic
 		private int nextUserId;
 		private bool disposed;
 
-		public virtual void InitializeServer(NetContext context) {
+		public virtual void InitializeServer(NetContext context, INetServerProvider provider) {
+			this.provider = provider;
 			this.Router = new PacketRouter(null, "");
 			this.Context = context;
 			this.IsActive = false;
@@ -42,8 +43,7 @@ namespace Chip.Net.Controllers.Basic
 			Context.LockContext(server: this);
 		}
 
-		public virtual void StartServer(INetServerProvider provider) {
-			this.provider = provider;
+		public virtual void StartServer() {
 			userMap.Clear();
 			userList.Clear();
 			packetQueue.Clear();

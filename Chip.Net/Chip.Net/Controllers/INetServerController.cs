@@ -18,8 +18,8 @@ namespace Chip.Net.Controllers
 		NetContext Context { get; }
 		bool IsActive { get; }
 
-		void InitializeServer(NetContext context);
-		void StartServer(INetServerProvider provider);
+		void InitializeServer(NetContext context, INetServerProvider provider);
+		void StartServer();
 		void StopServer();
 		void UpdateServer();
 

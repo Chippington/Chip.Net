@@ -24,7 +24,8 @@ namespace Chip.Net.Controllers.Basic
 		private Queue<Packet> packetQueue;
 		private bool disposed;
 
-		public void InitializeClient(NetContext context) {
+		public void InitializeClient(NetContext context, INetClientProvider provider) {
+			this.provider = provider;
 			this.IsConnected = false;
 			this.Router = new PacketRouter(null, "");
 			this.Context = context;
@@ -34,8 +35,7 @@ namespace Chip.Net.Controllers.Basic
 			context.LockContext(client: this);
 		}
 
-		public void StartClient(INetClientProvider provider) {
-			this.provider = provider;
+		public void StartClient() {
 			packetQueue.Clear();
 			provider.UserConnected += (s, i) => { IsConnected = true; OnConnected?.Invoke(this, new NetEventArgs()); };
 			provider.UserDisconnected += (s, i) => { IsConnected = false; OnDisconnected?.Invoke(this, new NetEventArgs()); };

@@ -18,8 +18,8 @@ namespace Chip.Net.Controllers
 		NetContext Context { get; }
 		bool IsConnected { get; }
 
-		void InitializeClient(NetContext context);
-		void StartClient(INetClientProvider provider);
+		void InitializeClient(NetContext context, INetClientProvider provider);
+		void StartClient();
 		void StopClient();
 		void UpdateClient();
 
