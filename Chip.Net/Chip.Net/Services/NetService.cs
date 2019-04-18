@@ -23,7 +23,7 @@ namespace Chip.Net.Services
 
 		public virtual void InitializeService(NetContext context) {
 			Context = context;
-			Router = new PacketRouter();
+			Router = new PacketRouter(null);
 			outQueue = new Queue<Packet>();
 			scheduledEvents = new List<Tuple<DateTime, Action>>();
 		}

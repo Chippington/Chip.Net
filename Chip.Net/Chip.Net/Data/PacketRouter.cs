@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace Chip.Net.Data {
@@ -46,15 +47,31 @@ namespace Chip.Net.Data {
 		private Dictionary<Type, List<Callback>> clientRouteMap;
 		private Dictionary<Type, List<Callback>> serverRouteMap;
 
-		public PacketRouter() {
-			clientRouteMap = new Dictionary<Type, List<Callback>>();
-			serverRouteMap = new Dictionary<Type, List<Callback>>();
-		}
-
 		public PacketRouter(PacketRouter parent) {
 			this.Parent = parent;
 			clientRouteMap = new Dictionary<Type, List<Callback>>();
 			serverRouteMap = new Dictionary<Type, List<Callback>>();
+
+			if (Root.routers == null)
+				Root.routers = new PacketRouter[0];
+
+			var rs = Root.routers.ToList();
+			rs.Add(this);
+			Root.routers = rs.ToArray();
+			Root.AssignIds();
+		}
+
+		private void AssignIds() {
+			for (int i = 0; i < routers.Length; i++)
+				routers[i].routerId = i;
+		}
+
+		public void WriteHeader(DataBuffer buffer, PacketRouter source) {
+			buffer.Write((byte)source.routerId);
+		}
+
+		public PacketRouter ReadHeader(DataBuffer buffer) {
+			return routers[buffer.ReadByte()];
 		}
 
 		public void Route<T>(Action<IncomingMessage<T>> callback) where T : Packet {

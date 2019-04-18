@@ -12,7 +12,7 @@ namespace Chip.Net.UnitTests.Data
     {
 		[TestMethod]
 		public void RouteClient_InvokeClient_CallbackInvoked() {
-			PacketRouter router = new PacketRouter();
+			PacketRouter router = new PacketRouter(null);
 			int test = 0;
 			router.RouteClient<TestPacket>(i => {
 				test++;
@@ -28,7 +28,7 @@ namespace Chip.Net.UnitTests.Data
 
 		[TestMethod]
 		public void RouteServer_InvokeServer_CallbackInvoked() {
-			PacketRouter router = new PacketRouter();
+			PacketRouter router = new PacketRouter(null);
 			int test = 0;
 			router.RouteServer<TestPacket>(i => {
 				test++;
@@ -44,7 +44,7 @@ namespace Chip.Net.UnitTests.Data
 
 		[TestMethod]
 		public void Route_InvokeClient_CallbackInvoked() {
-			PacketRouter router = new PacketRouter();
+			PacketRouter router = new PacketRouter(null);
 			int test = 0;
 			router.Route<TestPacket>(i => {
 				test++;
@@ -56,7 +56,7 @@ namespace Chip.Net.UnitTests.Data
 
 		[TestMethod]
 		public void Route_InvokeServer_CallbackInvoked() {
-			PacketRouter router = new PacketRouter();
+			PacketRouter router = new PacketRouter(null);
 			int test = 0;
 			router.Route<TestPacket>(i => {
 				test++;
