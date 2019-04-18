@@ -147,7 +147,7 @@ namespace Chip.Net.Services.RFC {
 					var _useContext = useContextMap[msg.FunctionId];
 					WriteModelsToBuffer(buff, param, _useContext);
 					msg.FunctionParameters = buff.ToBytes();
-					SendPacketToServer(msg);
+					SendPacket(msg);
 				}
 			};
 
@@ -179,7 +179,7 @@ namespace Chip.Net.Services.RFC {
 
 					var user = GetCurrentUser();
 					msg.Recipient = user;
-					SendPacketToClient(user, msg);
+					SendPacket(msg, user);
 				}
 			};
 

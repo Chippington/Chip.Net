@@ -18,12 +18,10 @@ namespace Chip.Net.Services
 		protected NetContext Context { get; private set; }
 
 		private object LockObject = new object();
-		private Queue<Packet> outQueue;
 		private List<Tuple<DateTime, Action>> scheduledEvents;
 
 		public virtual void InitializeService(NetContext context) {
 			Context = context;
-			outQueue = new Queue<Packet>();
 			scheduledEvents = new List<Tuple<DateTime, Action>>();
 
 			if (IsClient) Router = new PacketRouter(Client.Router, GetType().FullName);
@@ -31,7 +29,6 @@ namespace Chip.Net.Services
 		}
 
 		public virtual void StartService() {
-			outQueue.Clear();
 			scheduledEvents.Clear();
 		}
 
@@ -54,50 +51,27 @@ namespace Chip.Net.Services
 				throw new Exception("Packet is null");
 
 			packet.Recipient = null;
-
-			lock(LockObject)
-				outQueue.Enqueue(packet);
+			Router.QueueOutgoing(new OutgoingMessage(packet));
 		}
 
-		public void SendPacketToClient(NetUser user, Packet packet) {
+		public void SendPacket(Packet packet, NetUser recipient) {
 			if (packet == null)
 				throw new Exception("Packet is null");
 
-			packet.Recipient = user;
-
-			lock (LockObject)
-				outQueue.Enqueue(packet);
-		}
-
-		public void SendPacketToServer(Packet packet) {
-			if (packet == null)
-				throw new Exception("Packet is null");
-
-			lock(LockObject)
-				outQueue.Enqueue(packet);
+			packet.Recipient = recipient;
+			Router.QueueOutgoing(new OutgoingMessage(packet, recipient));
 		}
 
 		public void SendPacket(Packet packet) {
 			if (packet == null)
 				throw new Exception("Packet is null");
 
-			lock (LockObject) {
-				outQueue.Enqueue(packet);
-			}
-		}
-
-		public void SendPacket(NetUser user, Packet packet) {
-			if (packet == null)
-				throw new Exception("Packet is null");
-
-			packet.Recipient = user;
-			lock (LockObject) {
-				outQueue.Enqueue(packet);
-			}
+			Router.QueueOutgoing(new OutgoingMessage(packet));
 		}
 
 		public void Dispose() {
-			if (outQueue != null) outQueue.Clear();
+			if (scheduledEvents != null) scheduledEvents.Clear();
+			scheduledEvents = null;
 		}
 
 		public void ScheduleEvent(TimeSpan time, Action action) {
@@ -108,13 +82,6 @@ namespace Chip.Net.Services
 		public void ScheduleEvent(int milliseconds, Action action) {
 			var endt = DateTime.Now.Add(new TimeSpan(0, 0, 0, 0, milliseconds));
 			scheduledEvents.Add(new Tuple<DateTime, Action>(endt, action));
-		}
-
-		public Packet GetNextOutgoingPacket() {
-			if (outQueue.Count == 0)
-				return null;
-
-			return outQueue.Dequeue();
 		}
 	}
 }

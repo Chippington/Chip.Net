@@ -113,34 +113,30 @@ namespace Chip.Net.Controllers.Basic
 
 			Context.Services.UpdateServices();
 
-			Packet p = null;
-			foreach (var svc in Context.Services.ServiceList)
-			{
+			OutgoingMessage outgoing = null;
+			PacketRouter router = null;
+			foreach (var svc in Context.Services.ServiceList) {
 				var sid = Context.Services.GetServiceId(svc);
-				while ((p = svc.GetNextOutgoingPacket()) != null)
-				{
-					var pid = Context.Packets.GetID(p.GetType());
+				while (((router, outgoing) = svc.Router.GetNextOutgoing()).Item1 != null) {
+					var pid = Context.Packets.GetID(outgoing.Data.GetType());
 					DataBuffer buffer = new DataBuffer();
 					buffer.Write((Int16)pid);
 					buffer.Write((byte)sid);
-					p.WriteTo(buffer);
+					outgoing.Data.WriteTo(buffer);
 
-					if (p.Recipient == null)
-					{
+					if (outgoing.Data.Recipient == null) {
 						foreach (var user in userList)
-							if (user != p.Exclude?.UserKey)
+							if (user != outgoing.Data.Exclude?.UserKey)
 								provider.SendMessage(user.UserKey, buffer);
-					}
-					else
-					{
-						if (p.Recipient != p.Exclude?.UserKey)
-							provider.SendMessage(p.Recipient?.UserKey, buffer);
+					} else {
+						if (outgoing.Data.Recipient != outgoing.Data.Exclude?.UserKey)
+							provider.SendMessage(outgoing.Data.Recipient?.UserKey, buffer);
 					}
 				}
 			}
 
-			while (packetQueue.Count != 0 && (p = packetQueue.Dequeue()) != null)
-			{
+			Packet p = null;
+			while (packetQueue.Count != 0 && (p = packetQueue.Dequeue()) != null) {
 				var pid = Context.Packets.GetID(p.GetType());
 				DataBuffer buffer = new DataBuffer();
 				buffer.Write((Int16)pid);

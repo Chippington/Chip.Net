@@ -46,14 +46,14 @@ namespace Chip.Net.Services.NetTime {
 				pingTimer.Reset();
 				pingTimer.Start();
 				P_GetNetTime msg = new P_GetNetTime();
-				SendPacketToServer(msg);
+				SendPacket(msg);
 			});
 		}
 
 		private void OnGetNetTime(IncomingMessage<P_GetNetTime> obj) {
 			P_SetNetTime reply = new P_SetNetTime();
 			reply.NetTime = GetNetTime();
-			SendPacketToClient(obj.Sender, reply);
+			SendPacket(reply, obj.Sender);
 		}
 
 		public override void StartService() {
@@ -71,7 +71,7 @@ namespace Chip.Net.Services.NetTime {
 
 		private void OnConnected(object sender, NetEventArgs args) {
 			P_GetNetTime msg = new P_GetNetTime();
-			SendPacketToServer(msg);
+			SendPacket(msg);
 
 			pingTimer.Reset();
 			pingTimer.Start();

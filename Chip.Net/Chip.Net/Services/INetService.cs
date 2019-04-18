@@ -18,7 +18,5 @@ namespace Chip.Net.Services {
 		void StartService();
 		void StopService();
 		void UpdateService();
-
-		Packet GetNextOutgoingPacket();
 	}
 }

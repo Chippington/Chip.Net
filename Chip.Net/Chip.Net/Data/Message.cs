@@ -17,6 +17,21 @@ namespace Chip.Net.Data
 	}
 
 	public class OutgoingMessage : Message {
+		public OutgoingMessage(Packet data) {
+			Recipients = null;
+			Data = data;
+		}
+
+		public OutgoingMessage(Packet data, NetUser recipient) {
+			Recipients = new NetUser[] { recipient };
+			Data = data;
+		}
+
+		public OutgoingMessage(Packet data, IEnumerable<NetUser> recipients) {
+			Recipients = recipients;
+			Data = data;
+		}
+
 		public IEnumerable<NetUser> Recipients { get; set; }
 	}
 }

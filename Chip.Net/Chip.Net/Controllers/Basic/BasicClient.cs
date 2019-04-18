@@ -81,21 +81,22 @@ namespace Chip.Net.Controllers.Basic
 
 		public void UpdateClient() {
 			Context.Services.UpdateServices();
-			Packet p = null;
+			OutgoingMessage outgoing = null;
+			PacketRouter router = null;
 			foreach(var svc in Context.Services.ServiceList) {
 				var sid = Context.Services.GetServiceId(svc);
-				while((p = svc.GetNextOutgoingPacket()) != null) {
-					var pid = Context.Packets.GetID(p.GetType());
+				while(((router, outgoing) = svc.Router.GetNextOutgoing()).Item1 != null) {
+					var pid = Context.Packets.GetID(outgoing.Data.GetType());
 					DataBuffer buffer = new DataBuffer();
 					buffer.Write((Int16)pid);
 					buffer.Write((byte)sid);
-					p.WriteTo(buffer);
+					outgoing.Data.WriteTo(buffer);
 					provider.SendMessage(buffer);
 				}
 			}
 
-			while (packetQueue.Count != 0 && (p = packetQueue.Dequeue()) != null)
-			{
+			Packet p = null;
+			while (packetQueue.Count != 0 && (p = packetQueue.Dequeue()) != null) {
 				var pid = Context.Packets.GetID(p.GetType());
 				DataBuffer buffer = new DataBuffer();
 				buffer.Write((Int16)pid);

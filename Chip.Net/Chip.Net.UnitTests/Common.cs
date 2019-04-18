@@ -59,14 +59,7 @@ namespace Chip.Net.UnitTests {
 		}
 
 		public void Send(TestPacket p) {
-			outQueue.Enqueue(p);
-		}
-
-		public Packet GetNextOutgoingPacket() {
-			if (outQueue.Count == 0)
-				return null;
-
-			return outQueue.Dequeue();
+			Router.QueueOutgoing(new OutgoingMessage(p));
 		}
 	}
 

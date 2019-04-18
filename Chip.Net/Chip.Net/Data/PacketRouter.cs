@@ -48,10 +48,15 @@ namespace Chip.Net.Data {
 		private Dictionary<Type, List<Callback>> clientRouteMap;
 		private Dictionary<Type, List<Callback>> serverRouteMap;
 
+		private Queue<(PacketRouter, OutgoingMessage)> outgoing;
+
 		public PacketRouter(PacketRouter parent, string orderKey) {
 			this.Parent = parent;
 			clientRouteMap = new Dictionary<Type, List<Callback>>();
 			serverRouteMap = new Dictionary<Type, List<Callback>>();
+
+			if(Root == this) 
+				outgoing = new Queue<(PacketRouter, OutgoingMessage)>();
 
 			if (Root.routers == null)
 				Root.routers = new PacketRouter[0];
@@ -116,6 +121,17 @@ namespace Chip.Net.Data {
 				for (int i = 0; i < sv.Count; i++)
 					sv[i].Invoke(packet, sender);
 			}
+		}
+
+		public void QueueOutgoing(OutgoingMessage message) {
+			outgoing.Enqueue((this, message));
+		}
+
+		public (PacketRouter, OutgoingMessage) GetNextOutgoing() {
+			if (outgoing.Count == 0)
+				return (null, null);
+
+			return outgoing.Dequeue();
 		}
 
 		private List<Callback> GetList(Dictionary<Type, List<Callback>> map, Type type, bool create = true) {

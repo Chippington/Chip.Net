@@ -42,7 +42,7 @@ namespace Chip.Net.Services.Ping {
 				var user = obj.Sender;
 				ScheduleEvent(new TimeSpan(0, 0, 0, 0, PingSendDelay), () => {
 					P_Ping ping = new P_Ping();
-					SendPacketToClient(user, ping);
+					SendPacket(ping, user);
 					timer.Start();
 				});
 			}
@@ -63,7 +63,7 @@ namespace Chip.Net.Services.Ping {
 		private void OnUserConnected(object sender, NetEventArgs args) {
 			var timer = GetTimer(args.User);
 			P_Ping ping = new P_Ping();
-			SendPacketToClient(args.User, ping);
+			SendPacket(ping, args.User);
 			timer.Start();
 
 			connectedUsers.Add(args.User);
