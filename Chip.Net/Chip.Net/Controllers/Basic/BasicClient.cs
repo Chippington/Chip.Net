@@ -26,7 +26,7 @@ namespace Chip.Net.Controllers.Basic
 
 		public void InitializeClient(NetContext context) {
 			this.IsConnected = false;
-			this.Router = new PacketRouter(null);
+			this.Router = new PacketRouter(null, "");
 			this.Context = context;
 			disposed = false;
 

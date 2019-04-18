@@ -29,7 +29,7 @@ namespace Chip.Net.Controllers.Basic
 		private bool disposed;
 
 		public virtual void InitializeServer(NetContext context) {
-			this.Router = new PacketRouter(null);
+			this.Router = new PacketRouter(null, "");
 			this.Context = context;
 			this.IsActive = false;
 

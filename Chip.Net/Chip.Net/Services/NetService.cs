@@ -23,9 +23,11 @@ namespace Chip.Net.Services
 
 		public virtual void InitializeService(NetContext context) {
 			Context = context;
-			Router = new PacketRouter(null);
 			outQueue = new Queue<Packet>();
 			scheduledEvents = new List<Tuple<DateTime, Action>>();
+
+			if (IsClient) Router = new PacketRouter(Client.Router, GetType().FullName);
+			if (IsServer) Router = new PacketRouter(Server.Router, GetType().FullName);
 		}
 
 		public virtual void StartService() {

@@ -42,12 +42,13 @@ namespace Chip.Net.Data {
 		}
 
 		private PacketRouter[] routers;
+		private string orderKey;
 		private int routerId;
 
 		private Dictionary<Type, List<Callback>> clientRouteMap;
 		private Dictionary<Type, List<Callback>> serverRouteMap;
 
-		public PacketRouter(PacketRouter parent) {
+		public PacketRouter(PacketRouter parent, string orderKey) {
 			this.Parent = parent;
 			clientRouteMap = new Dictionary<Type, List<Callback>>();
 			serverRouteMap = new Dictionary<Type, List<Callback>>();
@@ -55,9 +56,10 @@ namespace Chip.Net.Data {
 			if (Root.routers == null)
 				Root.routers = new PacketRouter[0];
 
+			this.orderKey = orderKey;
 			var rs = Root.routers.ToList();
 			rs.Add(this);
-			Root.routers = rs.ToArray();
+			Root.routers = rs.OrderBy(i => i.orderKey).ToArray();
 			Root.AssignIds();
 		}
 

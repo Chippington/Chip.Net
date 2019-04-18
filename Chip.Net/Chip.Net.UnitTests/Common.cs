@@ -34,7 +34,7 @@ namespace Chip.Net.UnitTests {
 
 		public void InitializeService(NetContext context) {
 			outQueue = new Queue<Packet>();
-			Router = new PacketRouter(null);
+			Router = new PacketRouter(null, "");
 			this.Context = context;
 			Initialized = true;
 
