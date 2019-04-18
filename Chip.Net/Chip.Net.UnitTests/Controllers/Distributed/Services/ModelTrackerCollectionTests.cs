@@ -9,9 +9,13 @@ using System.Text;
 
 namespace Chip.Net.UnitTests.Controllers.Distributed.Services
 {
-	public struct TestModel : IDistributedModel {
+	public class TestModel : IDistributedModel {
 		public int Id { get; set; }
 		public string Data { get; set; }
+
+		public TestModel() {
+			Data = Guid.NewGuid().ToString();
+		}
 
 		public void ReadFrom(DataBuffer buffer) {
 			Id = buffer.ReadInt32();
@@ -21,6 +25,18 @@ namespace Chip.Net.UnitTests.Controllers.Distributed.Services
 		public void WriteTo(DataBuffer buffer) {
 			buffer.Write((int)Id);
 			buffer.Write((string)Data);
+		}
+
+		public override bool Equals(object obj) {
+			if(obj is TestModel other) {
+				return other.Id == Id && other.Data == Data;
+			}
+
+			return false;
+		}
+
+		public override int GetHashCode() {
+			return base.GetHashCode();
 		}
 	}
 
@@ -296,19 +312,6 @@ namespace Chip.Net.UnitTests.Controllers.Distributed.Services
 			Existing.Add(m);
 			Existing.Remove(m);
 			Assert.IsFalse(Existing.Contains(m));
-		}
-
-		[TestMethod]
-		public void ModelTrackerCollection_ExistingCollection_AddRemoveModel_IdRecycled() {
-			var m = new TestModel();
-			var m2 = new TestModel();
-
-			Existing.Add(m);
-			var id = m.Id;
-			Existing.Remove(m);
-
-			Existing.Add(m2);
-			Assert.IsTrue(id == m2.Id);
 		}
 
 		[TestMethod]

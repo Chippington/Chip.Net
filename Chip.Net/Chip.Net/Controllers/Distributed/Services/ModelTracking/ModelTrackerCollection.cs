@@ -7,7 +7,7 @@ using System.Text;
 namespace Chip.Net.Controllers.Distributed.Services.ModelTracking
 {
 	public class ModelTrackerCollection<TModel> : ICollection<TModel>, IDisposable where TModel : IDistributedModel {
-		public int Count => throw new NotImplementedException();
+		public int Count => modelMap.Count;
 		public bool Disposed { get; private set; }
 
 		public struct ModelAddedEventArgs { public TModel Model { get; set; } }
@@ -60,11 +60,15 @@ namespace Chip.Net.Controllers.Distributed.Services.ModelTracking
 		}
 
 		public void Add(TModel item) {
+			if (Disposed) throw new Exception("Collection is disposed.");
+
 			item.Id = GetNextId();
 			Add(item, item.Id);
 		}
 
 		private void Add(TModel item, int id) {
+			if (Disposed) throw new Exception("Collection is disposed.");
+
 			item.Id = id;
 			modelMap[item.Id] = item;
 
@@ -78,6 +82,8 @@ namespace Chip.Net.Controllers.Distributed.Services.ModelTracking
 		}
 
 		public void Update(int itemId, TModel item) {
+			if (Disposed) throw new Exception("Collection is disposed.");
+
 			if (itemId != item.Id)
 				if (modelMap.ContainsKey(item.Id))
 					if (modelMap[item.Id].Equals(item))
@@ -97,6 +103,8 @@ namespace Chip.Net.Controllers.Distributed.Services.ModelTracking
 		}
 
 		public void Clear() {
+			if (Disposed) throw new Exception("Collection is disposed.");
+
 			if(modelMap != null)
 				modelMap.Clear();
 
@@ -105,22 +113,27 @@ namespace Chip.Net.Controllers.Distributed.Services.ModelTracking
 		}
 
 		public bool Contains(TModel item) {
+			if (Disposed) throw new Exception("Collection is disposed.");
 			return modelMap.ContainsKey(item.Id) && modelMap[item.Id].Equals(item);
 		}
 
 		public bool Contains(int itemId) {
+			if (Disposed) throw new Exception("Collection is disposed.");
 			return modelMap.ContainsKey(itemId);
 		}
 
 		public void CopyTo(TModel[] array, int arrayIndex) {
+			if (Disposed) throw new Exception("Collection is disposed.");
 			modelMap.Values.CopyTo(array, arrayIndex);
 		}
 
 		public IEnumerator<TModel> GetEnumerator() {
+			if (Disposed) throw new Exception("Collection is disposed.");
 			return modelMap.Values.GetEnumerator();
 		}
 
 		public bool Remove(TModel item) {
+			if (Disposed) throw new Exception("Collection is disposed.");
 			if(Contains(item)) {
 				return Remove(item.Id);
 			}
@@ -129,19 +142,28 @@ namespace Chip.Net.Controllers.Distributed.Services.ModelTracking
 		}
 
 		public bool Remove(int itemId) {
-			return modelMap.Remove(itemId);
+			if (Disposed) throw new Exception("Collection is disposed.");
+			var r = modelMap.Remove(itemId);
+			if (r) RecycleId(itemId);
+			return r;
 		}
 
 		IEnumerator IEnumerable.GetEnumerator() {
+			if (Disposed) throw new Exception("Collection is disposed.");
 			return modelMap.Values.GetEnumerator();
 		}
 
 		public void Dispose() {
+			if (Disposed) throw new Exception("Collection is disposed.");
 			if(modelMap != null)
 				modelMap.Clear();
 
 			if(availableIds != null)
 				availableIds.Clear();
+
+			modelMap = null;
+			availableIds = null;
+			Disposed = true;
 		}
 	}
 }
