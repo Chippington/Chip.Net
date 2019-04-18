@@ -61,6 +61,34 @@ namespace Chip.Net {
 			return ctx;
 		}
 		
+		public TServer CreateServer<TServer, TProvider>(Action<NetContext> config = null)
+			where TServer : INetServerController
+			where TProvider : INetServerProvider {
 
+			var ctx = this.Clone();
+			if (config != null)
+				config.Invoke(ctx);
+
+			TServer server = Activator.CreateInstance<TServer>();
+			TProvider provider = Activator.CreateInstance<TProvider>();
+
+			server.InitializeServer(ctx, provider);
+			return server;
+		}
+
+		public TClient CreateClient<TClient, TProvider>(Action<NetContext> config = null)
+			where TClient : INetClientController
+			where TProvider : INetClientProvider {
+
+			var ctx = this.Clone();
+			if (config != null)
+				config.Invoke(ctx);
+
+			TClient client = Activator.CreateInstance<TClient>();
+			TProvider provider = Activator.CreateInstance<TProvider>();
+
+			client.InitializeClient(ctx, provider);
+			return client;
+		}
 	}
 }
