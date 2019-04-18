@@ -31,12 +31,28 @@ namespace Chip.Net.Data {
 	}
 
 	public class PacketRouter {
-		public bool UseParentTypes { get; set; } = false;
+		public PacketRouter Parent { get; private set; }
+		public PacketRouter Root {
+			get {
+				var cur = this;
+				while (cur.Parent != null) cur = cur.Parent;
+				return cur;
+			}
+		}
+
+		private PacketRouter[] routers;
+		private int routerId;
 
 		private Dictionary<Type, List<Callback>> clientRouteMap;
 		private Dictionary<Type, List<Callback>> serverRouteMap;
 
 		public PacketRouter() {
+			clientRouteMap = new Dictionary<Type, List<Callback>>();
+			serverRouteMap = new Dictionary<Type, List<Callback>>();
+		}
+
+		public PacketRouter(PacketRouter parent) {
+			this.Parent = parent;
 			clientRouteMap = new Dictionary<Type, List<Callback>>();
 			serverRouteMap = new Dictionary<Type, List<Callback>>();
 		}
