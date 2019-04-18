@@ -515,8 +515,7 @@ namespace Chip.Net.UnitTests.Controllers {
 			var sv_svc = sv.Context.Services.Get<TestNetService>();
 			sv_svc.Send(new TestPacket() {
 				data = data,
-				Recipient = sv.GetUsers().First(),
-			});
+			}, sv.GetUsers().First());
 
 			Wait(() => {
 				UpdateServer(sv as TServer);

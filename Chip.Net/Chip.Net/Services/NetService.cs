@@ -50,15 +50,14 @@ namespace Chip.Net.Services
 			if (packet == null)
 				throw new Exception("Packet is null");
 
-			packet.Recipient = null;
-			Router.QueueOutgoing(new OutgoingMessage(packet));
+			var msg = new OutgoingMessage(packet, Server.GetUsers());
+			Router.QueueOutgoing(msg);
 		}
 
 		public void SendPacket(Packet packet, NetUser recipient) {
 			if (packet == null)
 				throw new Exception("Packet is null");
 
-			packet.Recipient = recipient;
 			Router.QueueOutgoing(new OutgoingMessage(packet, recipient));
 		}
 

@@ -178,7 +178,6 @@ namespace Chip.Net.Services.RFC {
 					msg.FunctionParameters = buff.ToBytes();
 
 					var user = GetCurrentUser();
-					msg.Recipient = user;
 					SendPacket(msg, user);
 				}
 			};

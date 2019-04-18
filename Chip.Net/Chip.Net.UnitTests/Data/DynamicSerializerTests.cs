@@ -421,10 +421,6 @@ namespace Chip.Net.UnitTests.Data
 		[TestMethod]
 		public void SerializedPacket_WriteRead_IgnoresProperties() {
 			TestSerializedPacket p = new TestSerializedPacket();
-			p.Sender = new NetUser();
-			p.Exclude = new NetUser();
-			p.Recipient = new NetUser();
-
 			DataBuffer b = new DataBuffer();
 
 			p.Data = "Data";
@@ -435,10 +431,6 @@ namespace Chip.Net.UnitTests.Data
 			result.ReadFrom(b);
 
 			Assert.AreEqual(p.Data, result.Data);
-			Assert.IsNull(result.Exclude);
-			Assert.IsNull(result.Recipient);
-			Assert.IsNull(result.Sender);
-
 			Assert.IsTrue(DynamicSerializer.Instance.GetSerializableProperties(typeof(TestSerializedPacket)).Length == 1);
 		}
 

@@ -53,8 +53,9 @@ namespace Chip.Net.UnitTests {
 			Updated = true;
 		}
 
-		public void Send(TestPacket p) {
-			Router.QueueOutgoing(new OutgoingMessage(p));
+		public void Send(TestPacket p, NetUser recipient = null) {
+			if (recipient != null) Router.QueueOutgoing(new OutgoingMessage(p, recipient));
+			else Router.QueueOutgoing(new OutgoingMessage(p));
 		}
 	}
 

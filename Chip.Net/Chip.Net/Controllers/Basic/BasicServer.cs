@@ -23,7 +23,7 @@ namespace Chip.Net.Controllers.Basic
 
 		private INetServerProvider provider;
 		private Dictionary<object, NetUser> userMap;
-		private Queue<Packet> packetQueue;
+		private Queue<OutgoingMessage> messageQueue;
 		private List<NetUser> userList;
 		private int nextUserId;
 		private bool disposed;
@@ -38,7 +38,7 @@ namespace Chip.Net.Controllers.Basic
 			disposed = false;
 			userMap = new Dictionary<object, NetUser>();
 			userList = new List<NetUser>();
-			packetQueue = new Queue<Packet>();
+			messageQueue = new Queue<OutgoingMessage>();
 
 			Context.LockContext(server: this);
 		}
@@ -46,7 +46,7 @@ namespace Chip.Net.Controllers.Basic
 		public virtual void StartServer() {
 			userMap.Clear();
 			userList.Clear();
-			packetQueue.Clear();
+			messageQueue.Clear();
 
 			provider.UserConnected += OnProviderUserConnected;
 			provider.UserDisconnected += OnProviderUserDisconnected;
@@ -69,7 +69,6 @@ namespace Chip.Net.Controllers.Basic
 
 			var packet = Context.Packets.CreateFromId(pid);
 			packet.ReadFrom(buffer);
-			packet.Sender = user;
 
 			router.InvokeServer(packet, user);
 			PacketReceived?.Invoke(this, new NetEventArgs() {
@@ -113,36 +112,29 @@ namespace Chip.Net.Controllers.Basic
 					router.WriteHeader(buffer);
 					outgoing.Data.WriteTo(buffer);
 
-					if (outgoing.Data.Recipient == null) {
-						foreach (var user in userList)
-							if (user != outgoing.Data.Exclude?.UserKey)
-								provider.SendMessage(user.UserKey, buffer);
-					} else {
-						if (outgoing.Data.Recipient != outgoing.Data.Exclude?.UserKey)
-							provider.SendMessage(outgoing.Data.Recipient?.UserKey, buffer);
-					}
+					var recipients = outgoing.Recipients;
+					if (recipients == null)
+						recipients = userList;
+
+					foreach (var r in recipients)
+						provider.SendMessage(r.UserKey, buffer);
 				}
 			}
 
-			Packet p = null;
-			while (packetQueue.Count != 0 && (p = packetQueue.Dequeue()) != null) {
-				var pid = Context.Packets.GetID(p.GetType());
+			outgoing = null;
+			while (messageQueue.Count != 0 && (outgoing = messageQueue.Dequeue()) != null) {
+				var pid = Context.Packets.GetID(outgoing.Data.GetType());
 				DataBuffer buffer = new DataBuffer();
 				buffer.Write((Int16)pid);
 				Router.WriteHeader(buffer);
-				p.WriteTo(buffer);
+				outgoing.Data.WriteTo(buffer);
 
-				if (p.Recipient == null)
-				{
-					foreach (var user in userList)
-						if (user != p.Exclude?.UserKey)
-							provider.SendMessage(user.UserKey, buffer);
-				}
-				else
-				{
-					if (p.Recipient != p.Exclude?.UserKey)
-						provider.SendMessage(p.Recipient?.UserKey, buffer);
-				}
+				var recipients = outgoing.Recipients;
+				if (recipients == null)
+					recipients = userList;
+
+				foreach (var r in recipients)
+					provider.SendMessage(r.UserKey, buffer);
 			}
 
 			provider.UpdateServer();
@@ -178,8 +170,8 @@ namespace Chip.Net.Controllers.Basic
 		}
 
 		public void SendPacket(NetUser user, Packet packet) {
-			packet.Recipient = user;
-			packetQueue.Enqueue(packet);
+			OutgoingMessage msg = new OutgoingMessage(packet, user);
+			messageQueue.Enqueue(msg);
 		}
 		#endregion
 	}
