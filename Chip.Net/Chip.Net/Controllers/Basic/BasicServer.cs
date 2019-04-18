@@ -65,22 +65,13 @@ namespace Chip.Net.Controllers.Basic
 
 			var user = userMap[e.UserKey];
 			var pid = buffer.ReadInt16();
-			var sid = buffer.ReadByte();
+			var router = Router.ReadHeader(buffer);
 
 			var packet = Context.Packets.CreateFromId(pid);
 			packet.ReadFrom(buffer);
 			packet.Sender = user;
 
-			if (sid == 0)
-			{
-				Router.InvokeServer(packet, user);
-			}
-			else
-			{
-				var service = Context.Services.GetServiceFromId(sid);
-				service.Router.InvokeServer(packet, user);
-			}
-			
+			router.InvokeServer(packet, user);
 			PacketReceived?.Invoke(this, new NetEventArgs() {
 				User = user,
 				Packet = packet,
@@ -112,16 +103,14 @@ namespace Chip.Net.Controllers.Basic
 				return;
 
 			Context.Services.UpdateServices();
-
 			OutgoingMessage outgoing = null;
 			PacketRouter router = null;
 			foreach (var svc in Context.Services.ServiceList) {
-				var sid = Context.Services.GetServiceId(svc);
 				while (((router, outgoing) = svc.Router.GetNextOutgoing()).Item1 != null) {
 					var pid = Context.Packets.GetID(outgoing.Data.GetType());
 					DataBuffer buffer = new DataBuffer();
 					buffer.Write((Int16)pid);
-					buffer.Write((byte)sid);
+					router.WriteHeader(buffer);
 					outgoing.Data.WriteTo(buffer);
 
 					if (outgoing.Data.Recipient == null) {
@@ -140,7 +129,7 @@ namespace Chip.Net.Controllers.Basic
 				var pid = Context.Packets.GetID(p.GetType());
 				DataBuffer buffer = new DataBuffer();
 				buffer.Write((Int16)pid);
-				buffer.Write((byte)0);
+				Router.WriteHeader(buffer);
 				p.WriteTo(buffer);
 
 				if (p.Recipient == null)

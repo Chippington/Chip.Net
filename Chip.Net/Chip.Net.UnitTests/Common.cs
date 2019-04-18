@@ -6,14 +6,7 @@ using System.Collections.Generic;
 using System.Text;
 
 namespace Chip.Net.UnitTests {
-	public class TestNetService : INetService {
-		public PacketRouter Router { get; private set; }
-
-		public NetContext Context { get; private set; }
-
-		public INetServerController Server { get; set; }
-		public INetClientController Client { get; set; }
-
+	public class TestNetService : NetService {
 		public bool Started { get; private set; } = false;
 		public bool Updated { get; private set; } = false;
 		public bool Initialized { get; private set; } = false;
@@ -21,21 +14,19 @@ namespace Chip.Net.UnitTests {
 		public bool Disposed { get; private set; } = false;
 		public bool Received { get; private set; } = false;
 		public string ReceivedData { get; private set; } = null;
-		public bool IsServer { get; set; }
-		public bool IsClient { get; set; }
 
 		public bool Configured { get; set; }
 
 		private Queue<Packet> outQueue;
 
-		public void Dispose() {
+		public override void Dispose() {
+			base.Dispose();
 			Disposed = true;
 		}
 
-		public void InitializeService(NetContext context) {
+		public override void InitializeService(NetContext context) {
+			base.InitializeService(context);
 			outQueue = new Queue<Packet>();
-			Router = new PacketRouter(null, "");
-			this.Context = context;
 			Initialized = true;
 
 			context.Packets.Register<TestPacket>();
@@ -45,16 +36,19 @@ namespace Chip.Net.UnitTests {
 			});
 		}
 
-		public void StartService() {
+		public override void StartService() {
+			base.StartService();
 			outQueue.Clear();
 			Started = true;
 		}
 
-		public void StopService() {
+		public override void StopService() {
+			base.StopService();
 			Stopped = true;
 		}
 
-		public void UpdateService() {
+		public override void UpdateService() {
+			base.UpdateService();
 			Updated = true;
 		}
 

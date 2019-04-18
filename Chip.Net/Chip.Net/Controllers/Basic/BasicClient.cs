@@ -53,21 +53,12 @@ namespace Chip.Net.Controllers.Basic
 
 			var buffer = msg;
 			var pid = buffer.ReadInt16();
-			var sid = buffer.ReadByte();
+			var router = Router.ReadHeader(buffer);
 
 			var packet = Context.Packets.CreateFromId(pid);
 			packet.ReadFrom(buffer);
 
-			if (sid == 0)
-			{
-				Router.InvokeClient(packet);
-			}
-			else
-			{
-				var service = Context.Services.GetServiceFromId(sid);
-				service.Router.InvokeClient(packet);
-			}
-
+			router.InvokeClient(packet);
 			OnPacketReceived?.Invoke(this, new NetEventArgs() {
 				Packet = packet,
 			});
@@ -89,7 +80,7 @@ namespace Chip.Net.Controllers.Basic
 					var pid = Context.Packets.GetID(outgoing.Data.GetType());
 					DataBuffer buffer = new DataBuffer();
 					buffer.Write((Int16)pid);
-					buffer.Write((byte)sid);
+					router.WriteHeader(buffer);
 					outgoing.Data.WriteTo(buffer);
 					provider.SendMessage(buffer);
 				}
@@ -100,7 +91,7 @@ namespace Chip.Net.Controllers.Basic
 				var pid = Context.Packets.GetID(p.GetType());
 				DataBuffer buffer = new DataBuffer();
 				buffer.Write((Int16)pid);
-				buffer.Write((byte)0);
+				Router.WriteHeader(buffer);
 				p.WriteTo(buffer);
 				provider.SendMessage(buffer);
 			}

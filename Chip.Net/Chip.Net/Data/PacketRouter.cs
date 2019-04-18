@@ -73,12 +73,12 @@ namespace Chip.Net.Data {
 				routers[i].routerId = i;
 		}
 
-		public void WriteHeader(DataBuffer buffer, PacketRouter source) {
-			buffer.Write((byte)source.routerId);
+		public void WriteHeader(DataBuffer buffer) {
+			buffer.Write((byte)routerId);
 		}
 
 		public PacketRouter ReadHeader(DataBuffer buffer) {
-			return routers[buffer.ReadByte()];
+			return Root.routers[buffer.ReadByte()];
 		}
 
 		public void Route<T>(Action<IncomingMessage<T>> callback) where T : Packet {
@@ -124,14 +124,15 @@ namespace Chip.Net.Data {
 		}
 
 		public void QueueOutgoing(OutgoingMessage message) {
-			outgoing.Enqueue((this, message));
+			Root.outgoing.Enqueue((this, message));
 		}
 
 		public (PacketRouter, OutgoingMessage) GetNextOutgoing() {
-			if (outgoing.Count == 0)
+			var rt = Root;
+			if (rt.outgoing.Count == 0)
 				return (null, null);
 
-			return outgoing.Dequeue();
+			return rt.outgoing.Dequeue();
 		}
 
 		private List<Callback> GetList(Dictionary<Type, List<Callback>> map, Type type, bool create = true) {

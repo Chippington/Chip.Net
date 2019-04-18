@@ -69,7 +69,7 @@ namespace Chip.Net.Services
 			Router.QueueOutgoing(new OutgoingMessage(packet));
 		}
 
-		public void Dispose() {
+		public virtual void Dispose() {
 			if (scheduledEvents != null) scheduledEvents.Clear();
 			scheduledEvents = null;
 		}
