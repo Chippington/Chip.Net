@@ -17,7 +17,7 @@ namespace Chip.Net.UnitTests.Controllers.Distributed
 		protected virtual NetContext CreateContext() {
 			if (guid == null) guid = Guid.NewGuid().ToString();
 
-			NetContext ctx = new NetContext();
+			NetContext ctx = this.Context;
 			ctx.ApplicationName = guid;
 			ctx.IPAddress = guid;
 			ctx.Port = 0;

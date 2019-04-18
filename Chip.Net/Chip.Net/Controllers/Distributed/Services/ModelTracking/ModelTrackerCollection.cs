@@ -35,48 +35,113 @@ namespace Chip.Net.Controllers.Distributed.Services.ModelTracking
 
 		public bool IsReadOnly => throw new NotImplementedException();
 
+		private Dictionary<int, TModel> modelMap;
+		private Queue<int> availableIds;
+		private int nextId;
+
+		private int GetNextId() {
+			if (availableIds.Count > 0)
+				return availableIds.Dequeue();
+
+			return nextId++;
+		}
+
+		private void RecycleId(int id) {
+			if (modelMap.ContainsKey(id))
+				throw new Exception("Cannot recycle ID, model not disposed.");
+
+			availableIds.Enqueue(id);
+		}
+
+		public ModelTrackerCollection() {
+			modelMap = new Dictionary<int, TModel>();
+			availableIds = new Queue<int>();
+			nextId = 1;
+		}
+
 		public void Add(TModel item) {
-			throw new NotImplementedException();
+			item.Id = GetNextId();
+			Add(item, item.Id);
+		}
+
+		private void Add(TModel item, int id) {
+			item.Id = id;
+			modelMap[item.Id] = item;
+
+			ModelAddedEvent?.Invoke(this, new ModelAddedEventArgs() {
+				Model = item,
+			});
+
+			while (nextId < id)
+				if (modelMap.ContainsKey(nextId) == false)
+					RecycleId(nextId++);
 		}
 
 		public void Update(int itemId, TModel item) {
-			throw new NotImplementedException();
+			if (itemId != item.Id)
+				if (modelMap.ContainsKey(item.Id))
+					if (modelMap[item.Id].Equals(item))
+						Remove(item.Id);
+
+			if(modelMap.ContainsKey(itemId)) {
+				var old = modelMap[itemId];
+				modelMap[itemId] = item;
+
+				ModelUpdatedEvent?.Invoke(this, new ModelUpdatedEventArgs() {
+					OldModel = old,
+					UpdatedModel = item,
+				});
+			} else {
+				Add(item, itemId);
+			}
 		}
 
 		public void Clear() {
-			throw new NotImplementedException();
+			if(modelMap != null)
+				modelMap.Clear();
+
+			nextId = 1;
+			availableIds.Clear();
 		}
 
 		public bool Contains(TModel item) {
-			throw new NotImplementedException();
+			return modelMap.ContainsKey(item.Id) && modelMap[item.Id].Equals(item);
 		}
 
 		public bool Contains(int itemId) {
-			throw new NotImplementedException();
+			return modelMap.ContainsKey(itemId);
 		}
 
 		public void CopyTo(TModel[] array, int arrayIndex) {
-			throw new NotImplementedException();
+			modelMap.Values.CopyTo(array, arrayIndex);
 		}
 
 		public IEnumerator<TModel> GetEnumerator() {
-			throw new NotImplementedException();
+			return modelMap.Values.GetEnumerator();
 		}
 
 		public bool Remove(TModel item) {
-			throw new NotImplementedException();
+			if(Contains(item)) {
+				return Remove(item.Id);
+			}
+
+			return false;
 		}
 
 		public bool Remove(int itemId) {
-			throw new NotImplementedException();
+			return modelMap.Remove(itemId);
 		}
 
 		IEnumerator IEnumerable.GetEnumerator() {
-			throw new NotImplementedException();
+			return modelMap.Values.GetEnumerator();
 		}
 
 		public void Dispose() {
-			throw new NotImplementedException();
+			if(modelMap != null)
+				modelMap.Clear();
+
+			if(availableIds != null)
+				availableIds.Clear();
 		}
 	}
 }

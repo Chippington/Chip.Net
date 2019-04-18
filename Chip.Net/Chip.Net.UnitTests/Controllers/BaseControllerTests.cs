@@ -235,7 +235,7 @@ namespace Chip.Net.UnitTests.Controllers {
 
 		[TestMethod]
 		public virtual void Server_InitializeServer_HasContext() {
-			var sv = NewServer();
+			var sv = StartNewServer();
 			Assert.IsNotNull(sv.Context);
 		}
 
@@ -247,21 +247,19 @@ namespace Chip.Net.UnitTests.Controllers {
 
 		[TestMethod]
 		public virtual void Server_InitializeServer_ContextLocked() {
-			var sv = NewServer();
+			var sv = StartNewServer();
 			Assert.IsTrue(sv.Context.IsLocked);
 		}
 
 		[TestMethod]
 		public virtual void Server_StartServer_ServicesStarted() {
-			var sv = NewServer();
-			sv.StartServer();
+			var sv = StartNewServer();
 			Assert.IsTrue(sv.Context.Services.Get<TestNetService>().Started);
 		}
 
 		[TestMethod]
 		public virtual void Server_UpdateServer_ServicesUpdated() {
-			var sv = NewServer();
-			sv.StartServer();
+			var sv = StartNewServer();
 			UpdateServer(sv as TServer);
 			Assert.IsTrue(sv.Context.Services.Get<TestNetService>().Updated);
 
@@ -269,8 +267,7 @@ namespace Chip.Net.UnitTests.Controllers {
 
 		[TestMethod]
 		public virtual void Server_StopServer_ServicesStopped() {
-			var sv = NewServer();
-			sv.StartServer();
+			var sv = StartNewServer();
 			UpdateServer(sv as TServer);
 			sv.StopServer();
 			Assert.IsTrue(sv.Context.Services.Get<TestNetService>().Stopped);
@@ -278,9 +275,8 @@ namespace Chip.Net.UnitTests.Controllers {
 
 		[TestMethod]
 		public virtual void Server_DisposeServer_ServicesDisposed() {
-			var sv = NewServer();
+			var sv = StartNewServer();
 			var svc = sv.Context.Services.Get<TestNetService>();
-			sv.StartServer();
 			UpdateServer(sv as TServer);
 			sv.StopServer();
 			sv.Dispose();
@@ -295,14 +291,14 @@ namespace Chip.Net.UnitTests.Controllers {
 
 		[TestMethod]
 		public virtual void Server_InitializeServer_ServicesInitialized() {
-			var sv = NewServer();
+			var sv = StartNewServer();
 			var cl = NewClient();
 			Assert.IsTrue(sv.Context.Services.Get<TestNetService>().Initialized);
 		}
 
 		[TestMethod]
 		public virtual void Client_InitializeClient_ServicesInitialized() {
-			var sv = NewServer();
+			var sv = StartNewServer();
 			var cl = NewClient();
 			Assert.IsTrue(cl.Context.Services.Get<TestNetService>().Initialized);
 		}
@@ -557,7 +553,7 @@ namespace Chip.Net.UnitTests.Controllers {
 
 		[TestMethod]
 		public virtual void Server_InitializeServer_ServiceIsServerTrue() {
-			var sv = NewServer();
+			var sv = StartNewServer();
 			Assert.IsTrue(sv.Context.Services.Get<TestNetService>().IsServer);
 			Assert.IsFalse(sv.Context.Services.Get<TestNetService>().IsClient);
 		}
