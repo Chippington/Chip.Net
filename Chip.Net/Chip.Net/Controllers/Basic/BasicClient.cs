@@ -21,7 +21,6 @@ namespace Chip.Net.Controllers.Basic
 		public bool IsClient { get; set; } = true;
 
 		private INetClientProvider provider;
-		private Queue<Packet> packetQueue;
 		private bool disposed;
 
 		public void InitializeClient(NetContext context, INetClientProvider provider) {
@@ -31,12 +30,10 @@ namespace Chip.Net.Controllers.Basic
 			this.Context = context;
 			disposed = false;
 
-			packetQueue = new Queue<Packet>();
 			context.LockContext(client: this);
 		}
 
 		public void StartClient() {
-			packetQueue.Clear();
 			provider.UserConnected += (s, i) => { IsConnected = true; OnConnected?.Invoke(this, new NetEventArgs()); };
 			provider.UserDisconnected += (s, i) => { IsConnected = false; OnDisconnected?.Invoke(this, new NetEventArgs()); };
 
@@ -74,25 +71,13 @@ namespace Chip.Net.Controllers.Basic
 			Context.Services.UpdateServices();
 			OutgoingMessage outgoing = null;
 			PacketRouter router = null;
-			foreach(var svc in Context.Services.ServiceList) {
-				var sid = Context.Services.GetServiceId(svc);
-				while(((router, outgoing) = svc.Router.GetNextOutgoing()).Item1 != null) {
-					var pid = Context.Packets.GetID(outgoing.Data.GetType());
-					DataBuffer buffer = new DataBuffer();
-					buffer.Write((Int16)pid);
-					router.WriteHeader(buffer);
-					outgoing.Data.WriteTo(buffer);
-					provider.SendMessage(buffer);
-				}
-			}
 
-			Packet p = null;
-			while (packetQueue.Count != 0 && (p = packetQueue.Dequeue()) != null) {
-				var pid = Context.Packets.GetID(p.GetType());
+			while (((router, outgoing) = Router.Root.GetNextOutgoing()).Item1 != null) {
+				var pid = Context.Packets.GetID(outgoing.Data.GetType());
 				DataBuffer buffer = new DataBuffer();
 				buffer.Write((Int16)pid);
-				Router.WriteHeader(buffer);
-				p.WriteTo(buffer);
+				router.WriteHeader(buffer);
+				outgoing.Data.WriteTo(buffer);
 				provider.SendMessage(buffer);
 			}
 
@@ -100,7 +85,7 @@ namespace Chip.Net.Controllers.Basic
 		}
 
 		public void SendPacket(Packet packet) {
-			packetQueue.Enqueue(packet);
+			Router.QueueOutgoing(new OutgoingMessage(packet));
 		}
 
 		public void Dispose() {

@@ -23,7 +23,6 @@ namespace Chip.Net.Controllers.Basic
 
 		private INetServerProvider provider;
 		private Dictionary<object, NetUser> userMap;
-		private Queue<OutgoingMessage> messageQueue;
 		private List<NetUser> userList;
 		private int nextUserId;
 		private bool disposed;
@@ -38,7 +37,6 @@ namespace Chip.Net.Controllers.Basic
 			disposed = false;
 			userMap = new Dictionary<object, NetUser>();
 			userList = new List<NetUser>();
-			messageQueue = new Queue<OutgoingMessage>();
 
 			Context.LockContext(server: this);
 		}
@@ -46,7 +44,6 @@ namespace Chip.Net.Controllers.Basic
 		public virtual void StartServer() {
 			userMap.Clear();
 			userList.Clear();
-			messageQueue.Clear();
 
 			provider.UserConnected += OnProviderUserConnected;
 			provider.UserDisconnected += OnProviderUserDisconnected;
@@ -104,37 +101,19 @@ namespace Chip.Net.Controllers.Basic
 			Context.Services.UpdateServices();
 			OutgoingMessage outgoing = null;
 			PacketRouter router = null;
-			foreach (var svc in Context.Services.ServiceList) {
-				while (((router, outgoing) = svc.Router.GetNextOutgoing()).Item1 != null) {
-					var pid = Context.Packets.GetID(outgoing.Data.GetType());
-					DataBuffer buffer = new DataBuffer();
-					buffer.Write((Int16)pid);
-					router.WriteHeader(buffer);
-					outgoing.Data.WriteTo(buffer);
-
-					var recipients = outgoing.Recipients;
-					if (recipients == null)
-						recipients = userList;
-
-					foreach (var r in recipients)
-						provider.SendMessage(r.UserKey, buffer);
-				}
-			}
-
-			outgoing = null;
-			while (messageQueue.Count != 0 && (outgoing = messageQueue.Dequeue()) != null) {
+			while (((router, outgoing) = Router.Root.GetNextOutgoing()).Item1 != null) {
 				var pid = Context.Packets.GetID(outgoing.Data.GetType());
 				DataBuffer buffer = new DataBuffer();
 				buffer.Write((Int16)pid);
-				Router.WriteHeader(buffer);
+				router.WriteHeader(buffer);
 				outgoing.Data.WriteTo(buffer);
 
 				var recipients = outgoing.Recipients;
 				if (recipients == null)
 					recipients = userList;
 
-				foreach (var r in recipients)
-					provider.SendMessage(r.UserKey, buffer);
+				foreach (var recipient in recipients)
+					provider.SendMessage(recipient.UserKey, buffer);
 			}
 
 			provider.UpdateServer();
@@ -171,7 +150,7 @@ namespace Chip.Net.Controllers.Basic
 
 		public void SendPacket(NetUser user, Packet packet) {
 			OutgoingMessage msg = new OutgoingMessage(packet, user);
-			messageQueue.Enqueue(msg);
+			Router.QueueOutgoing(msg);
 		}
 		#endregion
 	}

@@ -41,7 +41,7 @@ namespace Chip.Net.Data {
 			}
 		}
 
-		private PacketRouter[] routers;
+		public PacketRouter[] Routers { get; private set; }
 		private string orderKey;
 		private int routerId;
 
@@ -58,19 +58,19 @@ namespace Chip.Net.Data {
 			if(Root == this) 
 				outgoing = new Queue<(PacketRouter, OutgoingMessage)>();
 
-			if (Root.routers == null)
-				Root.routers = new PacketRouter[0];
+			if (Root.Routers == null)
+				Root.Routers = new PacketRouter[0];
 
 			this.orderKey = orderKey;
-			var rs = Root.routers.ToList();
+			var rs = Root.Routers.ToList();
 			rs.Add(this);
-			Root.routers = rs.OrderBy(i => i.orderKey).ToArray();
+			Root.Routers = rs.OrderBy(i => i.orderKey).ToArray();
 			Root.AssignIds();
 		}
 
 		private void AssignIds() {
-			for (int i = 0; i < routers.Length; i++)
-				routers[i].routerId = i;
+			for (int i = 0; i < Routers.Length; i++)
+				Routers[i].routerId = i;
 		}
 
 		public void WriteHeader(DataBuffer buffer) {
@@ -78,7 +78,7 @@ namespace Chip.Net.Data {
 		}
 
 		public PacketRouter ReadHeader(DataBuffer buffer) {
-			return Root.routers[buffer.ReadByte()];
+			return Root.Routers[buffer.ReadByte()];
 		}
 
 		public void Route<T>(Action<IncomingMessage<T>> callback) where T : Packet {
