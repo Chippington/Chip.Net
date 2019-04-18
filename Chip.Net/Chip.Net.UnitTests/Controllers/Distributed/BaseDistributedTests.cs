@@ -11,11 +11,15 @@ namespace Chip.Net.UnitTests.Controllers.Distributed
     public class BaseDistributedTests<TClient> : BaseControllerTests<INetServerController, TClient> where TClient : class, INetClientController
     {
 		private static Dictionary<string, RouterServer<TestRouterModel, TestShardModel, TestUserModel>> routerMap = new Dictionary<string, RouterServer<TestRouterModel, TestShardModel, TestUserModel>>();
+		private RouterServer<TestRouterModel, TestShardModel, TestUserModel> Router;
 
+		string guid = null;
 		protected virtual NetContext CreateContext() {
+			if (guid == null) guid = Guid.NewGuid().ToString();
+
 			NetContext ctx = new NetContext();
-			ctx.ApplicationName = Guid.NewGuid().ToString();
-			ctx.IPAddress = "localhost";
+			ctx.ApplicationName = guid;
+			ctx.IPAddress = guid;
 			ctx.Port = 0;
 
 			return ctx;
@@ -23,16 +27,20 @@ namespace Chip.Net.UnitTests.Controllers.Distributed
 
 		protected override INetServerController StartNewServer() {
 			var ctx = CreateContext();
-			var sv = NewServer() as RouterServer<TestRouterModel, TestShardModel, TestUserModel>;
-			sv.InitializeServer(ctx, new DirectServerProvider(), 0, new	DirectServerProvider(), 1);
+			Router = new RouterServer<TestRouterModel, TestShardModel, TestUserModel>();
+			Router.InitializeServer(ctx, new DirectServerProvider(), 0, new	DirectServerProvider(), 1);
 
-			sv.StartShardServer();
-			sv.StartUserServer();
+			Router.StartShardServer();
+			Router.StartUserServer();
 
 			lock (routerMap)
-				routerMap.Add(sv.Context.ApplicationName, sv);
+				routerMap.Add(Router.Context.ApplicationName, Router);
 
-			return sv.ShardController;
+			return Router.ShardController;
+		}
+
+		protected override INetServerController NewServer() {
+			return default(INetServerController);
 		}
 
 		protected override INetClientController StartNewClient() {
@@ -43,7 +51,9 @@ namespace Chip.Net.UnitTests.Controllers.Distributed
 		}
 
 		protected override INetClientController NewClient() {
-			return base.NewClient();
+			var cl = Activator.CreateInstance<TClient>();
+			cl.InitializeClient(CreateContext(), new DirectClientProvider());
+			return cl;
 		}
 
 		protected override void UpdateClient(TClient client) {

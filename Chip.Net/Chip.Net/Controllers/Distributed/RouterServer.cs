@@ -60,6 +60,7 @@ namespace Chip.Net.Controllers.Distributed
 			INetServerProvider shardProvider, int shardPort, 
 			INetServerProvider userProvider, int userPort) {
 
+			Context = context;
 			shardToNetUser = new Dictionary<TShard, NetUser>();
 			userToNetUser = new Dictionary<TUser, NetUser>();
 
@@ -69,12 +70,15 @@ namespace Chip.Net.Controllers.Distributed
 			ShardContext.Port = shardPort;
 			UserContext.Port = userPort;
 
-			ShardController = context.CreateServer<BasicServer>(shardProvider);
+			ShardContext.Port = shardPort;
+			UserContext.Port = userPort;
+
+			ShardController = ShardContext.CreateServer<BasicServer>(shardProvider);
 			ShardController.NetUserConnected += OnShardConnected;
 			ShardController.NetUserDisconnected += OnShardDisconnected;
 			ShardController.PacketReceived += OnShardDataReceived;
 
-			UserController = context.CreateServer<BasicServer>(userProvider);
+			UserController = UserContext.CreateServer<BasicServer>(userProvider);
 			UserController.NetUserConnected += OnUserConnected;
 			UserController.NetUserDisconnected += OnUserDisconnected;
 			UserController.PacketReceived += OnUserDataReceived;

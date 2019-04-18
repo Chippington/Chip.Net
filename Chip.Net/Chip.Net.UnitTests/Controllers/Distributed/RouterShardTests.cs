@@ -9,7 +9,7 @@ using System.Text;
 namespace Chip.Net.UnitTests.Controllers.Distributed
 {
 	[TestClass]
-    public class RouterShardTests : BaseControllerTests<INetServerController, ShardClient<TestRouterModel, TestShardModel, TestUserModel>> {
+    public class RouterShardTests : BaseDistributedTests<ShardClient<TestRouterModel, TestShardModel, TestUserModel>> {
 
 	}
 }
