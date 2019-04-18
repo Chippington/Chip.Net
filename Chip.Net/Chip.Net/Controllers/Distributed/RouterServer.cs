@@ -50,6 +50,9 @@ namespace Chip.Net.Controllers.Distributed
 		public ModelTrackerCollection<TShard> Shards { get; private set; }
 		public ModelTrackerCollection<TUser> Users { get; private set; }
 
+		private Dictionary<TShard, NetUser> shardToNetUser;
+		private Dictionary<TUser, NetUser> userToNetUser;
+
 		private readonly string UK_Shard = "Router-ShardConnection";
 		private readonly string UK_User = "Router-UserConnection";
 
@@ -57,20 +60,21 @@ namespace Chip.Net.Controllers.Distributed
 			INetServerProvider shardProvider, int shardPort, 
 			INetServerProvider userProvider, int userPort) {
 
+			shardToNetUser = new Dictionary<TShard, NetUser>();
+			userToNetUser = new Dictionary<TUser, NetUser>();
+
 			ShardContext = context.Clone();
 			UserContext = context.Clone();
 
 			ShardContext.Port = shardPort;
 			UserContext.Port = userPort;
 
-			ShardController = new BasicServer();
-			ShardController.InitializeServer(ShardContext, shardProvider);
+			ShardController = context.CreateServer<BasicServer>(shardProvider);
 			ShardController.NetUserConnected += OnShardConnected;
 			ShardController.NetUserDisconnected += OnShardDisconnected;
 			ShardController.PacketReceived += OnShardDataReceived;
 
-			UserController = new BasicServer();
-			UserController.InitializeServer(UserContext, userProvider);
+			UserController = context.CreateServer<BasicServer>(userProvider);
 			UserController.NetUserConnected += OnUserConnected;
 			UserController.NetUserDisconnected += OnUserDisconnected;
 			UserController.PacketReceived += OnUserDataReceived;
@@ -147,6 +151,7 @@ namespace Chip.Net.Controllers.Distributed
 
 		private void SetShard(NetUser user, TShard shardModel)
 		{
+			shardToNetUser.Add(shardModel, user);
 			user.SetLocal<TShard>(UK_Shard, shardModel);
 		}
 
@@ -157,6 +162,7 @@ namespace Chip.Net.Controllers.Distributed
 
 		private void SetUserModel(NetUser user, TUser userModel)
 		{
+			userToNetUser.Add(userModel, user);
 			user.SetLocal<TUser>(UK_User, userModel);
 		}
 
@@ -165,45 +171,75 @@ namespace Chip.Net.Controllers.Distributed
 			return user.GetLocal<TUser>(UK_User);
 		}
 
+		public NetUser GetNetUser(TShard shard) {
+			if (shardToNetUser.ContainsKey(shard) == false)
+				return null;
+
+			return shardToNetUser[shard];
+		}
+
+		public NetUser GetNetUser(TUser user) {
+			if (userToNetUser.ContainsKey(user) == false)
+				return null;
+
+			return userToNetUser[user];
+		}
+
 		public void SendToShard(TShard Shard, Packet Pack) {
-			throw new NotImplementedException();
+			var netUser = GetNetUser(Shard);
+			ShardController.SendPacket(netUser, Pack);
 		}
 
 		public void SendToShards(Packet Pack) {
-			throw new NotImplementedException();
+			foreach (var shard in Shards)
+				SendToShard(shard, Pack);
 		}
 
 		public void SendToShards(Packet Pack, TShard Exclude) {
-			throw new NotImplementedException();
+			foreach (var shard in Shards)
+				if (shard.Equals(Exclude) == false)
+					SendToShard(shard, Pack);
 		}
 
 		public void SendToShards(Packet Pack, IEnumerable<TShard> Exclude) {
-			throw new NotImplementedException();
+			foreach (var shard in Shards)
+				if (Exclude != null && Exclude.Contains(shard) == false)
+					SendToShard(shard, Pack);
 		}
 
 		public void SendToUser(TUser User, Packet Pack) {
-			throw new NotImplementedException();
+			var netUser = GetNetUser(User);
+			UserController.SendPacket(netUser, Pack);
 		}
 
 		public void SendToUsers(Packet Pack) {
-			throw new NotImplementedException();
+			foreach (var user in Users)
+				SendToUser(user, Pack);
 		}
 
 		public void SendToUsers(Packet Pack, TUser Exclude) {
-			throw new NotImplementedException();
+			foreach (var user in Users)
+				if(user.Equals(Exclude) == false)
+					SendToUser(user, Pack);
 		}
 
 		public void SendToUsers(Packet Pack, IEnumerable<TUser> Exclude) {
-			throw new NotImplementedException();
+			foreach (var user in Users)
+				if (Exclude != null && Exclude.Contains(user) == false)
+					SendToUser(user, Pack);
 		}
 
 		public void Shutdown()
 		{
-			throw new NotImplementedException();
+			if (ShardController.IsActive) ShardController.Dispose();
+			if (UserController.IsActive) UserController.Dispose();
+
+			ShardController = null;
+			UserController = null;
 		}
 
 		public void Dispose() {
-			throw new NotImplementedException();
+			Shutdown();
 		}
 	}
 }
