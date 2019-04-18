@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Chip.Net.UnitTests.Controllers.Default
+namespace Chip.Net.UnitTests.Controllers.Basic
 {
 	[TestClass]
     public class BasicServerClientTests : BaseControllerTests<BasicServer, BasicClient>

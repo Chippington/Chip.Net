@@ -60,33 +60,43 @@ namespace Chip.Net {
 			ctx.IsLocked = IsLocked;
 			return ctx;
 		}
-		
+
 		public TServer CreateServer<TServer, TProvider>(Action<NetContext> config = null)
 			where TServer : INetServerController
 			where TProvider : INetServerProvider {
 
-			var ctx = this.Clone();
-			if (config != null)
-				config.Invoke(ctx);
-
-			TServer server = Activator.CreateInstance<TServer>();
 			TProvider provider = Activator.CreateInstance<TProvider>();
-
-			server.InitializeServer(ctx, provider);
-			return server;
+			return CreateServer<TServer>(provider, config);
 		}
 
 		public TClient CreateClient<TClient, TProvider>(Action<NetContext> config = null)
 			where TClient : INetClientController
 			where TProvider : INetClientProvider {
 
+			TProvider provider = Activator.CreateInstance<TProvider>();
+			return CreateClient<TClient>(provider, config);
+		}
+
+		public TServer CreateServer<TServer>(INetServerProvider provider, Action<NetContext> config = null)
+			where TServer : INetServerController {
+
+			var ctx = this.Clone();
+			if (config != null)
+				config.Invoke(ctx);
+
+			TServer server = Activator.CreateInstance<TServer>();
+			server.InitializeServer(ctx, provider);
+			return server;
+		}
+
+		public TClient CreateClient<TClient>(INetClientProvider provider, Action<NetContext> config = null)
+			where TClient : INetClientController {
+
 			var ctx = this.Clone();
 			if (config != null)
 				config.Invoke(ctx);
 
 			TClient client = Activator.CreateInstance<TClient>();
-			TProvider provider = Activator.CreateInstance<TProvider>();
-
 			client.InitializeClient(ctx, provider);
 			return client;
 		}
