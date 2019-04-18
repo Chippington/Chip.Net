@@ -37,6 +37,7 @@ namespace Chip.Net.UnitTests.Services {
 			NetServiceCollection c = new NetServiceCollection();
 			c.Register<TestNetService>();
 			c.LockServices();
+			c.InitializeServices(new NetContext());
 			c.UpdateServices();
 
 			Assert.IsTrue(c.Get<TestNetService>().Updated == true);

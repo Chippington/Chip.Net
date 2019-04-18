@@ -30,10 +30,11 @@ namespace Chip.Net.UnitTests {
 			Initialized = true;
 
 			context.Packets.Register<TestPacket>();
-			Router.Route<TestPacket>(i => {
-				Received = true;
-				ReceivedData = i.Data.data;
-			});
+			if(Router != null)
+				Router.Route<TestPacket>(i => {
+					Received = true;
+					ReceivedData = i.Data.data;
+				});
 		}
 
 		public override void StartService() {
