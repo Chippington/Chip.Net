@@ -60,38 +60,7 @@ namespace Chip.Net {
 			ctx.IsLocked = IsLocked;
 			return ctx;
 		}
+		
 
-		#region Providers
-		private Func<NetContext, INetClientProvider> clientFactory { get; set; }
-		private Func<NetContext, INetServerProvider> serverFactory { get; set; }
-		public void UseProvider<TProvider>() 
-			where TProvider : INetClientProvider, INetServerProvider {
-			clientFactory = (ctx) => {
-				return Activator.CreateInstance<TProvider>();
-			};
-
-			serverFactory = (ctx) => {
-				return Activator.CreateInstance<TProvider>();
-			};
-		}
-
-		public void UseProvider<TServer, TClient>() 
-			where TServer : INetServerProvider 
-			where TClient : INetClientProvider {
-
-			clientFactory = (ctx) => {
-				return Activator.CreateInstance<TClient>();
-			};
-
-			serverFactory = (ctx) => {
-				return Activator.CreateInstance<TServer>();
-			};
-		}
-
-		public void UseProvider(Func<NetContext, INetClientProvider> clientFactory, Func<NetContext, INetServerProvider> serverFactory) {
-			this.serverFactory = serverFactory;
-			this.clientFactory = clientFactory;
-		}
-		#endregion
 	}
 }
