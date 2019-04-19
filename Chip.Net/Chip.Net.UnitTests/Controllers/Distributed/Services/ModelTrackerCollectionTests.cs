@@ -86,6 +86,9 @@ namespace Chip.Net.UnitTests.Controllers.Distributed.Services
 			var m = Existing.Skip(1).First();
 			var oldData = m.Data;
 			var oldId = m.Id;
+
+			m = new TestModel();
+			m.Id = oldId;
 			m.Data = Guid.NewGuid().ToString();
 
 			bool updated = false;

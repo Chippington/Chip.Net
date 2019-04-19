@@ -23,13 +23,10 @@ namespace Chip.Net.Controllers.Distributed.Services.ModelTracking
 
 		public TModel this[int id] {
 			get {
-				return default(TModel);
-			}
-		}
+				if (modelMap.ContainsKey(id) == false)
+					return default(TModel);
 
-		public TModel this[uint id] {
-			get {
-				return default(TModel);
+				return modelMap[id];
 			}
 		}
 
@@ -143,8 +140,19 @@ namespace Chip.Net.Controllers.Distributed.Services.ModelTracking
 
 		public bool Remove(int itemId) {
 			if (Disposed) throw new Exception("Collection is disposed.");
+
+			TModel m = default(TModel);
+			modelMap.TryGetValue(itemId, out m);
+
+
 			var r = modelMap.Remove(itemId);
 			if (r) RecycleId(itemId);
+
+			if(m != null)
+				ModelRemovedEvent?.Invoke(this, new ModelRemovedEventArgs() {
+					Model = m,
+				});
+
 			return r;
 		}
 
