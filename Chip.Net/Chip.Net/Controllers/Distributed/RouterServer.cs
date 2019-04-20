@@ -50,6 +50,8 @@ namespace Chip.Net.Controllers.Distributed
 		public ModelTrackerCollection<TShard> Shards { get; private set; }
 		public ModelTrackerCollection<TUser> Users { get; private set; }
 
+		public TRouter Model { get; private set; }
+
 		private Dictionary<TShard, NetUser> shardToNetUser;
 		private Dictionary<TUser, NetUser> userToNetUser;
 
@@ -85,6 +87,11 @@ namespace Chip.Net.Controllers.Distributed
 
 			Shards = new ModelTrackerCollection<TShard>();
 			Users = new ModelTrackerCollection<TUser>();
+
+			this.Model = Activator.CreateInstance<TRouter>();
+			this.Model.Id = 0;
+			this.Model.Name = context.ApplicationName + " Router";
+			RouterConfiguredEvent?.Invoke(this, Model);
 		}
 
 		#region Event Handling
