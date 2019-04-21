@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using Chip.Net.Controllers.Basic;
 using Chip.Net.Controllers.Distributed.Models;
+using Chip.Net.Controllers.Distributed.Services;
 using Chip.Net.Controllers.Distributed.Services.ModelTracking;
 using Chip.Net.Data;
 using Chip.Net.Providers;
@@ -66,7 +67,11 @@ namespace Chip.Net.Controllers.Distributed
 			shardToNetUser = new Dictionary<TShard, NetUser>();
 			userToNetUser = new Dictionary<TUser, NetUser>();
 
-			foreach(var type in context.Services.ServiceList)
+			foreach (var type in context.Services.ServiceTypes)
+				if (typeof(IDistributedService).IsAssignableFrom(type)) {
+					var instance = Activator.CreateInstance(type) as IDistributedService;
+					context.Services.SetActivationFunction(type, () => instance);
+				}
 
 			ShardContext = context.Clone();
 			UserContext = context.Clone();
