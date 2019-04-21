@@ -23,7 +23,7 @@ namespace Chip.Net.Controllers.Basic
 		private INetClientProvider provider;
 		private bool disposed;
 
-		public void InitializeClient(NetContext context, INetClientProvider provider) {
+		public virtual void InitializeClient(NetContext context, INetClientProvider provider) {
 			this.provider = provider;
 			this.IsConnected = false;
 			this.Router = new PacketRouter(null, "");
@@ -33,7 +33,7 @@ namespace Chip.Net.Controllers.Basic
 			context.LockContext(client: this);
 		}
 
-		public void StartClient() {
+		public virtual void StartClient() {
 			provider.UserConnected += (s, i) => { IsConnected = true; OnConnected?.Invoke(this, new NetEventArgs()); };
 			provider.UserDisconnected += (s, i) => { IsConnected = false; OnDisconnected?.Invoke(this, new NetEventArgs()); };
 
@@ -43,7 +43,7 @@ namespace Chip.Net.Controllers.Basic
 			provider.Connect(Context);
 		}
 
-		private void OnDataReceived(object sender, ProviderDataEventArgs e) {
+		protected virtual void OnDataReceived(object sender, ProviderDataEventArgs e) {
 			var msg = e.Data;
 			if (msg.GetLength() == 0)
 				return;
@@ -61,13 +61,13 @@ namespace Chip.Net.Controllers.Basic
 			});
 		}
 
-		public void StopClient() {
+		public virtual void StopClient() {
 			Context.Services.StopServices();
 			provider.Disconnect();
 			IsConnected = false;
 		}
 
-		public void UpdateClient() {
+		public virtual void UpdateClient() {
 			Context.Services.UpdateServices();
 			OutgoingMessage outgoing = null;
 			PacketRouter router = null;
@@ -84,11 +84,11 @@ namespace Chip.Net.Controllers.Basic
 			provider.UpdateClient();
 		}
 
-		public void SendPacket(Packet packet) {
+		public virtual void SendPacket(Packet packet) {
 			Router.QueueOutgoing(new OutgoingMessage(packet));
 		}
 
-		public void Dispose() {
+		public virtual void Dispose() {
 			if (IsConnected)
 				StopClient();
 

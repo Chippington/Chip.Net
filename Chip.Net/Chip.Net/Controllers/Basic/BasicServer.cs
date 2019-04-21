@@ -55,7 +55,7 @@ namespace Chip.Net.Controllers.Basic
 			IsActive = true;
 		}
 
-		private void OnDataReceived(object sender, ProviderDataEventArgs e) {
+		protected virtual void OnDataReceived(object sender, ProviderDataEventArgs e) {
 			var buffer = e.Data;
 			if (buffer.GetLength() == 0)
 				return;
@@ -74,7 +74,7 @@ namespace Chip.Net.Controllers.Basic
 			});
 		}
 
-		private void OnProviderUserConnected(object sender, ProviderUserEventArgs args) {
+		protected virtual void OnProviderUserConnected(object sender, ProviderUserEventArgs args) {
 			var user = new NetUser(args.UserKey, nextUserId);
 			userMap[user.UserKey] = user;
 			userList.Add(user);
@@ -84,7 +84,7 @@ namespace Chip.Net.Controllers.Basic
 			});
 		}
 
-		private void OnProviderUserDisconnected(object sender, ProviderUserEventArgs args) {
+		protected virtual void OnProviderUserDisconnected(object sender, ProviderUserEventArgs args) {
 			var user = userMap[args.UserKey];
 			NetUserDisconnected?.Invoke(this, new NetEventArgs() {
 				User = user,
@@ -119,7 +119,7 @@ namespace Chip.Net.Controllers.Basic
 			provider.UpdateServer();
 		}
 
-		public void StopServer() {
+		public virtual void StopServer() {
 			if (IsActive == false)
 				return;
 
@@ -128,7 +128,7 @@ namespace Chip.Net.Controllers.Basic
 			IsActive = false;
 		}
 
-		public void Dispose() {
+		public virtual void Dispose() {
 			if (IsActive) {
 				StopServer();
 			}
@@ -139,16 +139,16 @@ namespace Chip.Net.Controllers.Basic
 			}
 		}
 
-		public IEnumerable<NetUser> GetUsers() {
+		public virtual IEnumerable<NetUser> GetUsers() {
 			return userList.AsReadOnly();
 		}
 
-		public void SendPacket(Packet packet) {
+		public virtual void SendPacket(Packet packet) {
 			foreach (var user in userList)
 				SendPacket(user, packet);
 		}
 
-		public void SendPacket(NetUser user, Packet packet) {
+		public virtual void SendPacket(NetUser user, Packet packet) {
 			OutgoingMessage msg = new OutgoingMessage(packet, user);
 			Router.QueueOutgoing(msg);
 		}
