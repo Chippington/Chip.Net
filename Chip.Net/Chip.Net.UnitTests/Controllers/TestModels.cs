@@ -11,6 +11,11 @@ namespace Chip.Net.UnitTests.Controllers
 		public string Name { get; set; }
 		public string UUID { get; set; }
 
+		public TestUserModel() {
+			Name = "";
+			UUID = "";
+		}
+
 		public void ReadFrom(DataBuffer buffer) {
 			Id = buffer.ReadInt32();
 			Name = buffer.ReadString();

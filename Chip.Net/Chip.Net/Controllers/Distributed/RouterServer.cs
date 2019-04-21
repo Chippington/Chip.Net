@@ -241,7 +241,7 @@ namespace Chip.Net.Controllers.Distributed
 
 		public void SendToShards(Packet Pack, IEnumerable<TShard> Exclude) {
 			foreach (var shard in Shards)
-				if (Exclude != null && Exclude.Contains(shard) == false)
+				if (Exclude == null || Exclude.Contains(shard) == false)
 					SendToShard(shard, Pack);
 		}
 
@@ -263,7 +263,7 @@ namespace Chip.Net.Controllers.Distributed
 
 		public void SendToUsers(Packet Pack, IEnumerable<TUser> Exclude) {
 			foreach (var user in Users)
-				if (Exclude != null && Exclude.Contains(user) == false)
+				if (Exclude == null || Exclude.Contains(user) == false)
 					SendToUser(user, Pack);
 		}
 

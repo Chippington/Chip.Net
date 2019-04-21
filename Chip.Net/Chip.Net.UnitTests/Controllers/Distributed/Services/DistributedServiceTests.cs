@@ -195,14 +195,24 @@ namespace Chip.Net.UnitTests.Controllers.Distributed.Services
 		public int ShardCount { get; set; } = 3;
 		public int UserCount { get; set; } = 3;
 
-		public NetContext GetContext(int Port) {
+		public NetContext GetContext(string Name, int Port) {
 			NetContext ctx = new NetContext();
-			ctx.IPAddress = "localhost";
+			ctx.IPAddress = Name;
 			ctx.Port = Port;
 
 			ctx.Packets.Register<TestPacket>();
 
 			return ctx;
+		}
+
+		protected virtual void Update() {
+			Router.UpdateServer();
+			foreach (var u in Users)
+				if (u.IsConnected)
+					u.UpdateClient();
+			foreach (var s in Shards)
+				if (s.IsConnected)
+					s.UpdateClient();
 		}
 
 		[TestInitialize]
@@ -219,12 +229,13 @@ namespace Chip.Net.UnitTests.Controllers.Distributed.Services
 				Users.Add(new UserClient<TestRouterModel, TestShardModel, TestUserModel>());
 			}
 
-			Router.InitializeServer(GetContext(0), new DirectServerProvider(), 0, new DirectServerProvider(), 1);
+			string name = Guid.NewGuid().ToString();
+			Router.InitializeServer(GetContext(name, 0), new DirectServerProvider(), 0, new DirectServerProvider(), 1);
 			foreach (var shard in Shards) {
-				shard.InitializeClient(GetContext(0), new DirectClientProvider());
+				shard.InitializeClient(GetContext(name, 0), new DirectClientProvider());
 			}
 			foreach (var user in Users) {
-				user.InitializeClient(GetContext(1), new DirectClientProvider());
+				user.InitializeClient(GetContext(name, 1), new DirectClientProvider());
 			}
 
 			Router.StartShardServer();
@@ -322,7 +333,10 @@ namespace Chip.Net.UnitTests.Controllers.Distributed.Services
 			Stopwatch sw = new Stopwatch();
 
 			sw.Start();
-			WaitUntil(() => sw.Elapsed.TotalSeconds >= 0.5f, 1000, 1000);
+			WaitUntil(() => {
+				Update();
+				return sw.Elapsed.TotalSeconds >= 0.5f;
+			}, 1000, 1000);
 			sw.Stop();
 
 			Assert.IsTrue(sw.Elapsed.TotalSeconds > 1.45);
@@ -341,7 +355,10 @@ namespace Chip.Net.UnitTests.Controllers.Distributed.Services
 				user.Router.RouteClient<TestPacket>(p => { receivedPackets++; });
 
 			Router.SendToUser(Router.Users.First(), packet);
-			WaitUntil(() => receivedPackets == 1);
+			WaitUntil(() => {
+				Update();
+				return receivedPackets == 1;
+			});
 			Assert.IsTrue(receivedPackets == 1);
 		}
 
@@ -355,7 +372,10 @@ namespace Chip.Net.UnitTests.Controllers.Distributed.Services
 				user.Router.RouteClient<TestPacket>(p => { receivedPackets++; });
 
 			Router.SendToUsers(packet);
-			WaitUntil(() => receivedPackets == Users.Count());
+			WaitUntil(() => {
+				Update();
+				return receivedPackets == Users.Count();
+			});
 			Assert.IsTrue(receivedPackets == Users.Count());
 		}
 
@@ -369,7 +389,10 @@ namespace Chip.Net.UnitTests.Controllers.Distributed.Services
 				user.Router.RouteClient<TestPacket>(p => { receivedPackets++; });
 
 			Router.SendToUsers(packet, Router.Users.First());
-			WaitUntil(() => receivedPackets == Users.Count() - 1);
+			WaitUntil(() => {
+				Update();
+				return receivedPackets == Users.Count() - 1;
+			});
 			Assert.IsTrue(receivedPackets == Users.Count() - 1);
 
 		}
@@ -384,7 +407,10 @@ namespace Chip.Net.UnitTests.Controllers.Distributed.Services
 				user.Router.RouteClient<TestPacket>(p => { receivedPackets++; });
 
 			Router.SendToUsers(packet, Router.Users.Take(2));
-			WaitUntil(() => receivedPackets == Users.Count() - 2);
+			WaitUntil(() => {
+				Update();
+				return receivedPackets == Users.Count() - 2;
+			});
 			Assert.IsTrue(receivedPackets == Users.Count() - 2);
 		}
 
@@ -398,7 +424,10 @@ namespace Chip.Net.UnitTests.Controllers.Distributed.Services
 				shard.Router.RouteClient<TestPacket>(p => { receivedPackets++; });
 
 			Router.SendToShard(Router.Shards.First(), packet);
-			WaitUntil(() => receivedPackets == 1);
+			WaitUntil(() => {
+				Update();
+				return receivedPackets == 1;
+			});
 			Assert.IsTrue(receivedPackets == 1);
 		}
 
@@ -412,7 +441,10 @@ namespace Chip.Net.UnitTests.Controllers.Distributed.Services
 				shard.Router.RouteClient<TestPacket>(p => { receivedPackets++; });
 
 			Router.SendToShards(packet);
-			WaitUntil(() => receivedPackets == Router.Shards.Count());
+			WaitUntil(() => {
+				Update();
+				return receivedPackets == Router.Shards.Count();
+			});
 			Assert.IsTrue(receivedPackets == Router.Shards.Count());
 		}
 
@@ -426,7 +458,10 @@ namespace Chip.Net.UnitTests.Controllers.Distributed.Services
 				shard.Router.RouteClient<TestPacket>(p => { receivedPackets++; });
 
 			Router.SendToShards(packet, Router.Shards.First());
-			WaitUntil(() => receivedPackets == Router.Shards.Count() - 1);
+			WaitUntil(() => {
+				Update();
+				return receivedPackets == Router.Shards.Count() - 1;
+			});
 			Assert.IsTrue(receivedPackets == Router.Shards.Count() - 1);
 		}
 
@@ -440,7 +475,10 @@ namespace Chip.Net.UnitTests.Controllers.Distributed.Services
 				shard.Router.RouteClient<TestPacket>(p => { receivedPackets++; });
 
 			Router.SendToShards(packet, Router.Shards.Take(2));
-			WaitUntil(() => receivedPackets == Router.Shards.Count() - 2);
+			WaitUntil(() => {
+				Update();
+				return receivedPackets == Router.Shards.Count() - 2;
+			});
 			Assert.IsTrue(receivedPackets == Router.Shards.Count() - 2);
 		}
 
