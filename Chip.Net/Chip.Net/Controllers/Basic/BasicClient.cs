@@ -16,6 +16,8 @@ namespace Chip.Net.Controllers.Basic
 
 		public PacketRouter Router { get; protected set; }
 		public NetContext Context { get; protected set; }
+
+		public bool IsInitialized { get; private set; }
 		public bool IsConnected { get; protected set; }
 		public bool IsServer { get; set; } = false;
 		public bool IsClient { get; set; } = true;
@@ -24,6 +26,10 @@ namespace Chip.Net.Controllers.Basic
 		private bool disposed;
 
 		public virtual void InitializeClient(NetContext context, INetClientProvider provider) {
+			if (IsInitialized)
+				throw new Exception("Server already initialized");
+
+			IsInitialized = true;
 			this.provider = provider;
 			this.IsConnected = false;
 			this.Router = new PacketRouter(null, "");

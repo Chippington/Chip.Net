@@ -68,6 +68,9 @@ namespace Chip.Net.Controllers.Distributed
 			context.Packets.Register<SetShardModelPacket<TShard>>();
 			context.Packets.Register<SetUserModelPacket<TUser>>();
 
+			context.Services.Register<ModelTrackerService<TShard>>();
+			context.Services.Register<ModelTrackerService<TUser>>();
+
 			shardToNetUser = new Dictionary<TShard, NetUser>();
 			userToNetUser = new Dictionary<TUser, NetUser>();
 
@@ -79,24 +82,26 @@ namespace Chip.Net.Controllers.Distributed
 					services.Add(instance);
 				}
 
-			ShardContext = context.Clone();
-			UserContext = context.Clone();
+			var shardContext = context.Clone();
+			var userContext = context.Clone();
 
-			ShardContext.Port = shardPort;
-			UserContext.Port = userPort;
+			shardContext.Port = shardPort;
+			userContext.Port = userPort;
 
-			ShardContext.Port = shardPort;
-			UserContext.Port = userPort;
+			shardContext.Port = shardPort;
+			userContext.Port = userPort;
 
-			ShardController = ShardContext.CreateServer<BasicServer>(shardProvider);
+			ShardController = shardContext.CreateServer<BasicServer>(shardProvider);
 			ShardController.NetUserConnected += OnShardConnected;
 			ShardController.NetUserDisconnected += OnShardDisconnected;
 			ShardController.PacketReceived += OnShardDataReceived;
+			ShardContext = ShardController.Context;
 
-			UserController = UserContext.CreateServer<BasicServer>(userProvider);
+			UserController = userContext.CreateServer<BasicServer>(userProvider);
 			UserController.NetUserConnected += OnUserConnected;
 			UserController.NetUserDisconnected += OnUserDisconnected;
 			UserController.PacketReceived += OnUserDataReceived;
+			UserContext = UserController.Context;
 
 			Shards = new ModelTrackerCollection<TShard>();
 			Users = new ModelTrackerCollection<TUser>();
@@ -106,8 +111,6 @@ namespace Chip.Net.Controllers.Distributed
 			this.Model.Name = context.ApplicationName + " Router";
 			RouterConfiguredEvent?.Invoke(this, Model);
 
-			ShardController.InitializeServer(ShardContext, shardProvider);
-			UserController.InitializeServer(UserContext, userProvider);
 
 			foreach (var service in services)
 				service.InitializeRouter(Model);

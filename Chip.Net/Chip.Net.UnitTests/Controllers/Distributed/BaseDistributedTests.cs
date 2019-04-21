@@ -47,7 +47,6 @@ namespace Chip.Net.UnitTests.Controllers.Distributed
 
 		protected override INetClientController StartNewClient() {
 			var cl = NewClient();
-			cl.InitializeClient(CreateContext(), new DirectClientProvider());
 			cl.StartClient();
 			return cl;
 		}

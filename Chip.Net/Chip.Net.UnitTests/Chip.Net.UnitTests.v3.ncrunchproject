@@ -1,5 +1,8 @@
 ﻿<ProjectConfiguration>
   <Settings>
+    <HiddenComponentWarnings>
+      <Value>LongTestTimesWithoutParallelExecution</Value>
+    </HiddenComponentWarnings>
     <IgnoredTests>
       <FixtureTestSelector>
         <FixtureName>Chip.Net.UnitTests.Providers.PipeProviderTests</FixtureName>

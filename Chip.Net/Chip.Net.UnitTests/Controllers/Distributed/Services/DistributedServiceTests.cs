@@ -530,7 +530,7 @@ namespace Chip.Net.UnitTests.Controllers.Distributed.Services
 		public void DistributedService_ShardClient_SendToRouter_PacketReceived() {
 			var data = GetTestString();
 			var packet = CreatePacket(data);
-
+			var shard = Shards.First();
 		}
 
 		[TestMethod]

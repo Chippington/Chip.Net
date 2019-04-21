@@ -5,6 +5,7 @@ using Chip.Net.Controllers.Basic;
 using Chip.Net.Controllers.Distributed.Models;
 using Chip.Net.Controllers.Distributed.Packets;
 using Chip.Net.Controllers.Distributed.Services;
+using Chip.Net.Controllers.Distributed.Services.ModelTracking;
 using Chip.Net.Data;
 using Chip.Net.Providers;
 
@@ -21,6 +22,9 @@ namespace Chip.Net.Controllers.Distributed
 			context.Packets.Register<SetShardModelPacket<TShard>>();
 			context.Packets.Register<SetUserModelPacket<TUser>>();
 
+			context.Services.Register<ModelTrackerService<TShard>>();
+			context.Services.Register<ModelTrackerService<TUser>>();
+
 			base.InitializeClient(context, provider);
 			Router.RouteClient<SetShardModelPacket<TShard>>(SetShardModel);
 			foreach (var svc in Context.Services.ServiceList)
@@ -36,5 +40,7 @@ namespace Chip.Net.Controllers.Distributed
 				if (typeof(IDistributedService).IsAssignableFrom(svc.GetType()))
 					(svc as IDistributedService).InitializeShard(Model);
 		}
+
+
 	}
 }

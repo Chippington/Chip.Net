@@ -22,10 +22,12 @@ namespace Chip.Net.Controllers.Distributed.Services
 		public bool Initialized { get; private set; }
 		public bool Disposed { get; private set; }
 
-		public virtual void GlobalInitialize(NetContext context) {
-		}
+		public virtual void GlobalInitialize(NetContext context) { }
+
+		public virtual void InitializeContext(NetContext context) { }
 
 		public void InitializeService(NetContext context) {
+			InitializeContext(context);
 			if (Initialized == false) {
 				Router = new PacketRouter(null, "");
 
