@@ -75,6 +75,21 @@ namespace Chip.Net.UnitTests.Services {
 		}
 
 		[TestMethod]
+		public void NetServiceCollection_SetActivationFunc_ActivationFuncInvoked() {
+			NetServiceCollection c = new NetServiceCollection();
+			c.Register<TestNetService>();
+
+			bool invoked = false;
+			c.SetActivationFunction(typeof(TestNetService), () => {
+				invoked = true;
+				return new TestNetService();
+			});
+
+			c.LockServices();
+			Assert.IsTrue(invoked);
+		}
+
+		[TestMethod]
 		public void NetService_ScheduleEvent_EventInvoked() {
 			NetService svc = new NetService();
 			bool invoked = false;

@@ -7,6 +7,7 @@ namespace Chip.Net.Services {
 	public class NetServiceCollection : IDisposable {
 		public IReadOnlyList<INetService> ServiceList { get; set; }
 
+		private Dictionary<Type, Func<INetService>> activationMap;
 		private Dictionary<Type, Action<object>> configMap;
 		private HashSet<Type> serviceTypeSet;
 		private List<INetService> services;
@@ -18,8 +19,9 @@ namespace Chip.Net.Services {
 		public bool IsLocked { get; private set; }
 
 		public NetServiceCollection() {
-			serviceTypeSet = new HashSet<Type>();
+			activationMap = new Dictionary<Type, Func<INetService>>();
 			configMap = new Dictionary<Type, Action<object>>();
+			serviceTypeSet = new HashSet<Type>();
 			services = new List<INetService>();
 			ServiceList = services.AsReadOnly();
 
@@ -33,7 +35,7 @@ namespace Chip.Net.Services {
 		public void LockServices() {
 			var instances = serviceTypeSet.OrderBy(i => i.FullName).Select(i =>
 			{
-				var svc = Activator.CreateInstance(i) as INetService;
+				var svc = activationMap[i]();
 				if (configMap.ContainsKey(i))
 					configMap[i].Invoke(svc);
 
@@ -51,6 +53,10 @@ namespace Chip.Net.Services {
 			}
 
 			IsLocked = true;
+		}
+
+		public void SetActivationFunction(Type serviceType, Func<INetService> activator) {
+			activationMap[serviceType] = activator;
 		}
 
 		public byte GetServiceId(INetService svc) {
@@ -85,8 +91,10 @@ namespace Chip.Net.Services {
 		}
 
 		public void Register<T>() where T : INetService {
-			if(serviceTypeSet.Contains(typeof(T)) == false)
+			if (serviceTypeSet.Contains(typeof(T)) == false) {
 				serviceTypeSet.Add(typeof(T));
+				activationMap[typeof(T)] = () => Activator.CreateInstance<T>();
+			}
 		}
 
 		public void Configure<T>(Action<T> config) where T : INetService {
@@ -122,6 +130,9 @@ namespace Chip.Net.Services {
 			foreach (var conf in configMap)
 				c.configMap.Add(conf.Key, conf.Value);
 
+			foreach (var actv in activationMap)
+				c.activationMap.Add(actv.Key, actv.Value);
+
 			if(IsLocked)
 				c.LockServices();
 
@@ -130,6 +141,7 @@ namespace Chip.Net.Services {
 
 		public void Dispose() {
 			if (serviceTypeSet  != null) serviceTypeSet.Clear();
+			if (activationMap != null) activationMap.Clear();
 			if (idToService != null) idToService.Clear();
 			if (serviceToId != null) serviceToId.Clear();
 			if (serviceMap != null) serviceMap.Clear();
@@ -143,6 +155,7 @@ namespace Chip.Net.Services {
 				services.Clear();
 			}
 
+			activationMap = null;
 			serviceTypeSet = null;
 			idToService = null;
 			serviceToId = null;
