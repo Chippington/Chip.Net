@@ -6,6 +6,7 @@ using System.Text;
 namespace Chip.Net.Services {
 	public class NetServiceCollection : IDisposable {
 		public IReadOnlyList<INetService> ServiceList { get; set; }
+		public IReadOnlyList<Type> ServiceTypes { get; set; }
 
 		private Dictionary<Type, Func<INetService>> activationMap;
 		private Dictionary<Type, Action<object>> configMap;
@@ -19,6 +20,7 @@ namespace Chip.Net.Services {
 		public bool IsLocked { get; private set; }
 
 		public NetServiceCollection() {
+			ServiceTypes = new List<Type>().AsReadOnly();
 			activationMap = new Dictionary<Type, Func<INetService>>();
 			configMap = new Dictionary<Type, Action<object>>();
 			serviceTypeSet = new HashSet<Type>();
@@ -94,6 +96,7 @@ namespace Chip.Net.Services {
 			if (serviceTypeSet.Contains(typeof(T)) == false) {
 				serviceTypeSet.Add(typeof(T));
 				activationMap[typeof(T)] = () => Activator.CreateInstance<T>();
+				ServiceTypes = serviceTypeSet.ToList().AsReadOnly();
 			}
 		}
 

@@ -66,6 +66,8 @@ namespace Chip.Net.Controllers.Distributed
 			shardToNetUser = new Dictionary<TShard, NetUser>();
 			userToNetUser = new Dictionary<TUser, NetUser>();
 
+			foreach(var type in context.Services.ServiceList)
+
 			ShardContext = context.Clone();
 			UserContext = context.Clone();
 
