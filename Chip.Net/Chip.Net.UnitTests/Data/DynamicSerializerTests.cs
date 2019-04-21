@@ -379,21 +379,22 @@ namespace Chip.Net.UnitTests.Data
 
 		[TestMethod]
 		public void DynamicSerializer_AddReaderWriter_CanReadWrite() {
-			Assert.IsFalse(DynamicSerializer.Instance.CanReadWrite(typeof(TestModelWithConstructor)));
+			DynamicSerializer s = new DynamicSerializer();
+			Assert.IsFalse(s.CanReadWrite(typeof(TestModelWithConstructor)));
 
-			DynamicSerializer.Instance.AddReaderWriter<TestModelWithConstructor>(
-				new DataWriter(DynamicSerializer.Instance, typeof(TestModelWithConstructor)),
-				new DataReader(DynamicSerializer.Instance, typeof(TestModelWithConstructor), () => new TestModelWithConstructor("")));
+			s.AddReaderWriter<TestModelWithConstructor>(
+				new DataWriter(s, typeof(TestModelWithConstructor)),
+				new DataReader(s, typeof(TestModelWithConstructor), () => new TestModelWithConstructor("")));
 
-			Assert.IsTrue(DynamicSerializer.Instance.CanReadWrite(typeof(TestModelWithConstructor)));
+			Assert.IsTrue(s.CanReadWrite(typeof(TestModelWithConstructor)));
 
 			TestModelWithConstructor m = new TestModelWithConstructor("Hello world");
 
 			DataBuffer b = new DataBuffer();
-			DynamicSerializer.Instance.Write<TestModelWithConstructor>(b, m);
+			s.Write<TestModelWithConstructor>(b, m);
 
 			b.Seek(0);
-			var result = DynamicSerializer.Instance.Read<TestModelWithConstructor>(b);
+			var result = s.Read<TestModelWithConstructor>(b);
 
 			Assert.IsNotNull(result);
 			Assert.IsNotNull(result.Data);
@@ -436,7 +437,9 @@ namespace Chip.Net.UnitTests.Data
 
 		[TestMethod]
 		public void DynamicSerializer_WriteReadCoveredType() {
-			DynamicSerializer.Instance.AddReaderWriter(typeof(ITestInterface),
+			DynamicSerializer s = new DynamicSerializer();
+
+			s.AddReaderWriter(typeof(ITestInterface),
 				new DataWriter(typeof(ITestInterface), WriteTestInterface),
 				new DataReader(typeof(ITestInterface), ReadTestInterface), true);
 
@@ -446,10 +449,10 @@ namespace Chip.Net.UnitTests.Data
 			m.Data = "Hello world";
 
 			DataBuffer b = new DataBuffer();
-			DynamicSerializer.Instance.Write(b, typeof(TestImplemented), m);
+			s.Write(b, typeof(TestImplemented), m);
 
 			b.Seek(0);
-			var mresult = DynamicSerializer.Instance.Read<ITestInterface>(b);
+			var mresult = s.Read<ITestInterface>(b);
 
 			Assert.IsNotNull(mresult);
 			Assert.IsNotNull(mresult.Data);
