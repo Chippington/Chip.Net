@@ -20,6 +20,8 @@ namespace Chip.Net.Controllers.Distributed {
 		public override void InitializeClient(NetContext context, INetClientProvider provider) {
 			context.Packets.Register<SetShardModelPacket<TShard>>();
 			context.Packets.Register<SetUserModelPacket<TUser>>();
+			context.Packets.Register<SendToShardPacket>();
+			context.Packets.Register<SendToUserPacket>();
 
 			context.Services.Register<ModelTrackerService<TShard>>();
 			context.Services.Register<ModelTrackerService<TUser>>();

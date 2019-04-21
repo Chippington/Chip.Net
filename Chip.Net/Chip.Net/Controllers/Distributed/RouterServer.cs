@@ -67,6 +67,8 @@ namespace Chip.Net.Controllers.Distributed
 			Context = context;
 			context.Packets.Register<SetShardModelPacket<TShard>>();
 			context.Packets.Register<SetUserModelPacket<TUser>>();
+			context.Packets.Register<SendToShardPacket>();
+			context.Packets.Register<SendToUserPacket>();
 
 			context.Services.Register<ModelTrackerService<TShard>>();
 			context.Services.Register<ModelTrackerService<TUser>>();
