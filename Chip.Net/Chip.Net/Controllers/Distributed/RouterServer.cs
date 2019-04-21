@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using Chip.Net.Controllers.Basic;
 using Chip.Net.Controllers.Distributed.Models;
+using Chip.Net.Controllers.Distributed.Packets;
 using Chip.Net.Controllers.Distributed.Services;
 using Chip.Net.Controllers.Distributed.Services.ModelTracking;
 using Chip.Net.Data;
@@ -64,6 +65,9 @@ namespace Chip.Net.Controllers.Distributed
 			INetServerProvider userProvider, int userPort) {
 
 			Context = context;
+			context.Packets.Register<SetShardModelPacket<TShard>>();
+			context.Packets.Register<SetUserModelPacket<TUser>>();
+
 			shardToNetUser = new Dictionary<TShard, NetUser>();
 			userToNetUser = new Dictionary<TUser, NetUser>();
 
@@ -116,6 +120,10 @@ namespace Chip.Net.Controllers.Distributed
 
 			SetShard(e.User, shard);
 			ShardConnectedEvent?.Invoke(this, shard);
+
+			SendToShard(shard, new SetShardModelPacket<TShard>() {
+				Model = shard,
+			});
 		}
 
 		private void OnShardDisconnected(object sender, NetEventArgs e) {
@@ -141,6 +149,10 @@ namespace Chip.Net.Controllers.Distributed
 
 			SetUserModel(e.User, user);
 			UserConnectedEvent?.Invoke(this, user);
+
+			SendToUser(user, new SetUserModelPacket<TUser>() {
+				Model = user
+			});
 		}
 
 		private void OnUserDisconnected(object sender, NetEventArgs e) {
