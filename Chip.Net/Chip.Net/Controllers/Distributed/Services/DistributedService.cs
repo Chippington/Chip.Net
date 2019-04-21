@@ -7,57 +7,68 @@ using System.Text;
 
 namespace Chip.Net.Controllers.Distributed.Services
 {
-	public class DistributedService : NetService, IDistributedService {
-		public bool IsShard { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-		public bool IsUser { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-		public bool IsRouter { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+	public class DistributedService : IDistributedService {
+		public bool IsShard { get; set; }
+		public bool IsUser { get; set; }
+		public bool IsRouter { get; set; }
 
-		public void InitializeRouter(IRouterModel Model) {
-			throw new NotImplementedException();
+		public PacketRouter Router { get; private set; }
+		public INetServerController Server { get; set; }
+		public INetClientController Client { get; set; }
+
+		public bool IsServer { get; set; }
+		public bool IsClient { get; set; }
+
+		public bool Initialized { get; private set; }
+		public bool Disposed { get; private set; }
+
+		public virtual void GlobalInitialize(NetContext context) {
 		}
 
-		public void InitializeShard(IShardModel Model) {
-			throw new NotImplementedException();
+		public void InitializeService(NetContext context) {
+			if (Initialized == false) {
+				Router = new PacketRouter(null, "");
+
+				GlobalInitialize(context);
+				Initialized = true;
+			}
 		}
 
-		public void InitializeUser(IUserModel Model) {
-			throw new NotImplementedException();
+		public virtual void InitializeRouter(IRouterModel Model) {
+			IsServer = true;
+			IsRouter = true;
+			IsClient = false;
+			IsShard = false;
+			IsUser = false;
 		}
 
-		public void SendToUser(IUserModel User, Packet Pack) {
-			throw new NotImplementedException();
+		public virtual void InitializeShard(IShardModel Model) {
+			IsServer = false;
+			IsRouter = false;
+			IsClient = true;
+			IsShard = true;
+			IsUser = false;
 		}
 
-		public void SendToUsers(Packet Pack, IUserModel Exclude) {
-			throw new NotImplementedException();
+		public virtual void InitializeUser(IUserModel Model) {
+			IsServer = false;
+			IsRouter = false;
+			IsClient = true;
+			IsShard = false;
+			IsUser = true;
 		}
 
-		public void SendToUsers(Packet Pack, IEnumerable<IUserModel> Exclude) {
-			throw new NotImplementedException();
+		public virtual void StartService() {
 		}
 
-		public void SendToUsers(Packet Pack) {
-			throw new NotImplementedException();
+		public virtual void StopService() {
 		}
 
-		public void SendToRouter(Packet Pack) {
-			throw new NotImplementedException();
+		public virtual void UpdateService() {
 		}
 
-		public void SendToShard(IShardModel Shard, Packet Pack) {
-			throw new NotImplementedException();
-		}
-
-		public void SendToShards(Packet Pack) {
-			throw new NotImplementedException();
-		}
-
-		public void SendToShards(Packet Pack, IShardModel Exclude) {
-			throw new NotImplementedException();
-		}
-
-		public void SendToShards(Packet Pack, IEnumerable<IShardModel> Exclude) {
-			throw new NotImplementedException();
+		public void Dispose() {
+			Disposed = true;
 		}
 	}
 }

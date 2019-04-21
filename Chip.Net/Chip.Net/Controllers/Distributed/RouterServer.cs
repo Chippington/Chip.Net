@@ -39,7 +39,6 @@ namespace Chip.Net.Controllers.Distributed
 		}
 
 		public PacketRouter Router { get; private set; }
-		public NetContext Context { get; private set; }
 		public bool IsActive { get; private set; }
 
 		public BasicServer ShardController { get; private set; }
@@ -53,6 +52,7 @@ namespace Chip.Net.Controllers.Distributed
 
 		public TRouter Model { get; private set; }
 
+		private NetContext Context;
 		private Dictionary<TShard, NetUser> shardToNetUser;
 		private Dictionary<TUser, NetUser> userToNetUser;
 
@@ -67,10 +67,12 @@ namespace Chip.Net.Controllers.Distributed
 			shardToNetUser = new Dictionary<TShard, NetUser>();
 			userToNetUser = new Dictionary<TUser, NetUser>();
 
+			var services = new List<IDistributedService>();
 			foreach (var type in context.Services.ServiceTypes)
 				if (typeof(IDistributedService).IsAssignableFrom(type)) {
 					var instance = Activator.CreateInstance(type) as IDistributedService;
 					context.Services.SetActivationFunction(type, () => instance);
+					services.Add(instance);
 				}
 
 			ShardContext = context.Clone();
@@ -99,6 +101,12 @@ namespace Chip.Net.Controllers.Distributed
 			this.Model.Id = 0;
 			this.Model.Name = context.ApplicationName + " Router";
 			RouterConfiguredEvent?.Invoke(this, Model);
+
+			ShardController.InitializeServer(ShardContext, shardProvider);
+			UserController.InitializeServer(UserContext, userProvider);
+
+			foreach (var service in services)
+				service.InitializeRouter(Model);
 		}
 
 		#region Event Handling

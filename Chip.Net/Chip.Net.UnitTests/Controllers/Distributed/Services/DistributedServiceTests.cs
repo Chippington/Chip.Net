@@ -56,31 +56,36 @@ namespace Chip.Net.UnitTests.Controllers.Distributed.Services
 		[TestMethod]
 		public void DistributedService_RouterServer_Initialize_IsRouterIsTrue() {
 			Router.InitializeServer(GetContext(), new DirectServerProvider(), 0, new DirectServerProvider(), 1);
-			Assert.IsTrue(Router.Context.Services.Get<TestService>().IsRouter);
+			Assert.IsTrue(Router.ShardContext.Services.Get<TestService>().IsRouter);
+			Assert.IsTrue(Router.UserContext.Services.Get<TestService>().IsRouter);
 		}
 
 		[TestMethod]
 		public void DistributedService_RouterServer_Initialize_IsShardIsFalse() {
 			Router.InitializeServer(GetContext(), new DirectServerProvider(), 0, new DirectServerProvider(), 1);
-			Assert.IsFalse(Router.Context.Services.Get<TestService>().IsShard);
+			Assert.IsFalse(Router.ShardContext.Services.Get<TestService>().IsShard);
+			Assert.IsFalse(Router.UserContext.Services.Get<TestService>().IsShard);
 		}
 
 		[TestMethod]
 		public void DistributedService_RouterServer_Initialize_IsUserIsFalse() {
 			Router.InitializeServer(GetContext(), new DirectServerProvider(), 0, new DirectServerProvider(), 1);
-			Assert.IsFalse(Router.Context.Services.Get<TestService>().IsUser);
+			Assert.IsFalse(Router.ShardContext.Services.Get<TestService>().IsUser);
+			Assert.IsFalse(Router.UserContext.Services.Get<TestService>().IsUser);
 		}
 
 		[TestMethod]
 		public void DistributedService_RouterServer_Initialize_IsServerIsTrue() {
 			Router.InitializeServer(GetContext(), new DirectServerProvider(), 0, new DirectServerProvider(), 1);
-			Assert.IsTrue(Router.Context.Services.Get<TestService>().IsServer);
+			Assert.IsTrue(Router.ShardContext.Services.Get<TestService>().IsServer);
+			Assert.IsTrue(Router.UserContext.Services.Get<TestService>().IsServer);
 		}
 
 		[TestMethod]
 		public void DistributedService_RouterServer_Initialize_IsClientIsFalse() {
 			Router.InitializeServer(GetContext(), new DirectServerProvider(), 0, new DirectServerProvider(), 1);
-			Assert.IsFalse(Router.Context.Services.Get<TestService>().IsClient);
+			Assert.IsFalse(Router.ShardContext.Services.Get<TestService>().IsClient);
+			Assert.IsFalse(Router.UserContext.Services.Get<TestService>().IsClient);
 		}
 
 		[TestMethod]

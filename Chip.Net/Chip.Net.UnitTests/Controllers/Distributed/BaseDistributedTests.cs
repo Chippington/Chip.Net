@@ -33,8 +33,10 @@ namespace Chip.Net.UnitTests.Controllers.Distributed
 			Router.StartShardServer();
 			Router.StartUserServer();
 
-			lock (routerMap)
-				routerMap.Add(Router.Context.ApplicationName, Router);
+			lock (routerMap) {
+				routerMap.Add(Router.ShardContext.ApplicationName + "SHARD", Router);
+				routerMap.Add(Router.UserContext.ApplicationName + "USER", Router);
+			}
 
 			return Router.ShardController;
 		}
@@ -61,8 +63,10 @@ namespace Chip.Net.UnitTests.Controllers.Distributed
 		}
 
 		protected override void UpdateServer(INetServerController server) {
-			lock (routerMap)
-				routerMap[server.Context.ApplicationName].UpdateServer();
+			lock (routerMap) {
+				routerMap[server.Context.ApplicationName + "SHARD"].UpdateServer();
+				routerMap[server.Context.ApplicationName + "USER"].UpdateServer();
+			}
 		}
 	}
 }
