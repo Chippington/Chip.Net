@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Chip.Net.Controllers;
+using Chip.Net.Providers;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -150,10 +152,12 @@ namespace Chip.Net.Data {
 	public class MessageChannel {
 		protected NewPacketRouter Parent;
 
+		public Type SourceType { get; private set; }
 		public string Key { get; private set; }
 		public short Order { get; set; }
 
-		public MessageChannel(NewPacketRouter parent, string key) {
+		public MessageChannel(NewPacketRouter parent, string key, Type type) {
+			this.SourceType = type;
 			this.Parent = parent;
 			this.Key = key;
 		}
@@ -165,9 +169,8 @@ namespace Chip.Net.Data {
 		public delegate void MessageEvent(IncomingMessage<T> incoming);
 		public MessageEvent Receive { get; set; }
 
-		public MessageChannel(NewPacketRouter parent, string key) : base(parent, typeof(T).ToString() + "_" + key) {
-
-		}
+		public MessageChannel(NewPacketRouter parent, string key)
+			: base(parent, typeof(T).ToString() + "_" + key, typeof(T)) { }
 
 		public override void Handle(IncomingMessage message) {
 			Receive.Invoke((IncomingMessage<T>)message);
@@ -178,15 +181,58 @@ namespace Chip.Net.Data {
 		}
 	}
 
+	public class RouterPacket {
+		public byte[] Bytes { get; set; }
+	}
+
 	public class NewPacketRouter {
-		private EventHandler<OutgoingMessage> SendMessageFunc;
 		private List<MessageChannel> Nodes;
 		private HashSet<string> Types;
 
-		public NewPacketRouter(EventHandler<OutgoingMessage> SendMessageFunc) {
-			this.SendMessageFunc = SendMessageFunc;
+		private Action<NetUser, DataBuffer> SendAction;
+		private Func<object, NetUser> KeyToUserFunc;
+
+		public NewPacketRouter(INetServerProvider provider, INetServerController controller) {
 			Nodes = new List<MessageChannel>();
 			Types = new HashSet<string>();
+
+			provider.DataReceived += OnDataReceived;
+			SendAction = (u, d) => {
+				if (u == null) throw new Exception("[Server] Recipient cannot be null.");
+
+				provider.SendMessage(u.UserKey, d);
+			};
+
+			KeyToUserFunc = (k) => {
+				return controller.GetUsers().First(i => i.UserKey == k);
+			};
+		}
+
+		public NewPacketRouter(INetClientProvider provider, INetClientController controller) {
+			Nodes = new List<MessageChannel>();
+			Types = new HashSet<string>();
+
+			provider.DataReceived += OnDataReceived;
+			SendAction = (u, d) => provider.SendMessage(d);
+			KeyToUserFunc = (k) => null;
+		}
+
+		private void OnDataReceived(object s, ProviderDataEventArgs e) {
+			var buffer = e.Data;
+			var index = buffer.ReadInt16();
+
+			var channel = Resolve(index);
+			var packet = (Packet)Activator.CreateInstance(channel.SourceType);
+
+			packet.ReadFrom(buffer);
+			NetUser sender = null;
+			if (e.UserKey != null)
+				sender = KeyToUserFunc(e.UserKey);
+
+			channel.Handle(new IncomingMessage() {
+				Data = packet,
+				Sender = KeyToUserFunc(sender),
+			});
 		}
 
 		public virtual MessageChannel<T> Route<T>(string key = null) where T : Packet {
@@ -215,7 +261,17 @@ namespace Chip.Net.Data {
 		}
 
 		public void Send(MessageChannel source, OutgoingMessage message) {
-			SendMessageFunc.Invoke(this, message);
+			var index = ToIndex(source);
+			DataBuffer buffer = new DataBuffer();
+			buffer.Write((short)index);
+			message.Data.WriteTo(buffer);
+
+			if(message.Recipients != null && message.Recipients.Count() > 0) {
+				foreach (var u in message.Recipients)
+					SendAction.Invoke(u, buffer);
+			} else {
+				SendAction(null, buffer);
+			}
 		}
 	}
 }
