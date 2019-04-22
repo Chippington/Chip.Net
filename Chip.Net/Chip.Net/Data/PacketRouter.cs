@@ -146,4 +146,76 @@ namespace Chip.Net.Data {
 			return map[type];
 		}
 	}
+
+	public class MessageChannel {
+		protected NewPacketRouter Parent;
+
+		public string Key { get; private set; }
+		public short Order { get; set; }
+
+		public MessageChannel(NewPacketRouter parent, string key) {
+			this.Parent = parent;
+			this.Key = key;
+		}
+
+		public virtual void Handle(IncomingMessage message) { }
+	}
+
+	public class MessageChannel<T> : MessageChannel where T : Packet {
+		public delegate void MessageEvent(IncomingMessage<T> incoming);
+		public MessageEvent Receive { get; set; }
+
+		public MessageChannel(NewPacketRouter parent, string key) : base(parent, typeof(T).ToString() + "_" + key) {
+
+		}
+
+		public override void Handle(IncomingMessage message) {
+			Receive.Invoke((IncomingMessage<T>)message);
+		}
+
+		public void Send(OutgoingMessage message) {
+			Parent.Send(this, message);
+		}
+	}
+
+	public class NewPacketRouter {
+		private EventHandler<OutgoingMessage> SendMessageFunc;
+		private List<MessageChannel> Nodes;
+		private HashSet<string> Types;
+
+		public NewPacketRouter(EventHandler<OutgoingMessage> SendMessageFunc) {
+			this.SendMessageFunc = SendMessageFunc;
+			Nodes = new List<MessageChannel>();
+			Types = new HashSet<string>();
+		}
+
+		public virtual MessageChannel<T> Route<T>(string key = null) where T : Packet {
+			if (key == null)
+				key = "";
+
+			var n = new MessageChannel<T>(this, key);
+			if (Types.Contains(n.Key))
+				throw new Exception();
+
+			Types.Add(n.Key);
+			Nodes.Add(n);
+			Nodes = Nodes.OrderBy(i => i.Key).ToList();
+			for (short i = 0; i < Nodes.Count; i++)
+				Nodes[i].Order = i;
+
+			return n;
+		}
+
+		public virtual short ToIndex(MessageChannel channel) {
+			return channel.Order;
+		}
+
+		public virtual MessageChannel Resolve(short index) {
+			return Nodes[index];
+		}
+
+		public void Send(MessageChannel source, OutgoingMessage message) {
+			SendMessageFunc.Invoke(this, message);
+		}
+	}
 }
