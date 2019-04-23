@@ -14,23 +14,25 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using Chip.Net.Controllers;
+using Chip.Net.Services;
+using Chip.Net.Services.UserList;
 
 namespace Chip.Net.Testbed {
 	public class TestPacket : Packet {
-		public string Data { get; set; }
+		public int Data { get; set; }
 
 		public TestPacket() {
-			Data = "";
+			Data = 0;
 		}
 
 		public override void WriteTo(DataBuffer buffer) {
 			base.WriteTo(buffer);
-			buffer.Write((string)Data);
+			buffer.Write((int)Data);
 		}
 
 		public override void ReadFrom(DataBuffer buffer) {
 			base.ReadFrom(buffer);
-			Data = buffer.ReadString();
+			Data = buffer.ReadInt32();
 		}
 	}
 
@@ -96,11 +98,15 @@ namespace Chip.Net.Testbed {
 			}
 		}
 
+		public class TestService : NetService {
+
+		}
+
 		static void Main(string[] args) {
 			NetContext ctx = new NetContext();
 			ctx.IPAddress = "localhost";
 			ctx.Port = 11111;
-
+			ctx.Services.Register<UserListService>();
 			BasicServer server = new BasicServer();
 			server.InitializeServer(ctx.Clone(), new TCPServerProvider());
 			var ch1 = server.Router.Route<TestPacket>();
@@ -111,23 +117,24 @@ namespace Chip.Net.Testbed {
 			var ch2 = client.Router.Route<TestPacket>();
 
 			ch1.Receive += (e) => {
+				e.Data.Data++;
 				ch1.Send(new OutgoingMessage(e.Data));
 				Console.WriteLine(e.Data.Data);
 			};
 
 			ch2.Receive += (e) => {
+				e.Data.Data++;
 				ch2.Send(new OutgoingMessage(e.Data));
 				Console.WriteLine(e.Data.Data);
 			};
 
 			client.OnConnected += (s, e) => {
-				ch2.Send(new OutgoingMessage(new TestPacket() {
-					Data = "Test",
-				}));
+				//ch2.Send(new OutgoingMessage(new TestPacket() {
+				//	Data = 0,
+				//}));
 			};
 
 			client.StartClient();
-
 
 			while (true) {
 				server.UpdateServer();
@@ -135,46 +142,6 @@ namespace Chip.Net.Testbed {
 
 				System.Threading.Thread.Sleep(10);
 			}
-
-
-
-
-
-
-
-
-			TestRouter r1 = new TestRouter();
-			TestRouter r2 = new TestRouter();
-
-			var r1_intnode1 = r1.CreateNode<int>();
-			var r1_intnode2 = r1.CreateNode<float>();
-			var r1_intnode3 = r1.CreateNode<double>();
-			var r1_intnode4 = r1.CreateNode<string>();
-			var r1_intnode5 = r1.CreateNode<long>();
-
-			var r2_intnode3 = r2.CreateNode<double>();
-			var r2_intnode2 = r2.CreateNode<float>();
-			var r2_intnode4 = r2.CreateNode<string>();
-			var r2_intnode1 = r2.CreateNode<int>();
-			var r2_intnode5 = r2.CreateNode<long>();
-
-			r1_intnode1.Send += (s, e) => {
-				r2.FromIndex(r1.ToIndex(r1_intnode1)).Handle(e);
-			};
-
-			r1_intnode2.Send += (s, e) => {
-				r2.FromIndex(r1.ToIndex(r1_intnode2)).Handle(e);
-			};
-
-			r1_intnode3.Send += (s, e) => {
-				r2.FromIndex(r1.ToIndex(r1_intnode3)).Handle(e);
-			};
-
-			r2_intnode3.Receive += (s, e) => {
-				Console.WriteLine("Recv");
-			};
-
-			r1_intnode3.Send(new object(), 5d);
 		}
 	}
 }

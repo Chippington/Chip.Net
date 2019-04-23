@@ -48,6 +48,10 @@ namespace Chip.Net.Services.RFC {
 			context.Packets.Register<RFCExecute>();
 			ChRFCExecute = Router.Route<RFCExecute>();
 
+			ChRFCExecute.Receive += (e) => {
+				onExecute(e);
+			};
+
 			if (IsServer) {
 				Server.NetUserConnected += (s, arg) => {
 					userList.Add(arg.User);

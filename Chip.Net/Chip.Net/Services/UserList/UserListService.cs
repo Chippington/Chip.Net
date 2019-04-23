@@ -25,7 +25,7 @@ namespace Chip.Net.Services.UserList {
 			userList = new List<NetUser>();
 			UserList = userList.AsReadOnly();
 
-			if(IsServer) {
+			if(IsServer) {this.AllUsers
 				Server.NetUserConnected += onUserConnected;
 				Server.NetUserDisconnected += onUserDisconnected;
 			}
@@ -56,7 +56,7 @@ namespace Chip.Net.Services.UserList {
 		}
 
 		private void _clSetUserList(List<NetUser> obj) {
-			this.userList.AddRange(obj.Where(i => userList.Any(o => o.UserId != i.UserId)));
+			this.userList.AddRange(obj.Where(i => userList.Any(o => o.UserId != i.UserId) == false));
 		}
 
 		private void onUserDisconnected(object sender, NetEventArgs args) {
