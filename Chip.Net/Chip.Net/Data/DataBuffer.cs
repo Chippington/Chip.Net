@@ -25,14 +25,6 @@ namespace Chip.Net.Data
 		}
 
 		public DataBuffer(byte[] message) {
-
-			int a = 0;
-			int b = 10;
-
-			(a, b) = (b, a);
-			Console.WriteLine(a); //10
-			Console.WriteLine(b); //10
-
 			ms = new MemoryStream();
 			for (int i = 0; i < message.Length; i++)
 				ms.WriteByte(message[i]);

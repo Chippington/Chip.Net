@@ -16,6 +16,24 @@ using System.Reflection;
 using Chip.Net.Controllers;
 
 namespace Chip.Net.Testbed {
+	public class TestPacket : Packet {
+		public string Data { get; set; }
+
+		public TestPacket() {
+			Data = "";
+		}
+
+		public override void WriteTo(DataBuffer buffer) {
+			base.WriteTo(buffer);
+			buffer.Write((string)Data);
+		}
+
+		public override void ReadFrom(DataBuffer buffer) {
+			base.ReadFrom(buffer);
+			Data = buffer.ReadString();
+		}
+	}
+
 	class Program {
 		public class TestRouter {
 			private List<Node> Nodes;
@@ -79,6 +97,52 @@ namespace Chip.Net.Testbed {
 		}
 
 		static void Main(string[] args) {
+			NetContext ctx = new NetContext();
+			ctx.IPAddress = "localhost";
+			ctx.Port = 11111;
+
+			BasicServer server = new BasicServer();
+			server.InitializeServer(ctx.Clone(), new TCPServerProvider());
+			var ch1 = server.Router.Route<TestPacket>();
+			server.StartServer();
+
+			BasicClient client = new BasicClient();
+			client.InitializeClient(ctx.Clone(), new TCPClientProvider());
+			var ch2 = client.Router.Route<TestPacket>();
+
+			ch1.Receive += (e) => {
+				ch1.Send(new OutgoingMessage(e.Data));
+				Console.WriteLine(e.Data.Data);
+			};
+
+			ch2.Receive += (e) => {
+				ch2.Send(new OutgoingMessage(e.Data));
+				Console.WriteLine(e.Data.Data);
+			};
+
+			client.OnConnected += (s, e) => {
+				ch2.Send(new OutgoingMessage(new TestPacket() {
+					Data = "Test",
+				}));
+			};
+
+			client.StartClient();
+
+
+			while (true) {
+				server.UpdateServer();
+				client.UpdateClient();
+
+				System.Threading.Thread.Sleep(10);
+			}
+
+
+
+
+
+
+
+
 			TestRouter r1 = new TestRouter();
 			TestRouter r2 = new TestRouter();
 
