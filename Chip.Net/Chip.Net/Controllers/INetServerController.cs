@@ -24,8 +24,5 @@ namespace Chip.Net.Controllers
 		void UpdateServer();
 
 		IEnumerable<NetUser> GetUsers();
-
-		void SendPacket(Packet packet);
-		void SendPacket(NetUser user, Packet packet);
 	}
 }

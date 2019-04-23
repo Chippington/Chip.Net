@@ -18,8 +18,8 @@ namespace Chip.Net.Providers.Direct
 
 		public void AcceptConnection(DirectServerProvider Server) {
 			IsConnected = true;
-			UserConnected?.Invoke(this, new ProviderUserEventArgs());
 			ActiveServer = Server;
+			UserConnected?.Invoke(this, new ProviderUserEventArgs());
 		}
 
 		public void RejectConnection(DirectServerProvider Server) {

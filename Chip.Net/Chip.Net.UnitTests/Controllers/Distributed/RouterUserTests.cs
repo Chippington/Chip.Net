@@ -10,8 +10,8 @@ namespace Chip.Net.UnitTests.Controllers.Distributed
 {
 	[TestClass]
     public class RouterUserTests : BaseDistributedTests<UserClient<TestRouterModel, TestShardModel, TestUserModel>> {
-		protected override INetServerController NewServer() {
-			return new RouterServer<TestRouterModel, TestShardModel, TestUserModel>().UserController;
+		protected override ServerWrapper NewServer() {
+			return null;
 		}
 	}
 }

@@ -24,8 +24,8 @@ namespace Chip.Net.Services
 			Context = context;
 			scheduledEvents = new List<Tuple<DateTime, Action>>();
 
-			if (IsClient) Router = new PacketRouter(Client.Router, GetType().FullName);
-			if (IsServer) Router = new PacketRouter(Server.Router, GetType().FullName);
+			if (IsClient) Router = new PacketRouter(Client.Router, GetType().FullName.ToString());
+			if (IsServer) Router = new PacketRouter(Server.Router, GetType().FullName.ToString());
 		}
 
 		public virtual void StartService() {
@@ -45,28 +45,6 @@ namespace Chip.Net.Services
 		}
 
 		public virtual void StopService() { }
-
-		public void SendPacketToClients(Packet packet) {
-			if (packet == null)
-				throw new Exception("Packet is null");
-
-			var msg = new OutgoingMessage(packet, Server.GetUsers());
-			Router.QueueOutgoing(msg);
-		}
-
-		public void SendPacket(Packet packet, NetUser recipient) {
-			if (packet == null)
-				throw new Exception("Packet is null");
-
-			Router.QueueOutgoing(new OutgoingMessage(packet, recipient));
-		}
-
-		public void SendPacket(Packet packet) {
-			if (packet == null)
-				throw new Exception("Packet is null");
-
-			Router.QueueOutgoing(new OutgoingMessage(packet));
-		}
 
 		public virtual void Dispose() {
 			if (scheduledEvents != null) scheduledEvents.Clear();

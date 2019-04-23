@@ -14,12 +14,14 @@ namespace Chip.Net.Services.Ping {
 
 		private HashSet<NetUser> connectedUsers;
 
+		private MessageChannel<P_Ping> ChPing;
+
 		public override void InitializeService(NetContext context) {
 			base.InitializeService(context);
 			connectedUsers = new HashSet<NetUser>();
 			context.Packets.Register<P_Ping>();
 
-			Router.Route<P_Ping>(OnPingReceived);
+			ChPing = Router.Route<P_Ping>();
 		}
 
 		public override void StartService() {
@@ -42,13 +44,13 @@ namespace Chip.Net.Services.Ping {
 				var user = obj.Sender;
 				ScheduleEvent(new TimeSpan(0, 0, 0, 0, PingSendDelay), () => {
 					P_Ping ping = new P_Ping();
-					SendPacket(ping, user);
+					ChPing.Send(new OutgoingMessage(ping, user));
 					timer.Start();
 				});
 			}
 
 			if (IsClient) {
-				SendPacket(obj.Data);
+				ChPing.Send(new OutgoingMessage(obj.Data));
 			}
 		}
 
@@ -63,7 +65,7 @@ namespace Chip.Net.Services.Ping {
 		private void OnUserConnected(object sender, NetEventArgs args) {
 			var timer = GetTimer(args.User);
 			P_Ping ping = new P_Ping();
-			SendPacket(ping, args.User);
+			ChPing.Send(new OutgoingMessage(ping, args.User));
 			timer.Start();
 
 			connectedUsers.Add(args.User);

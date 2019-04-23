@@ -22,8 +22,5 @@ namespace Chip.Net.Controllers
 		void StartClient();
 		void StopClient();
 		void UpdateClient();
-
-
-		void SendPacket(Packet packet);
     }
 }

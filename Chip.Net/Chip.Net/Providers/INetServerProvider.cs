@@ -20,7 +20,6 @@ namespace Chip.Net.Providers {
 
 		IEnumerable<object> GetClientKeys();
 		void DisconnectUser(object userKey);
-
 		void SendMessage(object recipientKey, DataBuffer data);
 	}
 }

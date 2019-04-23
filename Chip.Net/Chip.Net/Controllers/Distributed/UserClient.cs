@@ -27,7 +27,6 @@ namespace Chip.Net.Controllers.Distributed {
 			context.Services.Register<ModelTrackerService<TUser>>();
 
 			base.InitializeClient(context, provider);
-			Router.RouteClient<SetUserModelPacket<TUser>>(SetUserModel);
 			foreach (var svc in Context.Services.ServiceList)
 				if (typeof(IDistributedService).IsAssignableFrom(svc.GetType())) {
 					(svc as IDistributedService).IsClient = true;

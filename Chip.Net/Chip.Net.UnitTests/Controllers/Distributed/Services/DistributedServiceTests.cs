@@ -347,139 +347,42 @@ namespace Chip.Net.UnitTests.Controllers.Distributed.Services
 
 		[TestMethod]
 		public void DistributedService_RouterServer_SendToUser_PacketReceived() {
-			var data = GetTestString();
-			var packet = CreatePacket(data);
 
-			int receivedPackets = 0;
-			foreach (var user in Users)
-				user.Router.RouteClient<TestPacket>(p => { receivedPackets++; });
-
-			Router.SendToUser(Router.Users.First(), packet);
-			WaitUntil(() => {
-				Update();
-				return receivedPackets == 1;
-			});
-			Assert.IsTrue(receivedPackets == 1);
 		}
 
 		[TestMethod]
 		public void DistributedService_RouterServer_SendToAllUsers_PacketsReceived() {
-			var data = GetTestString();
-			var packet = CreatePacket(data);
 
-			int receivedPackets = 0;
-			foreach (var user in Users)
-				user.Router.RouteClient<TestPacket>(p => { receivedPackets++; });
-
-			Router.SendToUsers(packet);
-			WaitUntil(() => {
-				Update();
-				return receivedPackets == Users.Count();
-			});
-			Assert.IsTrue(receivedPackets == Users.Count());
 		}
 
 		[TestMethod]
 		public void DistributedService_RouterServer_SendToAllUsers_ExcludingOne_PacketsReceived() {
-			var data = GetTestString();
-			var packet = CreatePacket(data);
-
-			int receivedPackets = 0;
-			foreach (var user in Users)
-				user.Router.RouteClient<TestPacket>(p => { receivedPackets++; });
-
-			Router.SendToUsers(packet, Router.Users.First());
-			WaitUntil(() => {
-				Update();
-				return receivedPackets == Users.Count() - 1;
-			});
-			Assert.IsTrue(receivedPackets == Users.Count() - 1);
 
 		}
 
 		[TestMethod]
 		public void DistributedService_RouterServer_SendToAllUsers_ExcludingMany_PacketsReceived() {
-			var data = GetTestString();
-			var packet = CreatePacket(data);
-
-			int receivedPackets = 0;
-			foreach (var user in Users)
-				user.Router.RouteClient<TestPacket>(p => { receivedPackets++; });
-
-			Router.SendToUsers(packet, Router.Users.Take(2));
-			WaitUntil(() => {
-				Update();
-				return receivedPackets == Users.Count() - 2;
-			});
-			Assert.IsTrue(receivedPackets == Users.Count() - 2);
+			
 		}
 
 		[TestMethod]
 		public void DistributedService_RouterServer_SendToShard_PacketReceived() {
-			var data = GetTestString();
-			var packet = CreatePacket(data);
-
-			int receivedPackets = 0;
-			foreach (var shard in Shards)
-				shard.Router.RouteClient<TestPacket>(p => { receivedPackets++; });
-
-			Router.SendToShard(Router.Shards.First(), packet);
-			WaitUntil(() => {
-				Update();
-				return receivedPackets == 1;
-			});
-			Assert.IsTrue(receivedPackets == 1);
+			
 		}
 
 		[TestMethod]
 		public void DistributedService_RouterServer_SendToAllShards_PacketsReceived() {
-			var data = GetTestString();
-			var packet = CreatePacket(data);
-
-			int receivedPackets = 0;
-			foreach (var shard in Shards)
-				shard.Router.RouteClient<TestPacket>(p => { receivedPackets++; });
-
-			Router.SendToShards(packet);
-			WaitUntil(() => {
-				Update();
-				return receivedPackets == Router.Shards.Count();
-			});
-			Assert.IsTrue(receivedPackets == Router.Shards.Count());
+			
 		}
 
 		[TestMethod]
 		public void DistributedService_RouterServer_SendToAllShards_ExcludingOne_PacketsReceived() {
-			var data = GetTestString();
-			var packet = CreatePacket(data);
-
-			int receivedPackets = 0;
-			foreach (var shard in Shards)
-				shard.Router.RouteClient<TestPacket>(p => { receivedPackets++; });
-
-			Router.SendToShards(packet, Router.Shards.First());
-			WaitUntil(() => {
-				Update();
-				return receivedPackets == Router.Shards.Count() - 1;
-			});
-			Assert.IsTrue(receivedPackets == Router.Shards.Count() - 1);
+			
 		}
 
 		[TestMethod]
 		public void DistributedService_RouterServer_SendToAllShards_ExcludingMany_PacketsReceived() {
-			var data = GetTestString();
-			var packet = CreatePacket(data);
-
-			int receivedPackets = 0;
-			foreach (var shard in Shards)
-				shard.Router.RouteClient<TestPacket>(p => { receivedPackets++; });
-
-			Router.SendToShards(packet, Router.Shards.Take(2));
-			WaitUntil(() => {
-				Update();
-				return receivedPackets == Router.Shards.Count() - 2;
-			});
-			Assert.IsTrue(receivedPackets == Router.Shards.Count() - 2);
+			
 		}
 
 		[TestMethod]

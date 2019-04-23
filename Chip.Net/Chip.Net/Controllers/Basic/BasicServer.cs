@@ -34,7 +34,7 @@ namespace Chip.Net.Controllers.Basic
 
 			IsInitialized = true;
 			this.provider = provider;
-			this.Router = new PacketRouter(null, "");
+			this.Router = new PacketRouter(provider, this);
 			this.Context = context;
 			this.IsActive = false;
 
@@ -53,30 +53,9 @@ namespace Chip.Net.Controllers.Basic
 			provider.UserConnected += OnProviderUserConnected;
 			provider.UserDisconnected += OnProviderUserDisconnected;
 
-			provider.DataReceived += OnDataReceived;
-
 			provider.StartServer(Context);
 			Context.Services.StartServices();
 			IsActive = true;
-		}
-
-		protected virtual void OnDataReceived(object sender, ProviderDataEventArgs e) {
-			var buffer = e.Data;
-			if (buffer.GetLength() == 0)
-				return;
-
-			var user = userMap[e.UserKey];
-			var pid = buffer.ReadInt16();
-			var router = Router.ReadHeader(buffer);
-
-			var packet = Context.Packets.CreateFromId(pid);
-			packet.ReadFrom(buffer);
-
-			router.InvokeServer(packet, user);
-			PacketReceived?.Invoke(this, new NetEventArgs() {
-				User = user,
-				Packet = packet,
-			});
 		}
 
 		protected virtual void OnProviderUserConnected(object sender, ProviderUserEventArgs args) {
@@ -104,23 +83,6 @@ namespace Chip.Net.Controllers.Basic
 				return;
 
 			Context.Services.UpdateServices();
-			OutgoingMessage outgoing = null;
-			PacketRouter router = null;
-			while (((router, outgoing) = Router.Root.GetNextOutgoing()).Item1 != null) {
-				var pid = Context.Packets.GetID(outgoing.Data.GetType());
-				DataBuffer buffer = new DataBuffer();
-				buffer.Write((Int16)pid);
-				router.WriteHeader(buffer);
-				outgoing.Data.WriteTo(buffer);
-
-				var recipients = outgoing.Recipients;
-				if (recipients == null)
-					recipients = userList;
-
-				foreach (var recipient in recipients)
-					provider.SendMessage(recipient.UserKey, buffer);
-			}
-
 			provider.UpdateServer();
 		}
 
@@ -146,16 +108,6 @@ namespace Chip.Net.Controllers.Basic
 
 		public virtual IEnumerable<NetUser> GetUsers() {
 			return userList.AsReadOnly();
-		}
-
-		public virtual void SendPacket(Packet packet) {
-			foreach (var user in userList)
-				SendPacket(user, packet);
-		}
-
-		public virtual void SendPacket(NetUser user, Packet packet) {
-			OutgoingMessage msg = new OutgoingMessage(packet, user);
-			Router.QueueOutgoing(msg);
 		}
 		#endregion
 	}

@@ -78,7 +78,6 @@ namespace Chip.Net.Services.SharedData
 				msg.UserId = GetUserId(user);
 				msg.Key = key;
 				msg.Data = buffer.ToBytes();
-				SendPacketToClients(msg);
 			}
 
 			if(IsClient) {

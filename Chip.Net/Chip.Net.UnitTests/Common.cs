@@ -19,6 +19,8 @@ namespace Chip.Net.UnitTests {
 
 		private Queue<Packet> outQueue;
 
+		public MessageChannel<TestPacket> Channel { get; private set; }
+
 		public override void Dispose() {
 			base.Dispose();
 			Disposed = true;
@@ -30,11 +32,15 @@ namespace Chip.Net.UnitTests {
 			Initialized = true;
 
 			context.Packets.Register<TestPacket>();
-			if(Router != null)
-				Router.Route<TestPacket>(i => {
+
+			if (Router != null) {
+				Channel = Router.Route<TestPacket>();
+
+				Channel.Receive += (e) => {
 					Received = true;
-					ReceivedData = i.Data.data;
-				});
+					ReceivedData = e.Data.data;
+				};
+			}
 		}
 
 		public override void StartService() {
@@ -51,11 +57,6 @@ namespace Chip.Net.UnitTests {
 		public override void UpdateService() {
 			base.UpdateService();
 			Updated = true;
-		}
-
-		public void Send(TestPacket p, NetUser recipient = null) {
-			if (recipient != null) Router.QueueOutgoing(new OutgoingMessage(p, recipient));
-			else Router.QueueOutgoing(new OutgoingMessage(p));
 		}
 	}
 

@@ -11,18 +11,15 @@ namespace Chip.Net.Controllers.Distributed.Services.ModelTracking
     {
 		public ModelTrackerCollection<TModel> Models { get; set; }
 
+		private MessageChannel<AddModel> ChAddModel;
+		private MessageChannel<RemoveModel> ChRemoveModel;
+		private MessageChannel<UpdateModel> ChUpdateModel;
+		private MessageChannel<UpdateSet> ChUpdateSet;
+
 		public override void GlobalInitialize(NetContext context) {
 			base.GlobalInitialize(context);
 
-			Router.RouteServer<AddModel>(Server_OnAddModel);
-			Router.RouteServer<RemoveModel>(Server_OnRemoveModel);
-			Router.RouteServer<UpdateModel>(Server_UpdateModel);
-			Router.RouteServer<UpdateSet>(Server_UpdateSet);
-
-			Router.RouteClient<AddModel>(Client_OnAddModel);
-			Router.RouteClient<RemoveModel>(Client_OnRemoveModel);
-			Router.RouteClient<UpdateModel>(Client_UpdateModel);
-			Router.RouteClient<UpdateSet>(Client_UpdateSet);
+			throw new Exception("TODO: Create channels");
 		}
 
 		public override void InitializeContext(NetContext context) {

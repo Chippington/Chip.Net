@@ -14,13 +14,22 @@
         <FixtureName>Chip.Net.UnitTests.Providers.ProviderTestsTests</FixtureName>
       </FixtureTestSelector>
       <FixtureTestSelector>
-        <FixtureName>Chip.Net.UnitTests.Providers.DirectProviderTests</FixtureName>
-      </FixtureTestSelector>
-      <FixtureTestSelector>
         <FixtureName>Chip.Net.UnitTests.Providers.TCPProviderTests</FixtureName>
       </FixtureTestSelector>
       <FixtureTestSelector>
         <FixtureName>Chip.Net.UnitTests.Providers.UDPProviderTests</FixtureName>
+      </FixtureTestSelector>
+      <FixtureTestSelector>
+        <FixtureName>Chip.Net.UnitTests.Controllers.Distributed.RouterShardTests</FixtureName>
+      </FixtureTestSelector>
+      <FixtureTestSelector>
+        <FixtureName>Chip.Net.UnitTests.Controllers.Distributed.RouterUserTests</FixtureName>
+      </FixtureTestSelector>
+      <FixtureTestSelector>
+        <FixtureName>Chip.Net.UnitTests.Controllers.Distributed.Services.DistributedServiceInitializationTests</FixtureName>
+      </FixtureTestSelector>
+      <FixtureTestSelector>
+        <FixtureName>Chip.Net.UnitTests.Controllers.Distributed.Services.DistributedServiceIntegrationTests</FixtureName>
       </FixtureTestSelector>
     </IgnoredTests>
   </Settings>

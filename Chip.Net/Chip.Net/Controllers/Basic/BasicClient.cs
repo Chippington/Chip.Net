@@ -32,7 +32,7 @@ namespace Chip.Net.Controllers.Basic
 			IsInitialized = true;
 			this.provider = provider;
 			this.IsConnected = false;
-			this.Router = new PacketRouter(null, "");
+			this.Router = new PacketRouter(provider, this);
 			this.Context = context;
 			disposed = false;
 
@@ -43,28 +43,8 @@ namespace Chip.Net.Controllers.Basic
 			provider.UserConnected += (s, i) => { IsConnected = true; OnConnected?.Invoke(this, new NetEventArgs()); };
 			provider.UserDisconnected += (s, i) => { IsConnected = false; OnDisconnected?.Invoke(this, new NetEventArgs()); };
 
-			provider.DataReceived += OnDataReceived;
-
 			Context.Services.StartServices();
 			provider.Connect(Context);
-		}
-
-		protected virtual void OnDataReceived(object sender, ProviderDataEventArgs e) {
-			var msg = e.Data;
-			if (msg.GetLength() == 0)
-				return;
-
-			var buffer = msg;
-			var pid = buffer.ReadInt16();
-			var router = Router.ReadHeader(buffer);
-
-			var packet = Context.Packets.CreateFromId(pid);
-			packet.ReadFrom(buffer);
-
-			router.InvokeClient(packet);
-			OnPacketReceived?.Invoke(this, new NetEventArgs() {
-				Packet = packet,
-			});
 		}
 
 		public virtual void StopClient() {
@@ -75,23 +55,7 @@ namespace Chip.Net.Controllers.Basic
 
 		public virtual void UpdateClient() {
 			Context.Services.UpdateServices();
-			OutgoingMessage outgoing = null;
-			PacketRouter router = null;
-
-			while (((router, outgoing) = Router.Root.GetNextOutgoing()).Item1 != null) {
-				var pid = Context.Packets.GetID(outgoing.Data.GetType());
-				DataBuffer buffer = new DataBuffer();
-				buffer.Write((Int16)pid);
-				router.WriteHeader(buffer);
-				outgoing.Data.WriteTo(buffer);
-				provider.SendMessage(buffer);
-			}
-
 			provider.UpdateClient();
-		}
-
-		public virtual void SendPacket(Packet packet) {
-			Router.QueueOutgoing(new OutgoingMessage(packet));
 		}
 
 		public virtual void Dispose() {

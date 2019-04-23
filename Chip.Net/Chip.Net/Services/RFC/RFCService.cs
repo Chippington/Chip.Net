@@ -29,8 +29,8 @@ namespace Chip.Net.Services.RFC {
 		private Dictionary<byte, Type[]> clTypeMap;
 
 		private Dictionary<byte, bool> useContextMap;
-
 		private List<NetUser> userList;
+		private MessageChannel<RFCExecute> ChRFCExecute;
 
 		public RFCService() {
 			useContextMap = new Dictionary<byte, bool>();
@@ -45,9 +45,8 @@ namespace Chip.Net.Services.RFC {
 
 		public override void InitializeService(NetContext context) {
 			base.InitializeService(context);
-
 			context.Packets.Register<RFCExecute>();
-			Router.Route<RFCExecute>(onExecute);
+			ChRFCExecute = Router.Route<RFCExecute>();
 
 			if (IsServer) {
 				Server.NetUserConnected += (s, arg) => {
@@ -147,7 +146,7 @@ namespace Chip.Net.Services.RFC {
 					var _useContext = useContextMap[msg.FunctionId];
 					WriteModelsToBuffer(buff, param, _useContext);
 					msg.FunctionParameters = buff.ToBytes();
-					SendPacket(msg);
+					ChRFCExecute.Send(new OutgoingMessage(msg));
 				}
 			};
 
@@ -178,7 +177,7 @@ namespace Chip.Net.Services.RFC {
 					msg.FunctionParameters = buff.ToBytes();
 
 					var user = GetCurrentUser();
-					SendPacket(msg, user);
+					ChRFCExecute.Send(new OutgoingMessage(msg, user));
 				}
 			};
 

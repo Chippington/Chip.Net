@@ -25,7 +25,7 @@ namespace Chip.Net.UnitTests.Controllers.Distributed
 			return ctx;
 		}
 
-		protected override INetServerController StartNewServer() {
+		protected override ServerWrapper StartNewServer() {
 			var ctx = CreateContext();
 			Router = new RouterServer<TestRouterModel, TestShardModel, TestUserModel>();
 			Router.InitializeServer(ctx, new DirectServerProvider(), 0, new	DirectServerProvider(), 1);
@@ -38,23 +38,22 @@ namespace Chip.Net.UnitTests.Controllers.Distributed
 				routerMap.Add(Router.UserContext.ApplicationName + "USER", Router);
 			}
 
-			return Router.ShardController;
+			return null;
 		}
 
-		protected override INetServerController NewServer() {
-			return default(INetServerController);
+		protected override ServerWrapper NewServer() {
+			return default(ServerWrapper);
 		}
 
-		protected override INetClientController StartNewClient() {
+		protected override ClientWrapper StartNewClient() {
 			var cl = NewClient();
-			cl.StartClient();
-			return cl;
+			return null;
 		}
 
-		protected override INetClientController NewClient() {
+		protected override ClientWrapper NewClient() {
 			var cl = Activator.CreateInstance<TClient>();
 			cl.InitializeClient(CreateContext(), new DirectClientProvider());
-			return cl;
+			return null;
 		}
 
 		protected override void UpdateClient(TClient client) {

@@ -49,11 +49,12 @@ namespace Chip.Net.Providers.Direct
 		public void TryConnectClient(DirectClientProvider client) {
 			if(AcceptIncomingConnections) {
 				Clients.Add(client);
-				client.AcceptConnection(this);
 
 				UserConnected?.Invoke(this, new ProviderUserEventArgs() {
 					UserKey = client,
 				});
+
+				client.AcceptConnection(this);
 			} else {
 				client.RejectConnection(this);
 			}

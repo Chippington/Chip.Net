@@ -19,6 +19,9 @@ namespace Chip.Net.Services.NetTime {
 			}
 		}
 
+		MessageChannel<P_SetNetTime> ChSetNetTime;
+		MessageChannel<P_GetNetTime> ChGetNetTime;
+
 		public override void InitializeService(NetContext context) {
 			base.InitializeService(context);
 			clientTimer = new Stopwatch();
@@ -31,8 +34,8 @@ namespace Chip.Net.Services.NetTime {
 			context.Packets.Register<P_GetNetTime>();
 			context.Packets.Register<P_SetNetTime>();
 
-			Router.RouteClient<P_SetNetTime>(OnSetNetTime);
-			Router.RouteServer<P_GetNetTime>(OnGetNetTime);
+			ChSetNetTime = Router.Route<P_SetNetTime>();
+			ChGetNetTime = Router.Route<P_GetNetTime>();
 		}
 
 		private void OnSetNetTime(IncomingMessage<P_SetNetTime> obj) {
@@ -46,14 +49,15 @@ namespace Chip.Net.Services.NetTime {
 				pingTimer.Reset();
 				pingTimer.Start();
 				P_GetNetTime msg = new P_GetNetTime();
-				SendPacket(msg);
+				ChGetNetTime.Send(new OutgoingMessage(msg));
 			});
 		}
 
 		private void OnGetNetTime(IncomingMessage<P_GetNetTime> obj) {
 			P_SetNetTime reply = new P_SetNetTime();
 			reply.NetTime = GetNetTime();
-			SendPacket(reply, obj.Sender);
+
+			ChSetNetTime.Send(new OutgoingMessage(reply, obj.Sender));
 		}
 
 		public override void StartService() {
@@ -71,7 +75,7 @@ namespace Chip.Net.Services.NetTime {
 
 		private void OnConnected(object sender, NetEventArgs args) {
 			P_GetNetTime msg = new P_GetNetTime();
-			SendPacket(msg);
+			ChGetNetTime.Send(new OutgoingMessage(msg));
 
 			pingTimer.Reset();
 			pingTimer.Start();

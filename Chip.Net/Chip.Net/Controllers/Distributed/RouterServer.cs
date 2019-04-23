@@ -126,9 +126,7 @@ namespace Chip.Net.Controllers.Distributed
 			SetShard(e.User, shard);
 			ShardConnectedEvent?.Invoke(this, shard);
 
-			SendToShard(shard, new SetShardModelPacket<TShard>() {
-				Model = shard,
-			});
+			throw new Exception("TODO: Implement set shard model");
 		}
 
 		private void OnShardDisconnected(object sender, NetEventArgs e) {
@@ -155,9 +153,7 @@ namespace Chip.Net.Controllers.Distributed
 			SetUserModel(e.User, user);
 			UserConnectedEvent?.Invoke(this, user);
 
-			SendToUser(user, new SetUserModelPacket<TUser>() {
-				Model = user
-			});
+			throw new Exception("TODO: Implement set user model");
 		}
 
 		private void OnUserDisconnected(object sender, NetEventArgs e) {
@@ -226,50 +222,6 @@ namespace Chip.Net.Controllers.Distributed
 				return null;
 
 			return userToNetUser[user];
-		}
-
-		public void SendToShard(TShard Shard, Packet Pack) {
-			var netUser = GetNetUser(Shard);
-			ShardController.SendPacket(netUser, Pack);
-		}
-
-		public void SendToShards(Packet Pack) {
-			foreach (var shard in Shards)
-				SendToShard(shard, Pack);
-		}
-
-		public void SendToShards(Packet Pack, TShard Exclude) {
-			foreach (var shard in Shards)
-				if (shard.Equals(Exclude) == false)
-					SendToShard(shard, Pack);
-		}
-
-		public void SendToShards(Packet Pack, IEnumerable<TShard> Exclude) {
-			foreach (var shard in Shards)
-				if (Exclude == null || Exclude.Contains(shard) == false)
-					SendToShard(shard, Pack);
-		}
-
-		public void SendToUser(TUser User, Packet Pack) {
-			var netUser = GetNetUser(User);
-			UserController.SendPacket(netUser, Pack);
-		}
-
-		public void SendToUsers(Packet Pack) {
-			foreach (var user in Users)
-				SendToUser(user, Pack);
-		}
-
-		public void SendToUsers(Packet Pack, TUser Exclude) {
-			foreach (var user in Users)
-				if(user.Equals(Exclude) == false)
-					SendToUser(user, Pack);
-		}
-
-		public void SendToUsers(Packet Pack, IEnumerable<TUser> Exclude) {
-			foreach (var user in Users)
-				if (Exclude == null || Exclude.Contains(user) == false)
-					SendToUser(user, Pack);
 		}
 
 		public void Shutdown()

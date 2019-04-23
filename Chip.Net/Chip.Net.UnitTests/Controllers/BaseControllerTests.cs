@@ -13,6 +13,16 @@ namespace Chip.Net.UnitTests.Controllers {
 		where TServer : class, INetServerController
 		where TClient : class, INetClientController {
 
+		public class ServerWrapper {
+			public INetServerController Server { get; set; }
+			public MessageChannel<TestPacket> Channel { get; set; }
+		}
+
+		public class ClientWrapper {
+			public INetClientController Client { get; set; }
+			public MessageChannel<TestPacket> Channel { get; set; }
+		}
+
 		private int _port = 0;
 		private int Port {
 			get {
@@ -35,28 +45,38 @@ namespace Chip.Net.UnitTests.Controllers {
 			}
 		}
 
-		protected virtual INetServerController StartNewServer() {
+		protected virtual ServerWrapper StartNewServer() {
 			var sv = NewServer();
-			sv.StartServer();
+			sv.Server.StartServer();
 			return sv;
 		}
 
-		protected virtual INetServerController NewServer() {
+		protected virtual ServerWrapper NewServer() {
 			var sv = Activator.CreateInstance<TServer>();
 			sv.InitializeServer(Context, new DirectServerProvider());
-			return sv;
+			var ch = sv.Router.Route<TestPacket>();
+
+			return new ServerWrapper() {
+				Server = sv,
+				Channel = ch,
+			};
 		}
 
-		protected virtual INetClientController StartNewClient() {
+		protected virtual ClientWrapper StartNewClient() {
 			var cl = NewClient();
-			cl.StartClient();
+			cl.Client.StartClient();
 			return cl;
 		}
 
-		protected virtual INetClientController NewClient() {
+		protected virtual ClientWrapper NewClient() {
 			var cl = Activator.CreateInstance<TClient>();
 			cl.InitializeClient(Context, new DirectClientProvider());
-			return cl;
+			var ch = cl.Router.Route<TestPacket>();
+
+			return new ClientWrapper() {
+				Client = cl,
+				Channel = ch,
+			};
 		}
 
 		protected virtual void Wait(Func<bool> func, int ticks = 1000) {
@@ -76,20 +96,20 @@ namespace Chip.Net.UnitTests.Controllers {
 		[TestMethod]
 		public virtual void Server_StartServer_RouterNotNull() {
 			var sv = StartNewServer();
-			Assert.IsNotNull(sv.Router);
+			Assert.IsNotNull(sv.Server.Router);
 		}
 
 		[TestMethod]
 		public virtual void Client_StartClient_RouterNotNull() {
 			var sv = StartNewServer();
 			var cl = StartNewClient();
-			Assert.IsNotNull(cl.Router);
+			Assert.IsNotNull(cl.Client.Router);
 		}
 
 		[TestMethod]
 		public virtual void Server_StartServer_IsActive() {
 			var sv = StartNewServer();
-			Assert.IsTrue(sv.IsActive);
+			Assert.IsTrue(sv.Server.IsActive);
 		}
 
 		[TestMethod]
@@ -98,12 +118,12 @@ namespace Chip.Net.UnitTests.Controllers {
 			var cl = StartNewClient();
 
 			Wait(() => {
-				UpdateServer(sv as TServer);
-				UpdateClient(cl as TClient);
-				return cl.IsConnected;
+				UpdateServer(sv.Server as TServer);
+				UpdateClient(cl.Client as TClient);
+				return cl.Client.IsConnected;
 			});
 
-			Assert.IsTrue(cl.IsConnected);
+			Assert.IsTrue(cl.Client.IsConnected);
 		}
 
 		[TestMethod]
@@ -111,24 +131,24 @@ namespace Chip.Net.UnitTests.Controllers {
 			var sv = StartNewServer();
 			bool eventInvoked = false;
 			NetUser user = null;
-			sv.NetUserConnected += (s, i) => { user = i.User; eventInvoked = true; };
+			sv.Server.NetUserConnected += (s, i) => { user = i.User; eventInvoked = true; };
 
 
 			var cl = StartNewClient();
 			Wait(() => {
-				UpdateServer(sv as TServer);
-				UpdateClient(cl as TClient);
-				return cl.IsConnected;
+				UpdateServer(sv.Server as TServer);
+				UpdateClient(cl.Client as TClient);
+				return cl.Client.IsConnected;
 			});
 
 			Wait(() => {
-				UpdateServer(sv as TServer);
-				UpdateClient(cl as TClient);
+				UpdateServer(sv.Server as TServer);
+				UpdateClient(cl.Client as TClient);
 				return eventInvoked;
 			});
 
 			Assert.IsNotNull(user);
-			Assert.IsTrue(cl.IsConnected);
+			Assert.IsTrue(cl.Client.IsConnected);
 			Assert.IsTrue(eventInvoked);
 		}
 
@@ -138,27 +158,27 @@ namespace Chip.Net.UnitTests.Controllers {
 			bool eventInvoked = false;
 			NetUser user1 = null;
 			NetUser user2 = null;
-			sv.NetUserConnected += (s, i) => { user1 = i.User; };
-			sv.NetUserDisconnected += (s, i) => { user2 = i.User; eventInvoked = true; };
+			sv.Server.NetUserConnected += (s, i) => { user1 = i.User; };
+			sv.Server.NetUserDisconnected += (s, i) => { user2 = i.User; eventInvoked = true; };
 
 			var cl = StartNewClient();
 			Wait(() => {
-				UpdateServer(sv as TServer);
-				UpdateClient(cl as TClient);
-				return cl.IsConnected;
+				UpdateServer(sv.Server as TServer);
+				UpdateClient(cl.Client as TClient);
+				return cl.Client.IsConnected;
 			});
 
-			cl.StopClient();
+			cl.Client.StopClient();
 
 			Wait(() => {
-				UpdateServer(sv as TServer);
-				UpdateClient(cl as TClient);
+				UpdateServer(sv.Server as TServer);
+				UpdateClient(cl.Client as TClient);
 				return eventInvoked;
 			});
 
 			Assert.IsNotNull(user1);
 			Assert.AreEqual(user1, user2);
-			Assert.IsTrue(cl.IsConnected == false);
+			Assert.IsTrue(cl.Client.IsConnected == false);
 			Assert.IsTrue(eventInvoked);
 		}
 
@@ -167,22 +187,22 @@ namespace Chip.Net.UnitTests.Controllers {
 			var sv = StartNewServer();
 			var cl = NewClient();
 			bool eventInvoked = false;
-			cl.OnConnected += (s, i) => { eventInvoked = true; };
-			cl.StartClient();
+			cl.Client.OnConnected += (s, i) => { eventInvoked = true; };
+			cl.Client.StartClient();
 
 			Wait(() => {
-				UpdateServer(sv as TServer);
-				UpdateClient(cl as TClient);
-				return cl.IsConnected;
+				UpdateServer(sv.Server as TServer);
+				UpdateClient(cl.Client as TClient);
+				return cl.Client.IsConnected;
 			});
 
 			Wait(() => {
-				UpdateServer(sv as TServer);
-				UpdateClient(cl as TClient);
+				UpdateServer(sv.Server as TServer);
+				UpdateClient(cl.Client as TClient);
 				return eventInvoked;
 			});
 
-			Assert.IsTrue(cl.IsConnected);
+			Assert.IsTrue(cl.Client.IsConnected);
 			Assert.IsTrue(eventInvoked);
 		}
 
@@ -191,24 +211,24 @@ namespace Chip.Net.UnitTests.Controllers {
 			var sv = StartNewServer();
 			var cl = NewClient();
 			bool eventInvoked = false;
-			cl.OnDisconnected += (s, i) => { eventInvoked = true; };
-			cl.StartClient();
+			cl.Client.OnDisconnected += (s, i) => { eventInvoked = true; };
+			cl.Client.StartClient();
 
 			Wait(() => {
-				UpdateServer(sv as TServer);
-				UpdateClient(cl as TClient);
-				return cl.IsConnected;
+				UpdateServer(sv.Server as TServer);
+				UpdateClient(cl.Client as TClient);
+				return cl.Client.IsConnected;
 			});
 
-			cl.StopClient();
+			cl.Client.StopClient();
 
 			Wait(() => {
-				UpdateServer(sv as TServer);
-				UpdateClient(cl as TClient);
+				UpdateServer(sv.Server as TServer);
+				UpdateClient(cl.Client as TClient);
 				return eventInvoked;
 			});
 
-			Assert.IsTrue(cl.IsConnected == false);
+			Assert.IsTrue(cl.Client.IsConnected == false);
 			Assert.IsTrue(eventInvoked);
 		}
 
@@ -216,125 +236,125 @@ namespace Chip.Net.UnitTests.Controllers {
 		public virtual void Server_ClientConnected_HasUser() {
 			var sv = StartNewServer();
 			NetUser user = null;
-			sv.NetUserConnected += (s, i) => {
+			sv.Server.NetUserConnected += (s, i) => {
 				user = i.User;
 			};
 
 			var cl = StartNewClient();
 
 			Wait(() => {
-				UpdateServer(sv as TServer);
-				UpdateClient(cl as TClient);
-				return cl.IsConnected;
+				UpdateServer(sv.Server as TServer);
+				UpdateClient(cl.Client as TClient);
+				return cl.Client.IsConnected;
 			});
 
 			Assert.IsNotNull(user);
-			Assert.IsTrue(sv.GetUsers().Count() == 1);
-			Assert.AreEqual(sv.GetUsers().First(), user);
+			Assert.IsTrue(sv.Server.GetUsers().Count() == 1);
+			Assert.AreEqual(sv.Server.GetUsers().First(), user);
 		}
 
 		[TestMethod]
 		public virtual void Server_InitializeServer_HasContext() {
 			var sv = StartNewServer();
-			Assert.IsNotNull(sv.Context);
+			Assert.IsNotNull(sv.Server.Context);
 		}
 
 		[TestMethod]
 		public virtual void Client_InitializeClient_HasContext() {
 			var cl = NewClient();
-			Assert.IsNotNull(cl.Context);
+			Assert.IsNotNull(cl.Client.Context);
 		}
 
 		[TestMethod]
 		public virtual void Server_InitializeServer_ContextLocked() {
 			var sv = StartNewServer();
-			Assert.IsTrue(sv.Context.IsLocked);
+			Assert.IsTrue(sv.Server.Context.IsLocked);
 		}
 
 		[TestMethod]
 		public virtual void Server_StartServer_ServicesStarted() {
 			var sv = StartNewServer();
-			Assert.IsTrue(sv.Context.Services.Get<TestNetService>().Started);
+			Assert.IsTrue(sv.Server.Context.Services.Get<TestNetService>().Started);
 		}
 
 		[TestMethod]
 		public virtual void Server_UpdateServer_ServicesUpdated() {
 			var sv = StartNewServer();
-			UpdateServer(sv as TServer);
-			Assert.IsTrue(sv.Context.Services.Get<TestNetService>().Updated);
+			UpdateServer(sv.Server as TServer);
+			Assert.IsTrue(sv.Server.Context.Services.Get<TestNetService>().Updated);
 
 		}
 
 		[TestMethod]
 		public virtual void Server_StopServer_ServicesStopped() {
 			var sv = StartNewServer();
-			UpdateServer(sv as TServer);
-			sv.StopServer();
-			Assert.IsTrue(sv.Context.Services.Get<TestNetService>().Stopped);
+			UpdateServer(sv.Server as TServer);
+			sv.Server.StopServer();
+			Assert.IsTrue(sv.Server.Context.Services.Get<TestNetService>().Stopped);
 		}
 
 		[TestMethod]
 		public virtual void Server_DisposeServer_ServicesDisposed() {
 			var sv = StartNewServer();
-			var svc = sv.Context.Services.Get<TestNetService>();
-			UpdateServer(sv as TServer);
-			sv.StopServer();
-			sv.Dispose();
+			var svc = sv.Server.Context.Services.Get<TestNetService>();
+			UpdateServer(sv.Server as TServer);
+			sv.Server.StopServer();
+			sv.Server.Dispose();
 			Assert.IsTrue(svc.Disposed);
 		}
 
 		[TestMethod]
 		public virtual void Client_InitializeClient_ContextLocked() {
 			var cl = NewClient();
-			Assert.IsTrue(cl.Context.IsLocked);
+			Assert.IsTrue(cl.Client.Context.IsLocked);
 		}
 
 		[TestMethod]
 		public virtual void Server_InitializeServer_ServicesInitialized() {
 			var sv = StartNewServer();
 			var cl = NewClient();
-			Assert.IsTrue(sv.Context.Services.Get<TestNetService>().Initialized);
+			Assert.IsTrue(sv.Server.Context.Services.Get<TestNetService>().Initialized);
 		}
 
 		[TestMethod]
 		public virtual void Client_InitializeClient_ServicesInitialized() {
 			var sv = StartNewServer();
 			var cl = NewClient();
-			Assert.IsTrue(cl.Context.Services.Get<TestNetService>().Initialized);
+			Assert.IsTrue(cl.Client.Context.Services.Get<TestNetService>().Initialized);
 		}
 
 		[TestMethod]
 		public virtual void Client_StartClient_ServicesStarted() {
 			var sv = StartNewServer();
 			var cl = StartNewClient();
-			Assert.IsTrue(cl.Context.Services.Get<TestNetService>().Started);
+			Assert.IsTrue(cl.Client.Context.Services.Get<TestNetService>().Started);
 		}
 
 		[TestMethod]
 		public virtual void Client_UpdateClient_ServicesUpdated() {
 			var sv = StartNewServer();
 			var cl = StartNewClient();
-			UpdateClient(cl as TClient);
-			Assert.IsTrue(cl.Context.Services.Get<TestNetService>().Updated);
+			UpdateClient(cl.Client as TClient);
+			Assert.IsTrue(cl.Client.Context.Services.Get<TestNetService>().Updated);
 		}
 
 		[TestMethod]
 		public virtual void Client_StopClient_ServicesStopped() {
 			var sv = StartNewServer();
 			var cl = StartNewClient();
-			UpdateClient(cl as TClient);
-			cl.StopClient();
-			Assert.IsTrue(cl.Context.Services.Get<TestNetService>().Stopped);
+			UpdateClient(cl.Client as TClient);
+			cl.Client.StopClient();
+			Assert.IsTrue(cl.Client.Context.Services.Get<TestNetService>().Stopped);
 		}
 
 		[TestMethod]
 		public virtual void Client_DisposeClient_ServicesDisposed() {
 			var sv = StartNewServer();
 			var cl = StartNewClient();
-			var svc = cl.Context.Services.Get<TestNetService>();
-			UpdateClient(cl as TClient);
-			cl.StopClient();
-			cl.Dispose();
+			var svc = cl.Client.Context.Services.Get<TestNetService>();
+			UpdateClient(cl.Client as TClient);
+			cl.Client.StopClient();
+			cl.Client.Dispose();
 			Assert.IsTrue(svc.Disposed);
 		}
 
@@ -342,29 +362,29 @@ namespace Chip.Net.UnitTests.Controllers {
 		public virtual void Server_SendPacket_ClientReceivesPacket() {
 			var sv = StartNewServer();
 			NetUser user = null;
-			sv.NetUserConnected += (s, i) => {
+			sv.Server.NetUserConnected += (s, i) => {
 				user = i.User;
 			};
 
 			var cl = StartNewClient();
 			bool received = false;
 
-			cl.Router.RouteClient<TestPacket>(i => {
+			cl.Channel.Receive += (e) => {
 				received = true;
-			});
+			};
 
 			Wait(() => {
-				UpdateServer(sv as TServer);
-				UpdateClient(cl as TClient);
-				return cl.IsConnected;
+				UpdateServer(sv.Server as TServer);
+				UpdateClient(cl.Client as TClient);
+				return cl.Client.IsConnected;
 			});
 
 			Assert.IsNotNull(user);
-			sv.SendPacket(new TestPacket());
+			sv.Channel.Send(new OutgoingMessage(new TestPacket()));
 
 			Wait(() => {
-				UpdateServer(sv as TServer);
-				UpdateClient(cl as TClient);
+				UpdateServer(sv.Server as TServer);
+				UpdateClient(cl.Client as TClient);
 				return received;
 			});
 
@@ -375,29 +395,29 @@ namespace Chip.Net.UnitTests.Controllers {
 		public virtual void Server_SendPacketToUser_ClientReceivesPacket() {
 			var sv = StartNewServer();
 			NetUser user = null;
-			sv.NetUserConnected += (s, i) => {
+			sv.Server.NetUserConnected += (s, i) => {
 				user = i.User;
 			};
 
 			var cl = StartNewClient();
 			bool received = false;
 
-			cl.Router.RouteClient<TestPacket>(i => {
+			cl.Channel.Receive += (e) => {
 				received = true;
-			});
+			};
 
 			Wait(() => {
-				UpdateServer(sv as TServer);
-				UpdateClient(cl as TClient);
-				return cl.IsConnected;
+				UpdateServer(sv.Server as TServer);
+				UpdateClient(cl.Client as TClient);
+				return cl.Client.IsConnected;
 			});
 
 			Assert.IsNotNull(user);
-			sv.SendPacket(user, new TestPacket());
+			sv.Channel.Send(new OutgoingMessage(new TestPacket(), user));
 
 			Wait(() => {
-				UpdateServer(sv as TServer);
-				UpdateClient(cl as TClient);
+				UpdateServer(sv.Server as TServer);
+				UpdateClient(cl.Client as TClient);
 				return received;
 			});
 
@@ -410,21 +430,21 @@ namespace Chip.Net.UnitTests.Controllers {
 			var cl = StartNewClient();
 			bool received = false;
 
-			sv.Router.RouteServer<TestPacket>(i => {
+			sv.Channel.Receive += (e) => {
 				received = true;
-			});
+			};
 
 			Wait(() => {
-				UpdateServer(sv as TServer);
-				UpdateClient(cl as TClient);
-				return cl.IsConnected;
+				UpdateServer(sv.Server as TServer);
+				UpdateClient(cl.Client as TClient);
+				return cl.Client.IsConnected;
 			});
 
-			cl.SendPacket(new TestPacket());
+			cl.Channel.Send(new OutgoingMessage(new TestPacket()));
 
 			Wait(() => {
-				UpdateServer(sv as TServer);
-				UpdateClient(cl as TClient);
+				UpdateServer(sv.Server as TServer);
+				UpdateClient(cl.Client as TClient);
 				return received;
 			});
 
@@ -435,7 +455,7 @@ namespace Chip.Net.UnitTests.Controllers {
 		public virtual void Client_SendPacket_PacketHasRecipient() {
 			var sv = StartNewServer();
 			NetUser user = null;
-			sv.NetUserConnected += (s, i) => {
+			sv.Server.NetUserConnected += (s, i) => {
 				user = i.User;
 			};
 
@@ -443,22 +463,23 @@ namespace Chip.Net.UnitTests.Controllers {
 			bool received = false;
 			NetUser user2 = null;
 
-			sv.Router.RouteServer<TestPacket>(i => {
+			sv.Channel.Receive += (e) => {
 				received = true;
-				user2 = i.Sender;
-			});
+				user2 = e.Sender;
+
+			};
 
 			Wait(() => {
-				UpdateServer(sv as TServer);
-				UpdateClient(cl as TClient);
-				return cl.IsConnected;
+				UpdateServer(sv.Server as TServer);
+				UpdateClient(cl.Client as TClient);
+				return cl.Client.IsConnected;
 			});
 
-			cl.SendPacket(new TestPacket());
+			cl.Channel.Send(new OutgoingMessage(new TestPacket()));
 
 			Wait(() => {
-				UpdateServer(sv as TServer);
-				UpdateClient(cl as TClient);
+				UpdateServer(sv.Server as TServer);
+				UpdateClient(cl.Client as TClient);
 				return received;
 			});
 
@@ -474,20 +495,20 @@ namespace Chip.Net.UnitTests.Controllers {
 			string data = "Hello world" + Port;
 
 			Wait(() => {
-				UpdateServer(sv as TServer);
-				UpdateClient(cl as TClient);
-				return cl.IsConnected;
+				UpdateServer(sv.Server as TServer);
+				UpdateClient(cl.Client as TClient);
+				return cl.Client.IsConnected;
 			});
 
-			var cl_svc = cl.Context.Services.Get<TestNetService>();
-			var sv_svc = sv.Context.Services.Get<TestNetService>();
-			sv_svc.Send(new TestPacket() {
+			var cl_svc = cl.Client.Context.Services.Get<TestNetService>();
+			var sv_svc = sv.Server.Context.Services.Get<TestNetService>();
+			sv_svc.Channel.Send(new OutgoingMessage(new TestPacket() {
 				data = data,
-			});
+			}));
 
 			Wait(() => {
-				UpdateServer(sv as TServer);
-				UpdateClient(cl as TClient);
+				UpdateServer(sv.Server as TServer);
+				UpdateClient(cl.Client as TClient);
 				return cl_svc.Received;
 			});
 
@@ -502,20 +523,20 @@ namespace Chip.Net.UnitTests.Controllers {
 			string data = "Hello world" + Port;
 
 			Wait(() => {
-				UpdateServer(sv as TServer);
-				UpdateClient(cl as TClient);
-				return cl.IsConnected;
+				UpdateServer(sv.Server as TServer);
+				UpdateClient(cl.Client as TClient);
+				return cl.Client.IsConnected;
 			});
 
-			var cl_svc = cl.Context.Services.Get<TestNetService>();
-			var sv_svc = sv.Context.Services.Get<TestNetService>();
-			sv_svc.Send(new TestPacket() {
+			var cl_svc = cl.Client.Context.Services.Get<TestNetService>();
+			var sv_svc = sv.Server.Context.Services.Get<TestNetService>();
+			sv_svc.Channel.Send(new OutgoingMessage(new TestPacket() {
 				data = data,
-			}, sv.GetUsers().First());
+			}, sv.Server.GetUsers().First()));
 
 			Wait(() => {
-				UpdateServer(sv as TServer);
-				UpdateClient(cl as TClient);
+				UpdateServer(sv.Server as TServer);
+				UpdateClient(cl.Client as TClient);
 				return cl_svc.Received;
 			});
 
@@ -530,20 +551,20 @@ namespace Chip.Net.UnitTests.Controllers {
 			string data = "Hello world" + Port;
 
 			Wait(() => {
-				UpdateServer(sv as TServer);
-				UpdateClient(cl as TClient);
-				return cl.IsConnected;
+				UpdateServer(sv.Server as TServer);
+				UpdateClient(cl.Client as TClient);
+				return cl.Client.IsConnected;
 			});
 
-			var cl_svc = cl.Context.Services.Get<TestNetService>();
-			var sv_svc = sv.Context.Services.Get<TestNetService>();
-			cl_svc.Send(new TestPacket() {
+			var cl_svc = cl.Client.Context.Services.Get<TestNetService>();
+			var sv_svc = sv.Server.Context.Services.Get<TestNetService>();
+			cl_svc.Channel.Send(new OutgoingMessage(new TestPacket() {
 				data = data,
-			});
+			}));
 
 			Wait(() => {
-				UpdateServer(sv as TServer);
-				UpdateClient(cl as TClient);
+				UpdateServer(sv.Server as TServer);
+				UpdateClient(cl.Client as TClient);
 				return sv_svc.Received;
 			});
 
@@ -554,15 +575,15 @@ namespace Chip.Net.UnitTests.Controllers {
 		[TestMethod]
 		public virtual void Server_InitializeServer_ServiceIsServerTrue() {
 			var sv = StartNewServer();
-			Assert.IsTrue(sv.Context.Services.Get<TestNetService>().IsServer);
-			Assert.IsFalse(sv.Context.Services.Get<TestNetService>().IsClient);
+			Assert.IsTrue(sv.Server.Context.Services.Get<TestNetService>().IsServer);
+			Assert.IsFalse(sv.Server.Context.Services.Get<TestNetService>().IsClient);
 		}
 
 		[TestMethod]
 		public virtual void Client_InitializeClient_ServiceIsServerFalse() {
 			var cl = NewClient();
-			Assert.IsTrue(cl.Context.Services.Get<TestNetService>().IsClient);
-			Assert.IsFalse(cl.Context.Services.Get<TestNetService>().IsServer);
+			Assert.IsTrue(cl.Client.Context.Services.Get<TestNetService>().IsClient);
+			Assert.IsFalse(cl.Client.Context.Services.Get<TestNetService>().IsServer);
 		}
 	}
 }

@@ -12,7 +12,7 @@ namespace Chip.Net.Controllers.Distributed.Services
 		public bool IsUser { get; set; }
 		public bool IsRouter { get; set; }
 
-		public PacketRouter Router { get; private set; }
+		public PacketRouter Router { get => throw new Exception("Use server/client router"); }
 		public INetServerController Server { get; set; }
 		public INetClientController Client { get; set; }
 
@@ -29,8 +29,6 @@ namespace Chip.Net.Controllers.Distributed.Services
 		public void InitializeService(NetContext context) {
 			InitializeContext(context);
 			if (Initialized == false) {
-				Router = new PacketRouter(null, "");
-
 				GlobalInitialize(context);
 				Initialized = true;
 			}

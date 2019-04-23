@@ -6,157 +6,14 @@ using System.Linq;
 using System.Text;
 
 namespace Chip.Net.Data {
-	internal class Callback {
-		private Type type;
-		private Action<IncomingMessage> callback;
-		public Callback(Type type, Action<IncomingMessage> callback) {
-			this.callback = callback;
-			this.type = type;
-		}
-
-		public virtual void Invoke(Packet packet, NetUser sender) {
-			IncomingMessage msg = new IncomingMessage();
-			msg.Data = packet;
-			msg.Sender = sender;
-			callback.Invoke(msg);
-		}
-	}
-
-	internal class Callback<T> : Callback where T : Packet {
-		private Action<IncomingMessage<T>> callback;
-		public Callback(Action<IncomingMessage<T>> callback) : base(typeof(T), i => callback(new IncomingMessage<T>() { Data = (T)i.Data, Sender = i.Sender })) {
-			this.callback = callback;
-		}
-
-		public override void Invoke(Packet packet, NetUser sender) {
-			base.Invoke(packet, sender);
-		}
-	}
-
-	public class PacketRouter {
-		public PacketRouter Parent { get; private set; }
-		public PacketRouter Root {
-			get {
-				var cur = this;
-				while (cur.Parent != null) cur = cur.Parent;
-				return cur;
-			}
-		}
-
-		public PacketRouter[] Routers { get; private set; }
-		private string orderKey;
-		private int routerId;
-
-		private Dictionary<Type, List<Callback>> clientRouteMap;
-		private Dictionary<Type, List<Callback>> serverRouteMap;
-
-		private Queue<(PacketRouter, OutgoingMessage)> outgoing;
-
-		public PacketRouter(PacketRouter parent, string orderKey) {
-			this.Parent = parent;
-			clientRouteMap = new Dictionary<Type, List<Callback>>();
-			serverRouteMap = new Dictionary<Type, List<Callback>>();
-
-			if(Root == this) 
-				outgoing = new Queue<(PacketRouter, OutgoingMessage)>();
-
-			if (Root.Routers == null)
-				Root.Routers = new PacketRouter[0];
-
-			this.orderKey = orderKey;
-			var rs = Root.Routers.ToList();
-			rs.Add(this);
-			Root.Routers = rs.OrderBy(i => i.orderKey).ToArray();
-			Root.AssignIds();
-		}
-
-		private void AssignIds() {
-			for (int i = 0; i < Routers.Length; i++)
-				Routers[i].routerId = i;
-		}
-
-		public void WriteHeader(DataBuffer buffer) {
-			buffer.Write((byte)routerId);
-		}
-
-		public PacketRouter ReadHeader(DataBuffer buffer) {
-			return Root.Routers[buffer.ReadByte()];
-		}
-
-		public void Route<T>(Action<IncomingMessage<T>> callback) where T : Packet {
-			GetList(clientRouteMap, typeof(T)).Add(new Callback<T>(callback));
-			GetList(serverRouteMap, typeof(T)).Add(new Callback<T>(callback));
-		}
-
-		public void RouteClient<T>(Action<IncomingMessage<T>> callback) where T : Packet {
-			GetList(clientRouteMap, typeof(T)).Add(new Callback<T>(callback));
-		}
-
-		public void RouteServer<T>(Action<IncomingMessage<T>> callback) where T : Packet {
-			GetList(serverRouteMap, typeof(T)).Add(new Callback<T>(callback));
-		}
-
-		public void InvokeClient(Packet packet) {
-			var type = packet.GetType();
-			var cl = GetList(clientRouteMap, packet.GetType(), false);
-
-			while ((type = type.BaseType) != null && typeof(Packet).IsAssignableFrom(type) && cl == null) {
-				cl = GetList(clientRouteMap, type, false);
-			}
-
-			if (cl != null) {
-				for (int i = 0; i < cl.Count; i++)
-					cl[i].Invoke(packet, null);
-			}
-		}
-
-		public void InvokeServer(Packet packet, NetUser sender) {
-			var type = packet.GetType();
-			var sv = GetList(serverRouteMap, packet.GetType(), false);
-
-			while ((type = type.BaseType) != null && typeof(Packet).IsAssignableFrom(type) && sv == null) {
-				sv = GetList(serverRouteMap, type, false);
-				type = type.BaseType;
-			}
-
-			if (sv != null) {
-				for (int i = 0; i < sv.Count; i++)
-					sv[i].Invoke(packet, sender);
-			}
-		}
-
-		public void QueueOutgoing(OutgoingMessage message) {
-			Root.outgoing.Enqueue((this, message));
-		}
-
-		public (PacketRouter, OutgoingMessage) GetNextOutgoing() {
-			var rt = Root;
-			if (rt.outgoing.Count == 0)
-				return (null, null);
-
-			return rt.outgoing.Dequeue();
-		}
-
-		private List<Callback> GetList(Dictionary<Type, List<Callback>> map, Type type, bool create = true) {
-			if (map.ContainsKey(type) == false) {
-				if (create == false)
-					return null;
-
-				map.Add(type, new List<Callback>());
-			}
-
-			return map[type];
-		}
-	}
-
 	public class MessageChannel {
-		protected NewPacketRouter Parent;
+		protected PacketRouter Parent;
 
 		public Type SourceType { get; private set; }
 		public string Key { get; private set; }
 		public short Order { get; set; }
 
-		public MessageChannel(NewPacketRouter parent, string key, Type type) {
+		public MessageChannel(PacketRouter parent, string key, Type type) {
 			this.SourceType = type;
 			this.Parent = parent;
 			this.Key = key;
@@ -169,11 +26,11 @@ namespace Chip.Net.Data {
 		public delegate void MessageEvent(IncomingMessage<T> incoming);
 		public MessageEvent Receive { get; set; }
 
-		public MessageChannel(NewPacketRouter parent, string key)
+		public MessageChannel(PacketRouter parent, string key)
 			: base(parent, typeof(T).ToString() + "_" + key, typeof(T)) { }
 
 		public override void Handle(IncomingMessage message) {
-			Receive.Invoke((IncomingMessage<T>)message);
+			Receive?.Invoke(message.AsGeneric<T>());
 		}
 
 		public void Send(OutgoingMessage message) {
@@ -185,22 +42,38 @@ namespace Chip.Net.Data {
 		public byte[] Bytes { get; set; }
 	}
 
-	public class NewPacketRouter {
+	public class PacketRouter {
 		private List<MessageChannel> Nodes;
 		private HashSet<string> Types;
 
 		private Action<NetUser, DataBuffer> SendAction;
 		private Func<object, NetUser> KeyToUserFunc;
 
-		public NewPacketRouter(INetServerProvider provider, INetServerController controller) {
+		private PacketRouter Parent;
+		private string Prefix;
+
+		public PacketRouter(PacketRouter Parent, string prefix) {
+			this.Parent = Parent;
+			this.Prefix = prefix;
+		}
+
+		public PacketRouter(INetServerProvider provider, INetServerController controller) {
 			Nodes = new List<MessageChannel>();
 			Types = new HashSet<string>();
 
+			var prov = provider;
+			var cont = controller;
+
 			provider.DataReceived += OnDataReceived;
 			SendAction = (u, d) => {
-				if (u == null) throw new Exception("[Server] Recipient cannot be null.");
+				if (u == null) {
+					foreach (var user in cont.GetUsers())
+						prov.SendMessage(user.UserKey, d);
 
-				provider.SendMessage(u.UserKey, d);
+					return;
+				}
+
+				prov.SendMessage(u.UserKey, d);
 			};
 
 			KeyToUserFunc = (k) => {
@@ -208,7 +81,7 @@ namespace Chip.Net.Data {
 			};
 		}
 
-		public NewPacketRouter(INetClientProvider provider, INetClientController controller) {
+		public PacketRouter(INetClientProvider provider, INetClientController controller) {
 			Nodes = new List<MessageChannel>();
 			Types = new HashSet<string>();
 
@@ -231,13 +104,17 @@ namespace Chip.Net.Data {
 
 			channel.Handle(new IncomingMessage() {
 				Data = packet,
-				Sender = KeyToUserFunc(sender),
+				Sender = sender,
 			});
 		}
 
 		public virtual MessageChannel<T> Route<T>(string key = null) where T : Packet {
 			if (key == null)
 				key = "";
+
+			if (Parent != null) {
+				return Parent.Route<T>(Prefix + key);
+			}
 
 			var n = new MessageChannel<T>(this, key);
 			if (Types.Contains(n.Key))
@@ -253,14 +130,25 @@ namespace Chip.Net.Data {
 		}
 
 		public virtual short ToIndex(MessageChannel channel) {
+			if (Parent != null)
+				return Parent.ToIndex(channel);
+
 			return channel.Order;
 		}
 
 		public virtual MessageChannel Resolve(short index) {
+			if (Parent != null)
+				return Parent.Resolve(index);
+
 			return Nodes[index];
 		}
 
 		public void Send(MessageChannel source, OutgoingMessage message) {
+			if(Parent != null) {
+				Parent.Send(source, message);
+				return;
+			}
+
 			var index = ToIndex(source);
 			DataBuffer buffer = new DataBuffer();
 			buffer.Write((short)index);
