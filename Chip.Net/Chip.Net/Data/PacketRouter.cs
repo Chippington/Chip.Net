@@ -36,6 +36,18 @@ namespace Chip.Net.Data {
 		public void Send(OutgoingMessage<T> message) {
 			Parent.Send(this, message);
 		}
+
+		public void Send(T data) {
+			this.Send(new OutgoingMessage<T>(data));
+		}
+
+		public void Send(T data, NetUser recipient) {
+			this.Send(new OutgoingMessage<T>(data, recipient));
+		}
+
+		public void Send(T data, IEnumerable<NetUser> recipients) {
+			this.Send(new OutgoingMessage<T>(data, recipients));
+		}
 	}
 
 	public class RouterPacket {
