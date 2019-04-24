@@ -27,11 +27,11 @@ namespace Chip.Net.Controllers.Distributed.Services
 		public bool Initialized { get; private set; }
 		public bool Disposed { get; private set; }
 
-		public virtual void GlobalInitialize(NetContext context) { }
+		protected virtual void GlobalInitialize(NetContext context) { }
 
-		public virtual void InitializeDistributedService() { }
+		protected virtual void InitializeDistributedService() { }
 
-		public virtual void InitializeContext(NetContext context) { }
+		protected virtual void InitializeContext(NetContext context) { }
 
 		public void InitializeService(NetContext context) {
 			InitializeContext(context);
@@ -47,7 +47,7 @@ namespace Chip.Net.Controllers.Distributed.Services
 			Passthrough,
 		}
 
-		public MessageChannel<T> RouteRouterShard<T>(string key = null) where T : Packet {
+		public MessageChannel<T> CreateShardChannel<T>(string key = null) where T : Packet {
 			if (IsShard) {
 				return ShardController.Router.Route<T>(key);
 			}
@@ -59,7 +59,7 @@ namespace Chip.Net.Controllers.Distributed.Services
 			return null;
 		}
 
-		public MessageChannel<T> RouteRouterUser<T>(string key = null) where T : Packet {
+		public MessageChannel<T> CreateUserChannel<T>(string key = null) where T : Packet {
 			if (IsUser) {
 				return UserController.Router.Route<T>(key);
 			}

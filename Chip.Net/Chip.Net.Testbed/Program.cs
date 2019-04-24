@@ -100,7 +100,7 @@ namespace Chip.Net.Testbed {
 	public class Distributed : DistributedService {
 		public DistributedChannel<TestPacket> Channel { get; set; }
 
-		public override void InitializeDistributedService() {
+		protected override void InitializeDistributedService() {
 			base.InitializeDistributedService();
 			Channel = CreatePassthrough<TestPacket>("Test");
 

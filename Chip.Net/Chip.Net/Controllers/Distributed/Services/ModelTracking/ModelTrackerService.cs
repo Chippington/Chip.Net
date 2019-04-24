@@ -21,21 +21,21 @@ namespace Chip.Net.Controllers.Distributed.Services.ModelTracking
 		private MessageChannel<UpdateModel> UserUpdateModel;
 		private MessageChannel<UpdateSet> UserUpdateSet;
 
-		public override void InitializeDistributedService() {
+		protected override void InitializeDistributedService() {
 			base.InitializeDistributedService();
 
-			ShardAddModel = RouteRouterShard<AddModel>();
-			ShardRemoveModel = RouteRouterShard<RemoveModel>();
-			ShardUpdateModel = RouteRouterShard<UpdateModel>();
-			ShardUpdateSet = RouteRouterShard<UpdateSet>();
+			ShardAddModel = CreateShardChannel<AddModel>();
+			ShardRemoveModel = CreateShardChannel<RemoveModel>();
+			ShardUpdateModel = CreateShardChannel<UpdateModel>();
+			ShardUpdateSet = CreateShardChannel<UpdateSet>();
 
-			UserAddModel = RouteRouterUser<AddModel>();
-			UserRemoveModel = RouteRouterUser<RemoveModel>();
-			UserUpdateModel = RouteRouterUser<UpdateModel>();
-			UserUpdateSet = RouteRouterUser<UpdateSet>();
+			UserAddModel = CreateUserChannel<AddModel>();
+			UserRemoveModel = CreateUserChannel<RemoveModel>();
+			UserUpdateModel = CreateUserChannel<UpdateModel>();
+			UserUpdateSet = CreateUserChannel<UpdateSet>();
 		}
 
-		public override void InitializeContext(NetContext context) {
+		protected override void InitializeContext(NetContext context) {
 			base.InitializeContext(context);
 
 			context.Packets.Register<AddModel>();
