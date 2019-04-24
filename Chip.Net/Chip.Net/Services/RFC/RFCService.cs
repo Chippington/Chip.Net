@@ -150,7 +150,7 @@ namespace Chip.Net.Services.RFC {
 					var _useContext = useContextMap[msg.FunctionId];
 					WriteModelsToBuffer(buff, param, _useContext);
 					msg.FunctionParameters = buff.ToBytes();
-					ChRFCExecute.Send(new OutgoingMessage(msg));
+					ChRFCExecute.Send(new OutgoingMessage<RFCExecute>(msg));
 				}
 			};
 
@@ -181,7 +181,7 @@ namespace Chip.Net.Services.RFC {
 					msg.FunctionParameters = buff.ToBytes();
 
 					var user = GetCurrentUser();
-					ChRFCExecute.Send(new OutgoingMessage(msg, user));
+					ChRFCExecute.Send(new OutgoingMessage<RFCExecute>(msg, user));
 				}
 			};
 

@@ -33,7 +33,7 @@ namespace Chip.Net.Data {
 			Receive?.Invoke(message.AsGeneric<T>());
 		}
 
-		public void Send(OutgoingMessage message) {
+		public void Send(OutgoingMessage<T> message) {
 			Parent.Send(this, message);
 		}
 	}

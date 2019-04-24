@@ -26,15 +26,15 @@ namespace Chip.Net.Controllers.Distributed
 		}
 
 		public void Send(T data) {
-			Source.Send(new OutgoingMessage(new PassthroughPacket<T>(data)));
+			Source.Send(new OutgoingMessage<PassthroughPacket<T>>(new PassthroughPacket<T>(data)));
 		}
 
 		public void Send(T data, IShardModel shard) {
-			Source.Send(new OutgoingMessage(new PassthroughPacket<T>(data, shard)));
+			Source.Send(new OutgoingMessage<PassthroughPacket<T>>(new PassthroughPacket<T>(data, shard)));
 		}
 
 		public void Send(T data, IUserModel user) {
-			Source.Send(new OutgoingMessage(new PassthroughPacket<T>(data, user)));
+			Source.Send(new OutgoingMessage<PassthroughPacket<T>>(new PassthroughPacket<T>(data, user)));
 		}
 	}
 }

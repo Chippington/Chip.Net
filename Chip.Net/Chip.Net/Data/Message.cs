@@ -41,4 +41,20 @@ namespace Chip.Net.Data
 
 		public IEnumerable<NetUser> Recipients { get; set; }
 	}
+
+	public class OutgoingMessage<T> : OutgoingMessage where T : Packet {
+		new public T Data { get; set; }
+
+		public OutgoingMessage(T data) : base(data) {
+			this.Data = data;
+		}
+
+		public OutgoingMessage(T data, NetUser recipient) : base(data, recipient) {
+			this.Data = data;
+		}
+
+		public OutgoingMessage(T data, IEnumerable<NetUser> recipients) : base(data, recipients) {
+			this.Data = data;
+		}
+	}
 }

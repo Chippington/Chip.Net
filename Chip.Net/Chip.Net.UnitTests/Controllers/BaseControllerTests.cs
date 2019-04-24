@@ -380,7 +380,7 @@ namespace Chip.Net.UnitTests.Controllers {
 			});
 
 			Assert.IsNotNull(user);
-			sv.Channel.Send(new OutgoingMessage(new TestPacket()));
+			sv.Channel.Send(new OutgoingMessage<TestPacket>(new TestPacket()));
 
 			Wait(() => {
 				UpdateServer(sv.Server as TServer);
@@ -413,7 +413,7 @@ namespace Chip.Net.UnitTests.Controllers {
 			});
 
 			Assert.IsNotNull(user);
-			sv.Channel.Send(new OutgoingMessage(new TestPacket(), user));
+			sv.Channel.Send(new OutgoingMessage<TestPacket>(new TestPacket(), user));
 
 			Wait(() => {
 				UpdateServer(sv.Server as TServer);
@@ -440,7 +440,7 @@ namespace Chip.Net.UnitTests.Controllers {
 				return cl.Client.IsConnected;
 			});
 
-			cl.Channel.Send(new OutgoingMessage(new TestPacket()));
+			cl.Channel.Send(new OutgoingMessage<TestPacket>(new TestPacket()));
 
 			Wait(() => {
 				UpdateServer(sv.Server as TServer);
@@ -475,7 +475,7 @@ namespace Chip.Net.UnitTests.Controllers {
 				return cl.Client.IsConnected;
 			});
 
-			cl.Channel.Send(new OutgoingMessage(new TestPacket()));
+			cl.Channel.Send(new OutgoingMessage<TestPacket>(new TestPacket()));
 
 			Wait(() => {
 				UpdateServer(sv.Server as TServer);
@@ -502,7 +502,7 @@ namespace Chip.Net.UnitTests.Controllers {
 
 			var cl_svc = cl.Client.Context.Services.Get<TestNetService>();
 			var sv_svc = sv.Server.Context.Services.Get<TestNetService>();
-			sv_svc.Channel.Send(new OutgoingMessage(new TestPacket() {
+			sv_svc.Channel.Send(new OutgoingMessage<TestPacket>(new TestPacket() {
 				data = data,
 			}));
 
@@ -530,7 +530,7 @@ namespace Chip.Net.UnitTests.Controllers {
 
 			var cl_svc = cl.Client.Context.Services.Get<TestNetService>();
 			var sv_svc = sv.Server.Context.Services.Get<TestNetService>();
-			sv_svc.Channel.Send(new OutgoingMessage(new TestPacket() {
+			sv_svc.Channel.Send(new OutgoingMessage<TestPacket>(new TestPacket() {
 				data = data,
 			}, sv.Server.GetUsers().First()));
 
@@ -558,7 +558,7 @@ namespace Chip.Net.UnitTests.Controllers {
 
 			var cl_svc = cl.Client.Context.Services.Get<TestNetService>();
 			var sv_svc = sv.Server.Context.Services.Get<TestNetService>();
-			cl_svc.Channel.Send(new OutgoingMessage(new TestPacket() {
+			cl_svc.Channel.Send(new OutgoingMessage<TestPacket>(new TestPacket() {
 				data = data,
 			}));
 

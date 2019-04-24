@@ -199,20 +199,20 @@ namespace Chip.Net.Controllers.Distributed
 			user.Receive += (e) => {
 				if(e.Data.RecipientId == 0) {
 					foreach (var sh in Shards)
-						shard.Send(new OutgoingMessage(e.Data, GetNetUser(sh)));
+						shard.Send(new OutgoingMessage<PassthroughPacket<T>>(e.Data, GetNetUser(sh)));
 				} else {
 					var s = Shards[e.Data.RecipientId];
-					shard.Send(new OutgoingMessage(e.Data, GetNetUser(s)));
+					shard.Send(new OutgoingMessage<PassthroughPacket<T>>(e.Data, GetNetUser(s)));
 				}
 			};
 
 			shard.Receive += (e) => {
 				if (e.Data.RecipientId == 0) {
 					foreach (var us in Users)
-						user.Send(new OutgoingMessage(e.Data, GetNetUser(us)));
+						user.Send(new OutgoingMessage<PassthroughPacket<T>>(e.Data, GetNetUser(us)));
 				} else {
 					var u = Users[e.Data.RecipientId];
-					user.Send(new OutgoingMessage(e.Data, GetNetUser(u)));
+					user.Send(new OutgoingMessage<PassthroughPacket<T>>(e.Data, GetNetUser(u)));
 				}
 			};
 		}
