@@ -100,10 +100,14 @@ namespace Chip.Net.Testbed {
 	public class Distributed : DistributedService {
 		public DistributedChannel<TestPacket> Channel { get; set; }
 
-		public override void GlobalInitialize(NetContext context) {
-			base.GlobalInitialize(context);
+		public override void InitializeDistributedService() {
+			base.InitializeDistributedService();
+			Channel = CreatePassthrough<TestPacket>("Test");
 
-			Channel = CreatePassthrough<TestPacket>();
+			if(IsShard)
+			Channel.Receive = (e) => {
+				Console.WriteLine(e.Data.Data);
+			};
 		}
 	}
 
@@ -161,10 +165,6 @@ namespace Chip.Net.Testbed {
 				users.Add(makeUser());
 
 			var svc = users.First().Context.Services.Get<Distributed>();
-
-			svc.Channel.Receive += (e) => {
-				Console.WriteLine(e.Data.Data);
-			};
 
 			svc.Channel.Send(new TestPacket() {
 				Data = 10112

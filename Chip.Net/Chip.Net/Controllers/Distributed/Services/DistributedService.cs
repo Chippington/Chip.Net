@@ -29,6 +29,8 @@ namespace Chip.Net.Controllers.Distributed.Services
 
 		public virtual void GlobalInitialize(NetContext context) { }
 
+		public virtual void InitializeDistributedService() { }
+
 		public virtual void InitializeContext(NetContext context) { }
 
 		public void InitializeService(NetContext context) {
@@ -63,7 +65,7 @@ namespace Chip.Net.Controllers.Distributed.Services
 			}
 
 			if (IsRouter) {
-				return RouterController.RouteShard<T>(key);
+				return RouterController.RouteUser<T>(key);
 			}
 
 			return null;
@@ -87,6 +89,8 @@ namespace Chip.Net.Controllers.Distributed.Services
 			IsClient = false;
 			IsShard = false;
 			IsUser = false;
+
+			InitializeDistributedService();
 		}
 
 		public virtual void InitializeShard() {
@@ -95,6 +99,8 @@ namespace Chip.Net.Controllers.Distributed.Services
 			IsClient = true;
 			IsShard = true;
 			IsUser = false;
+
+			InitializeDistributedService();
 		}
 
 		public virtual void InitializeUser() {
@@ -103,6 +109,8 @@ namespace Chip.Net.Controllers.Distributed.Services
 			IsClient = true;
 			IsShard = false;
 			IsUser = true;
+
+			InitializeDistributedService();
 		}
 
 		public virtual void StartService() {
