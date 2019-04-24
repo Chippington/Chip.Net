@@ -189,7 +189,7 @@ namespace Chip.Net.Controllers.Distributed
 		}
 
 		public override MessageChannel<T> RouteShard<T>(string key = null) {
-			return UserController.Router.Route<T>(key);
+			return ShardController.Router.Route<T>(key);
 		}
 
 		public override void PassthroughRoute<T>(string key = null) {
