@@ -16,6 +16,9 @@ using System.Reflection;
 using Chip.Net.Controllers;
 using Chip.Net.Services;
 using Chip.Net.Services.UserList;
+using Chip.Net.Controllers.Distributed.Models;
+using Chip.Net.Controllers.Distributed;
+using Chip.Net.Providers.Direct;
 
 namespace Chip.Net.Testbed {
 	public class TestPacket : Packet {
@@ -36,109 +39,103 @@ namespace Chip.Net.Testbed {
 		}
 	}
 
+	public class UserModel : IUserModel {
+		public string Name { get; set; }
+		public string UUID { get; set; }
+		public int Id { get; set; }
+
+		public void ReadFrom(DataBuffer buffer) {
+			buffer.Write((string)Name);
+			buffer.Write((string)UUID);
+			buffer.Write((int)Id);
+		}
+
+		public void WriteTo(DataBuffer buffer) {
+			Name = buffer.ReadString();
+			UUID = buffer.ReadString();
+			Id = buffer.ReadInt32();
+		}
+	}
+
+	public class ShardModel : IShardModel {
+		public int Id { get; set; }
+
+		public void ReadFrom(DataBuffer buffer) {
+			buffer.Write((int)Id);
+		}
+
+		public void WriteTo(DataBuffer buffer) {
+			Id = buffer.ReadInt32();
+		}
+	}
+
+	public class RouterModel : IRouterModel {
+		public string Name { get; set; }
+		public int Id { get; set; }
+
+		public void ReadFrom(DataBuffer buffer) {
+			buffer.Write((string)Name);
+			buffer.Write((int)Id);
+		}
+
+		public void WriteTo(DataBuffer buffer) {
+			Name = buffer.ReadString();
+			Id = buffer.ReadInt32();
+		}
+	}
+
+	public class Router : RouterServer<RouterModel, ShardModel, UserModel> { }
+	public class Shard : ShardClient<RouterModel, ShardModel, UserModel> { }
+	public class User : UserClient<RouterModel, ShardModel, UserModel> { }
+
 	class Program {
-		public class TestRouter {
-			private List<Node> Nodes;
-			private HashSet<string> Types;
-
-			public class Node {
-				public string Key { get; private set; }
-				public int Order { get; set; }
-
-				public Node(string key) {
-					this.Key = key;
-				}
-
-				public virtual void Handle(object obj) {
-
-				}
-			}
-
-			public class Node<T> : Node {
-				public EventHandler<T> Receive { get; set; }
-				public EventHandler<T> Send { get; set; }
-
-				public Node(string key) : base(typeof(T).ToString() + key) {
-
-				}
-
-				public override void Handle(object obj) {
-					Receive.Invoke(this, (T)obj);
-				}
-			}
-
-			public TestRouter() {
-				Nodes = new List<Node>();
-				Types = new HashSet<string>();
-			}
-
-			public Node<T> CreateNode<T>(string key = null) {
-				if (key == null)
-					key = "";
-
-				var n = new Node<T>(key);
-				if (Types.Contains(n.Key))
-					throw new Exception();
-
-				Types.Add(n.Key);
-				Nodes.Add(n);
-				Nodes = Nodes.OrderBy(i => i.Key).ToList();
-				for (int i = 0; i < Nodes.Count; i++)
-					Nodes[i].Order = i;
-
-				return n;
-			}
-
-			public int ToIndex(Node node) {
-				return node.Order;
-			}
-
-			public Node FromIndex(int index) {
-				return Nodes[index];
-			}
-		}
-
-		public class TestService : NetService {
-
-		}
+		
 
 		static void Main(string[] args) {
 			NetContext ctx = new NetContext();
-			ctx.IPAddress = "localhost";
 			ctx.Port = 11111;
+			ctx.MaxConnections = 10;
+			ctx.IPAddress = "localhost";
 			ctx.Services.Register<UserListService>();
-			BasicServer server = new BasicServer();
-			server.InitializeServer(ctx.Clone(), new TCPServerProvider());
-			var ch1 = server.Router.Route<TestPacket>();
-			server.StartServer();
 
-			BasicClient client = new BasicClient();
-			client.InitializeClient(ctx.Clone(), new TCPClientProvider());
-			var ch2 = client.Router.Route<TestPacket>();
+			Router router = new Router();
+			router.InitializeServer(ctx, new DirectServerProvider(), 11111, new DirectServerProvider(), 11112);
+			router.StartShardServer();
+			router.StartUserServer();
 
-			ch1.Receive += (e) => {
-				e.Data.Data++;
-				ch1.Send(new OutgoingMessage(e.Data));
-				Console.WriteLine(e.Data.Data);
+			Func<Shard> makeShard = () => {
+				var sh = new Shard();
+				var c = ctx.Clone();
+				c.Port = 11111;
+
+				sh.InitializeClient(c, new DirectClientProvider());
+				sh.StartClient();
+				return sh;
 			};
 
-			ch2.Receive += (e) => {
-				e.Data.Data++;
-				ch2.Send(new OutgoingMessage(e.Data));
-				Console.WriteLine(e.Data.Data);
+			Func<User> makeUser = () => {
+				var us = new User();
+				var c = ctx.Clone();
+				c.Port = 11112;
+
+				us.InitializeClient(c, new DirectClientProvider());
+				us.StartClient();
+				return us;
 			};
 
-			client.OnConnected += (s, e) => {
-				//ch2.Send(new OutgoingMessage(new TestPacket() {
-				//	Data = 0,
-				//}));
-			};
+			List<Shard> shards = new List<Shard>();
+			List<User> users = new List<User>();
 
-			client.StartClient();
+			for (int i = 0; i < 5; i++)
+				shards.Add(makeShard());
 
-			while (true) {
-				server.UpdateServer();
-				client.UpdateClient();
+			for (int i = 0; i < 5; i++)
+				users.Add(makeUser());
+
+			while(true) {
+				router.UpdateServer();
+				foreach (var s in shards) s.UpdateClient();
+				foreach (var u in users) u.UpdateClient();
 
 				System.Threading.Thread.Sleep(10);
 			}

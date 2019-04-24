@@ -59,7 +59,7 @@ namespace Chip.Net.Controllers.Basic
 		}
 
 		protected virtual void OnProviderUserConnected(object sender, ProviderUserEventArgs args) {
-			var user = new NetUser(args.UserKey, nextUserId);
+			var user = new NetUser(args.UserKey, nextUserId++);
 			userMap[user.UserKey] = user;
 			userList.Add(user);
 

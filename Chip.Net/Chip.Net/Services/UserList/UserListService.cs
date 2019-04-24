@@ -56,7 +56,7 @@ namespace Chip.Net.Services.UserList {
 		}
 
 		private void _clSetUserList(List<NetUser> obj) {
-			this.userList.AddRange(obj.Where(i => userList.Any(o => o.UserId != i.UserId) == false));
+			this.userList = new List<NetUser>(obj);
 		}
 
 		private void onUserDisconnected(object sender, NetEventArgs args) {
@@ -66,13 +66,11 @@ namespace Chip.Net.Services.UserList {
 		private void onUserConnected(object sender, NetEventArgs args) {
 			userList.Add(args.User);
 
-			SetCurrentUser(args.User);
-			ClSetUserList(userList);
-			ClSetUser(args.User);
-
-			Broadcast(CurrentUser, () => {
-				ClAddUser(args.User);
+			Broadcast(() => {
+				ClSetUserList(userList);
 			});
+
+			ClSetUser(args.User);
 		}
 	}
 }
