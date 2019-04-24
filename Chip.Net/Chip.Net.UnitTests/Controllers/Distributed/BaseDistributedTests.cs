@@ -59,7 +59,8 @@ namespace Chip.Net.UnitTests.Controllers.Distributed
 
 		protected override ClientWrapper NewClient() {
 			var cl = Activator.CreateInstance<TClient>();
-			cl.InitializeClient(CreateContext(), new DirectClientProvider());
+			var ctx = CreateContext();
+			cl.InitializeClient(ctx, new DirectClientProvider());
 			var ch = cl.Router.Route<TestPacket>();
 
 			return new BaseControllerTests<INetServerController, TClient>.ClientWrapper() {
