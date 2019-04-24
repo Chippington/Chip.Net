@@ -8,6 +8,15 @@ using System.Text;
 
 namespace Chip.Net.Controllers.Distributed.Services
 {
+	public class DistributedService<TRouter, TShard, TUser> : DistributedService
+		where TRouter : IRouterModel
+		where TShard : IShardModel
+		where TUser : IUserModel {
+		new public RouterServer<TRouter, TShard, TUser> RouterController { get; set; }
+		new public ShardClient<TRouter, TShard, TUser> ShardController { get; set; }
+		new public UserClient<TRouter, TShard, TUser> UserController { get; set; }
+	}
+
 	public class DistributedService : IDistributedService {
 		public bool IsShard { get; set; }
 		public bool IsUser { get; set; }
