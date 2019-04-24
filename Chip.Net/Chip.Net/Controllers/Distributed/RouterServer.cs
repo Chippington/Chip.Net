@@ -174,6 +174,29 @@ namespace Chip.Net.Controllers.Distributed
 		}
 		#endregion
 
+		public MessageChannel<T> UserRoute<T>(string key = null) where T : Packet {
+			return UserController.Router.Route<T>(key);
+		}
+
+		public MessageChannel<T> ShardRoute<T>(string key = null) where T : Packet {
+			return UserController.Router.Route<T>(key);
+		}
+
+		public void PassthroughRoute<T>(string key = null) where T : Packet {
+			var user = UserRoute<PassthroughPacket<T>>(key);
+			var shard = ShardRoute<PassthroughPacket<T>>(key);
+
+			user.Receive += (e) => {
+				var s = Shards[e.Data.RecipientId];
+				shard.Send(new OutgoingMessage(e.Data, GetNetUser(s)));
+			};
+
+			shard.Receive += (e) => {
+				var u = Users[e.Data.RecipientId];
+				user.Send(new OutgoingMessage(e.Data, GetNetUser(u)));
+			};
+		}
+
 		public void StartShardServer() {
 			ShardController.StartServer();
 		}

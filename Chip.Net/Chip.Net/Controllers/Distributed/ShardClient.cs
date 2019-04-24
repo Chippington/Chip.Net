@@ -42,6 +42,12 @@ namespace Chip.Net.Controllers.Distributed
 					(svc as IDistributedService).InitializeShard(Model);
 		}
 
+		public MessageChannel<T> RouteRouter<T>(string key = null) where T : Packet {
+			return Router.Route<T>(key);
+		}
 
+		public MessageChannel<PassthroughPacket<T>> RouteUser<T>(string key = null) where T : Packet {
+			return Router.Route<PassthroughPacket<T>>(key);
+		}
 	}
 }

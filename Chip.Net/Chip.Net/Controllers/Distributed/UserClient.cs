@@ -40,5 +40,13 @@ namespace Chip.Net.Controllers.Distributed {
 				if (typeof(IDistributedService).IsAssignableFrom(svc.GetType()))
 					(svc as IDistributedService).InitializeUser(Model);
 		}
+
+		public MessageChannel<T> RouteRouter<T>(string key = null) where T : Packet {
+			return Router.Route<T>(key);
+		}
+
+		public MessageChannel<PassthroughPacket<T>> RouteShard<T>(string key = null) where T : Packet {
+			return Router.Route<PassthroughPacket<T>>(key);
+		}
 	}
 }
