@@ -13,7 +13,24 @@ using Chip.Net.Providers.Direct;
 
 namespace Chip.Net.Controllers.Distributed
 {
-	public class RouterServer<TRouter, TShard, TUser>
+	public abstract class RouterServer {
+		public PacketRouter Router { get; protected set; }
+		public bool IsActive { get; private set; }
+
+		public BasicServer ShardController { get; protected set; }
+		public BasicServer UserController { get; protected set; }
+
+		public NetContext ShardContext { get; protected set; }
+		public NetContext UserContext { get; protected set; }
+
+		public abstract MessageChannel<T> RouteUser<T>(string key = null) where T : Packet;
+
+		public abstract MessageChannel<T> RouteShard<T>(string key = null) where T : Packet;
+
+		public abstract void PassthroughRoute<T>(string key = null) where T : Packet;
+	}
+
+	public class RouterServer<TRouter, TShard, TUser> : RouterServer
 		where TRouter : IRouterModel
 		where TShard : IShardModel
 		where TUser : IUserModel {
@@ -39,14 +56,6 @@ namespace Chip.Net.Controllers.Distributed
 			public Packet Data { get; set; }
 		}
 
-		public PacketRouter Router { get; private set; }
-		public bool IsActive { get; private set; }
-
-		public BasicServer ShardController { get; private set; }
-		public BasicServer UserController { get; private set; }
-
-		public NetContext ShardContext { get; private set; }
-		public NetContext UserContext { get; private set; }
 
 		public ModelTrackerCollection<TShard> Shards { get; private set; }
 		public ModelTrackerCollection<TUser> Users { get; private set; }
@@ -113,9 +122,10 @@ namespace Chip.Net.Controllers.Distributed
 			this.Model.Name = context.ApplicationName + " Router";
 			RouterConfiguredEvent?.Invoke(this, Model);
 
-
-			foreach (var service in services)
-				service.InitializeRouter(Model);
+			foreach (var service in services) {
+				service.RouterController = this;
+				service.InitializeRouter();
+			}
 		}
 
 		#region Event Handling
@@ -174,17 +184,17 @@ namespace Chip.Net.Controllers.Distributed
 		}
 		#endregion
 
-		public MessageChannel<T> UserRoute<T>(string key = null) where T : Packet {
+		public override MessageChannel<T> RouteUser<T>(string key = null) {
 			return UserController.Router.Route<T>(key);
 		}
 
-		public MessageChannel<T> ShardRoute<T>(string key = null) where T : Packet {
+		public override MessageChannel<T> RouteShard<T>(string key = null) {
 			return UserController.Router.Route<T>(key);
 		}
 
-		public void PassthroughRoute<T>(string key = null) where T : Packet {
-			var user = UserRoute<PassthroughPacket<T>>(key);
-			var shard = ShardRoute<PassthroughPacket<T>>(key);
+		public override void PassthroughRoute<T>(string key = null) {
+			var user = RouteUser<PassthroughPacket<T>>(key);
+			var shard = RouteShard<PassthroughPacket<T>>(key);
 
 			user.Receive += (e) => {
 				var s = Shards[e.Data.RecipientId];

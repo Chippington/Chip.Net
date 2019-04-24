@@ -10,8 +10,12 @@ namespace Chip.Net.Controllers.Distributed.Services {
 		bool IsUser { get; set; }
 		bool IsRouter { get; set; }
 
-		void InitializeShard(IShardModel Model);
-		void InitializeRouter(IRouterModel Model);
-		void InitializeUser(IUserModel Model);
+		RouterServer RouterController { get; set; }
+		ShardClient ShardController { get; set; }
+		UserClient UserController { get; set; }
+
+		void InitializeShard();
+		void InitializeRouter();
+		void InitializeUser();
 	}
 }

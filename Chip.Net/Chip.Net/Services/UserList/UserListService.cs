@@ -25,7 +25,7 @@ namespace Chip.Net.Services.UserList {
 			userList = new List<NetUser>();
 			UserList = userList.AsReadOnly();
 
-			if(IsServer) {this.AllUsers
+			if(IsServer) {
 				Server.NetUserConnected += onUserConnected;
 				Server.NetUserDisconnected += onUserDisconnected;
 			}

@@ -10,7 +10,11 @@ using Chip.Net.Data;
 using Chip.Net.Providers;
 
 namespace Chip.Net.Controllers.Distributed {
-	public class UserClient<TRouter, TShard, TUser> : BasicClient, INetClientController
+	public class UserClient : BasicClient {
+
+	}
+
+	public class UserClient<TRouter, TShard, TUser> : UserClient, INetClientController
 		where TRouter : IRouterModel
 		where TShard : IShardModel
 		where TUser : IUserModel {
@@ -31,14 +35,14 @@ namespace Chip.Net.Controllers.Distributed {
 				if (typeof(IDistributedService).IsAssignableFrom(svc.GetType())) {
 					(svc as IDistributedService).IsClient = true;
 					(svc as IDistributedService).IsUser = true;
+					(svc as IDistributedService).UserController = this;
+					(svc as IDistributedService).InitializeUser();
 				}
 		}
 
 		private void SetUserModel(IncomingMessage<SetUserModelPacket<TUser>> obj) {
 			Model = obj.Data.Model;
-			foreach (var svc in Context.Services.ServiceList)
-				if (typeof(IDistributedService).IsAssignableFrom(svc.GetType()))
-					(svc as IDistributedService).InitializeUser(Model);
+			
 		}
 
 		public MessageChannel<T> RouteRouter<T>(string key = null) where T : Packet {

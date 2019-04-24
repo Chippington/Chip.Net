@@ -1,4 +1,5 @@
 ﻿using Chip.Net.Controllers.Distributed.Models;
+using Chip.Net.Controllers.Distributed.Packets;
 using Chip.Net.Data;
 using Chip.Net.Services;
 using System;
@@ -11,6 +12,10 @@ namespace Chip.Net.Controllers.Distributed.Services
 		public bool IsShard { get; set; }
 		public bool IsUser { get; set; }
 		public bool IsRouter { get; set; }
+
+		public RouterServer RouterController { get; set; }
+		public ShardClient ShardController { get; set; }
+		public UserClient UserController { get; set; }
 
 		public PacketRouter Router { get => throw new Exception("Use server/client router"); }
 		public INetServerController Server { get; set; }
@@ -34,7 +39,49 @@ namespace Chip.Net.Controllers.Distributed.Services
 			}
 		}
 
-		public virtual void InitializeRouter(IRouterModel Model) {
+		public enum RouteType {
+			RouterShard,
+			RouterUser,
+			Passthrough,
+		}
+
+		public MessageChannel<T> RouteRouterShard<T>(string key = null) where T : Packet {
+			if (IsShard) {
+				return ShardController.Router.Route<T>(key);
+			}
+
+			if (IsRouter) {
+				return RouterController.RouteShard<T>(key);
+			}
+
+			return null;
+		}
+
+		public MessageChannel<T> RouteRouterUser<T>(string key = null) where T : Packet {
+			if (IsUser) {
+				return UserController.Router.Route<T>(key);
+			}
+
+			if (IsRouter) {
+				return RouterController.RouteShard<T>(key);
+			}
+
+			return null;
+		}
+
+		public DistributedChannel<T> CreatePassthrough<T>(string key = null) where T : Packet {
+			if(IsClient) {
+				return new DistributedChannel<T>(Client.Router.Route<PassthroughPacket<T>>(key));
+			}
+
+			if(IsServer) {
+				RouterController.PassthroughRoute<T>(key);
+			}
+
+			return null;
+		}
+
+		public virtual void InitializeRouter() {
 			IsServer = true;
 			IsRouter = true;
 			IsClient = false;
@@ -42,7 +89,7 @@ namespace Chip.Net.Controllers.Distributed.Services
 			IsUser = false;
 		}
 
-		public virtual void InitializeShard(IShardModel Model) {
+		public virtual void InitializeShard() {
 			IsServer = false;
 			IsRouter = false;
 			IsClient = true;
@@ -50,7 +97,7 @@ namespace Chip.Net.Controllers.Distributed.Services
 			IsUser = false;
 		}
 
-		public virtual void InitializeUser(IUserModel Model) {
+		public virtual void InitializeUser() {
 			IsServer = false;
 			IsRouter = false;
 			IsClient = true;

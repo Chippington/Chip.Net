@@ -10,16 +10,19 @@ namespace Chip.Net.Controllers.Distributed.Services.RFC
 		public bool IsShard { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 		public bool IsUser { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 		public bool IsRouter { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+		public RouterServer RouterController { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+		public ShardClient ShardController { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+		public UserClient UserController { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
-		public void InitializeRouter(IRouterModel Model) {
+		public void InitializeRouter() {
 			throw new NotImplementedException();
 		}
 
-		public void InitializeShard(IShardModel Model) {
+		public void InitializeShard() {
 			throw new NotImplementedException();
 		}
 
-		public void InitializeUser(IUserModel Model) {
+		public void InitializeUser() {
 			throw new NotImplementedException();
 		}
 

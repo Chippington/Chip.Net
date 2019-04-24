@@ -11,7 +11,11 @@ using Chip.Net.Providers;
 
 namespace Chip.Net.Controllers.Distributed
 {
-	public class ShardClient<TRouter, TShard, TUser> : BasicClient, INetClientController
+	public class ShardClient : BasicClient {
+
+	}
+
+	public class ShardClient<TRouter, TShard, TUser> : ShardClient, INetClientController
 		where TRouter : IRouterModel
 		where TShard : IShardModel
 		where TUser : IUserModel {
@@ -32,14 +36,13 @@ namespace Chip.Net.Controllers.Distributed
 				if (typeof(IDistributedService).IsAssignableFrom(svc.GetType())) {
 					(svc as IDistributedService).IsClient = true;
 					(svc as IDistributedService).IsShard = true;
+					(svc as IDistributedService).ShardController = this;
+					(svc as IDistributedService).InitializeShard();
 				}
 		}
 
 		private void SetShardModel(IncomingMessage<SetShardModelPacket<TShard>> obj) {
 			Model = obj.Data.Model;
-			foreach (var svc in Context.Services.ServiceList)
-				if (typeof(IDistributedService).IsAssignableFrom(svc.GetType()))
-					(svc as IDistributedService).InitializeShard(Model);
 		}
 
 		public MessageChannel<T> RouteRouter<T>(string key = null) where T : Packet {
