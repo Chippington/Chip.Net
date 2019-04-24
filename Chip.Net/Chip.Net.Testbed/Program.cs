@@ -19,6 +19,7 @@ using Chip.Net.Services.UserList;
 using Chip.Net.Controllers.Distributed.Models;
 using Chip.Net.Controllers.Distributed;
 using Chip.Net.Providers.Direct;
+using Chip.Net.Controllers.Distributed.Services;
 
 namespace Chip.Net.Testbed {
 	public class TestPacket : Packet {
@@ -96,6 +97,16 @@ namespace Chip.Net.Testbed {
 		public DistributedChannel<TestPacket> Channel { get; set; }
 	}
 
+	public class Distributed : DistributedService {
+		public DistributedChannel<TestPacket> Channel { get; set; }
+
+		public override void GlobalInitialize(NetContext context) {
+			base.GlobalInitialize(context);
+
+			Channel = CreatePassthrough<TestPacket>();
+		}
+	}
+
 	class Program {
 		
 
@@ -105,6 +116,7 @@ namespace Chip.Net.Testbed {
 			ctx.MaxConnections = 10;
 			ctx.IPAddress = "localhost";
 			ctx.Services.Register<UserListService>();
+			ctx.Services.Register<Distributed>();
 
 			Router router = new Router();
 			router.InitializeServer(ctx, new DirectServerProvider(), 11111, new DirectServerProvider(), 11112);
@@ -142,14 +154,19 @@ namespace Chip.Net.Testbed {
 			List<Shard> shards = new List<Shard>();
 			List<User> users = new List<User>();
 
-
 			for (int i = 0; i < 5; i++)
 				shards.Add(makeShard());
 
 			for (int i = 0; i < 5; i++)
 				users.Add(makeUser());
 
-			users.First().Channel.Send(new TestPacket() {
+			var svc = users.First().Context.Services.Get<Distributed>();
+
+			svc.Channel.Receive += (e) => {
+				Console.WriteLine(e.Data.Data);
+			};
+
+			svc.Channel.Send(new TestPacket() {
 				Data = 10112
 			});
 
