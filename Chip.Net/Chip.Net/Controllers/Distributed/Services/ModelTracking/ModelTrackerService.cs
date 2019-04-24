@@ -43,37 +43,5 @@ namespace Chip.Net.Controllers.Distributed.Services.ModelTracking
 			context.Packets.Register<UpdateModel>();
 			context.Packets.Register<UpdateSet>();
 		}
-
-		protected virtual void Server_OnAddModel(IncomingMessage<AddModel> obj) {
-			throw new NotImplementedException();
-		}
-
-		protected virtual void Server_OnRemoveModel(IncomingMessage<RemoveModel> obj) {
-			throw new NotImplementedException();
-		}
-
-		protected virtual void Server_UpdateModel(IncomingMessage<UpdateModel> obj) {
-			throw new NotImplementedException();
-		}
-
-		protected virtual void Server_UpdateSet(IncomingMessage<UpdateSet> obj) {
-			throw new NotImplementedException();
-		}
-
-		protected virtual void Client_OnAddModel(IncomingMessage<AddModel> obj) {
-			throw new NotImplementedException();
-		}
-
-		protected virtual void Client_OnRemoveModel(IncomingMessage<RemoveModel> obj) {
-			throw new NotImplementedException();
-		}
-
-		protected virtual void Client_UpdateModel(IncomingMessage<UpdateModel> obj) {
-			throw new NotImplementedException();
-		}
-
-		protected virtual void Client_UpdateSet(IncomingMessage<UpdateSet> obj) {
-			throw new NotImplementedException();
-		}
 	}
 }

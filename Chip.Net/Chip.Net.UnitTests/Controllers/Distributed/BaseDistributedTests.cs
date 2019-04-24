@@ -14,7 +14,11 @@ namespace Chip.Net.UnitTests.Controllers.Distributed
 		private RouterServer<TestRouterModel, TestShardModel, TestUserModel> Router;
 
 		string guid = null;
+		private NetContext _cache;
 		protected virtual NetContext CreateContext() {
+			if (_cache != null)
+				return _cache;
+
 			if (guid == null) guid = Guid.NewGuid().ToString();
 
 			NetContext ctx = this.Context;
@@ -22,6 +26,7 @@ namespace Chip.Net.UnitTests.Controllers.Distributed
 			ctx.IPAddress = guid;
 			ctx.Port = 0;
 
+			_cache = ctx;
 			return ctx;
 		}
 
@@ -47,13 +52,20 @@ namespace Chip.Net.UnitTests.Controllers.Distributed
 
 		protected override ClientWrapper StartNewClient() {
 			var cl = NewClient();
-			return null;
+			cl.Client.StartClient();
+
+			return cl;
 		}
 
 		protected override ClientWrapper NewClient() {
 			var cl = Activator.CreateInstance<TClient>();
 			cl.InitializeClient(CreateContext(), new DirectClientProvider());
-			return null;
+			var ch = cl.Router.Route<TestPacket>();
+
+			return new BaseControllerTests<INetServerController, TClient>.ClientWrapper() {
+				Channel = ch,
+				Client = cl,
+			};
 		}
 
 		protected override void UpdateClient(TClient client) {
@@ -61,10 +73,7 @@ namespace Chip.Net.UnitTests.Controllers.Distributed
 		}
 
 		protected override void UpdateServer(INetServerController server) {
-			lock (routerMap) {
-				routerMap[server.Context.ApplicationName + "SHARD"].UpdateServer();
-				routerMap[server.Context.ApplicationName + "USER"].UpdateServer();
-			}
+			base.UpdateServer(server);
 		}
 	}
 }

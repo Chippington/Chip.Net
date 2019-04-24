@@ -136,7 +136,7 @@ namespace Chip.Net.Controllers.Distributed
 			SetShard(e.User, shard);
 			ShardConnectedEvent?.Invoke(this, shard);
 
-			throw new Exception("TODO: Implement set shard model");
+			//throw new Exception("TODO: Implement set shard model");
 		}
 
 		private void OnShardDisconnected(object sender, NetEventArgs e) {
@@ -163,7 +163,7 @@ namespace Chip.Net.Controllers.Distributed
 			SetUserModel(e.User, user);
 			UserConnectedEvent?.Invoke(this, user);
 
-			throw new Exception("TODO: Implement set user model");
+			//throw new Exception("TODO: Implement set user model");
 		}
 
 		private void OnUserDisconnected(object sender, NetEventArgs e) {
