@@ -21,6 +21,7 @@ namespace Chip.Net.Controllers.Distributed
 		where TUser : IUserModel {
 
 		public TShard Model { get; private set; }
+		private MessageChannel<SetShardModelPacket<TShard>> ShardSetModel;
 
 		public override void InitializeClient(NetContext context, INetClientProvider provider) {
 			context.Packets.Register<SetShardModelPacket<TShard>>();
@@ -32,6 +33,9 @@ namespace Chip.Net.Controllers.Distributed
 			context.Services.Register<ModelTrackerService<TUser>>();
 
 			base.InitializeClient(context, provider);
+			ShardSetModel = CreateRouterChannel<SetShardModelPacket<TShard>>();
+			ShardSetModel.Receive += SetShardModel;
+
 			foreach (var svc in Context.Services.ServiceList)
 				if (typeof(IDistributedService).IsAssignableFrom(svc.GetType())) {
 					(svc as IDistributedService).IsClient = true;
@@ -45,11 +49,11 @@ namespace Chip.Net.Controllers.Distributed
 			Model = obj.Data.Model;
 		}
 
-		public MessageChannel<T> RouteRouter<T>(string key = null) where T : Packet {
+		public MessageChannel<T> CreateRouterChannel<T>(string key = null) where T : Packet {
 			return Router.Route<T>(key);
 		}
 
-		public DistributedChannel<T> RouteUser<T>(string key = null) where T : Packet {
+		public DistributedChannel<T> CreateUserChannel<T>(string key = null) where T : Packet {
 			return new DistributedChannel<T>(Router.Route<PassthroughPacket<T>>(key));
 		}
 	}

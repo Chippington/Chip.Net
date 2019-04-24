@@ -23,11 +23,11 @@ namespace Chip.Net.Controllers.Distributed
 		public NetContext ShardContext { get; protected set; }
 		public NetContext UserContext { get; protected set; }
 
-		public abstract MessageChannel<T> RouteUser<T>(string key = null) where T : Packet;
+		public abstract MessageChannel<T> CreateUserChannel<T>(string key = null) where T : Packet;
 
-		public abstract MessageChannel<T> RouteShard<T>(string key = null) where T : Packet;
+		public abstract MessageChannel<T> CreateShardChannel<T>(string key = null) where T : Packet;
 
-		public abstract void PassthroughRoute<T>(string key = null) where T : Packet;
+		public abstract void CreatePassthrough<T>(string key = null) where T : Packet;
 	}
 
 	public class RouterServer<TRouter, TShard, TUser> : RouterServer
@@ -69,15 +69,13 @@ namespace Chip.Net.Controllers.Distributed
 		private readonly string UK_Shard = "Router-ShardConnection";
 		private readonly string UK_User = "Router-UserConnection";
 
+		private MessageChannel<SetShardModelPacket<TShard>> ShardSetModel;
+		private MessageChannel<SetUserModelPacket<TUser>> UserSetModel;
+
 		public void InitializeServer(NetContext context, 
 			INetServerProvider shardProvider, int shardPort, 
 			INetServerProvider userProvider, int userPort) {
-
 			Context = context;
-			context.Packets.Register<SetShardModelPacket<TShard>>();
-			context.Packets.Register<SetUserModelPacket<TUser>>();
-			context.Packets.Register<SendToShardPacket>();
-			context.Packets.Register<SendToUserPacket>();
 
 			context.Services.Register<ModelTrackerService<TShard>>();
 			context.Services.Register<ModelTrackerService<TUser>>();
@@ -114,6 +112,9 @@ namespace Chip.Net.Controllers.Distributed
 			UserController.PacketReceived += OnUserDataReceived;
 			UserContext = UserController.Context;
 
+			ShardSetModel = CreateShardChannel<SetShardModelPacket<TShard>>();
+			UserSetModel = CreateUserChannel<SetUserModelPacket<TUser>>();
+
 			Shards = new ModelTrackerCollection<TShard>();
 			Users = new ModelTrackerCollection<TUser>();
 
@@ -136,7 +137,9 @@ namespace Chip.Net.Controllers.Distributed
 			SetShard(e.User, shard);
 			ShardConnectedEvent?.Invoke(this, shard);
 
-			//throw new Exception("TODO: Implement set shard model");
+			ShardSetModel.Send(new SetShardModelPacket<TShard>() {
+				Model = shard
+			}, e.User);
 		}
 
 		private void OnShardDisconnected(object sender, NetEventArgs e) {
@@ -163,7 +166,9 @@ namespace Chip.Net.Controllers.Distributed
 			SetUserModel(e.User, user);
 			UserConnectedEvent?.Invoke(this, user);
 
-			//throw new Exception("TODO: Implement set user model");
+			UserSetModel.Send(new SetUserModelPacket<TUser>() {
+				Model = user,
+			}, e.User);
 		}
 
 		private void OnUserDisconnected(object sender, NetEventArgs e) {
@@ -184,17 +189,17 @@ namespace Chip.Net.Controllers.Distributed
 		}
 		#endregion
 
-		public override MessageChannel<T> RouteUser<T>(string key = null) {
+		public override MessageChannel<T> CreateUserChannel<T>(string key = null) {
 			return UserController.Router.Route<T>(key);
 		}
 
-		public override MessageChannel<T> RouteShard<T>(string key = null) {
+		public override MessageChannel<T> CreateShardChannel<T>(string key = null) {
 			return ShardController.Router.Route<T>(key);
 		}
 
-		public override void PassthroughRoute<T>(string key = null) {
-			var user = RouteUser<PassthroughPacket<T>>(key);
-			var shard = RouteShard<PassthroughPacket<T>>(key);
+		public override void CreatePassthrough<T>(string key = null) {
+			var user = CreateUserChannel<PassthroughPacket<T>>(key);
+			var shard = CreateShardChannel<PassthroughPacket<T>>(key);
 
 			user.Receive += (e) => {
 				if(e.Data.RecipientId == 0) {

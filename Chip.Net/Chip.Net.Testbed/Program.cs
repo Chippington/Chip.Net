@@ -45,28 +45,37 @@ namespace Chip.Net.Testbed {
 		public string UUID { get; set; }
 		public int Id { get; set; }
 
-		public void ReadFrom(DataBuffer buffer) {
-			buffer.Write((string)Name);
-			buffer.Write((string)UUID);
-			buffer.Write((int)Id);
+		public UserModel() {
+			Name = UUID = "";
+			Id = -1;
 		}
 
-		public void WriteTo(DataBuffer buffer) {
+		public void ReadFrom(DataBuffer buffer) {
 			Name = buffer.ReadString();
 			UUID = buffer.ReadString();
 			Id = buffer.ReadInt32();
+		}
+
+		public void WriteTo(DataBuffer buffer) {
+			buffer.Write((string)Name);
+			buffer.Write((string)UUID);
+			buffer.Write((int)Id);
 		}
 	}
 
 	public class ShardModel : IShardModel {
 		public int Id { get; set; }
 
+		public ShardModel() {
+			Id = -1;
+		}
+
 		public void ReadFrom(DataBuffer buffer) {
-			buffer.Write((int)Id);
+			Id = buffer.ReadInt32();
 		}
 
 		public void WriteTo(DataBuffer buffer) {
-			Id = buffer.ReadInt32();
+			buffer.Write((int)Id);
 		}
 	}
 
@@ -74,14 +83,19 @@ namespace Chip.Net.Testbed {
 		public string Name { get; set; }
 		public int Id { get; set; }
 
+		public RouterModel() {
+			Name = "";
+			Id = -1;
+		}
+
 		public void ReadFrom(DataBuffer buffer) {
-			buffer.Write((string)Name);
-			buffer.Write((int)Id);
+			Name = buffer.ReadString();
+			Id = buffer.ReadInt32();
 		}
 
 		public void WriteTo(DataBuffer buffer) {
-			Name = buffer.ReadString();
-			Id = buffer.ReadInt32();
+			buffer.Write((string)Name);
+			buffer.Write((int)Id);
 		}
 	}
 
@@ -124,7 +138,7 @@ namespace Chip.Net.Testbed {
 
 			Router router = new Router();
 			router.InitializeServer(ctx, new DirectServerProvider(), 11111, new DirectServerProvider(), 11112);
-			router.PassthroughRoute<TestPacket>();
+			router.CreatePassthrough<TestPacket>();
 
 			router.StartShardServer();
 			router.StartUserServer();
@@ -135,7 +149,7 @@ namespace Chip.Net.Testbed {
 				c.Port = 11111;
 
 				sh.InitializeClient(c, new DirectClientProvider());
-				sh.Channel = sh.RouteUser<TestPacket>();
+				sh.Channel = sh.CreateUserChannel<TestPacket>();
 				sh.Channel.Receive += (e) => { Console.WriteLine("Recv" + e.Data.Data); };
 
 				sh.StartClient();
@@ -148,7 +162,7 @@ namespace Chip.Net.Testbed {
 				c.Port = 11112;
 
 				us.InitializeClient(c, new DirectClientProvider());
-				us.Channel = us.RouteShard<TestPacket>();
+				us.Channel = us.CreateShardChannel<TestPacket>();
 				us.Channel.Receive += (e) => { Console.WriteLine("Recv " + e.Data.Data); };
 
 				us.StartClient();

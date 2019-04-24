@@ -15,7 +15,7 @@ namespace Chip.Net.UnitTests.Controllers.Distributed
 		protected override ServerWrapper NewServer() {
 			Router = new RouterServer<TestRouterModel, TestShardModel, TestUserModel>();
 			Router.InitializeServer(CreateContext(), new DirectServerProvider(), 0, new DirectServerProvider(), 1);
-			var ch = Router.RouteShard<TestPacket>();
+			var ch = Router.CreateShardChannel<TestPacket>();
 
 			return new BaseControllerTests<INetServerController, ShardClient<TestRouterModel, TestShardModel, TestUserModel>>.ServerWrapper() {
 				Server = Router.ShardController,

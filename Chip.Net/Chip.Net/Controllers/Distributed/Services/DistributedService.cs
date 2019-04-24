@@ -53,7 +53,7 @@ namespace Chip.Net.Controllers.Distributed.Services
 			}
 
 			if (IsRouter) {
-				return RouterController.RouteShard<T>(key);
+				return RouterController.CreateShardChannel<T>(key);
 			}
 
 			return null;
@@ -65,7 +65,7 @@ namespace Chip.Net.Controllers.Distributed.Services
 			}
 
 			if (IsRouter) {
-				return RouterController.RouteUser<T>(key);
+				return RouterController.CreateUserChannel<T>(key);
 			}
 
 			return null;
@@ -77,7 +77,7 @@ namespace Chip.Net.Controllers.Distributed.Services
 			}
 
 			if(IsServer) {
-				RouterController.PassthroughRoute<T>(key);
+				RouterController.CreatePassthrough<T>(key);
 			}
 
 			return null;
