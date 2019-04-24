@@ -49,8 +49,8 @@ namespace Chip.Net.Controllers.Distributed {
 			return Router.Route<T>(key);
 		}
 
-		public MessageChannel<PassthroughPacket<T>> RouteShard<T>(string key = null) where T : Packet {
-			return Router.Route<PassthroughPacket<T>>(key);
+		public DistributedChannel<T> RouteShard<T>(string key = null) where T : Packet {
+			return new DistributedChannel<T>(Router.Route<PassthroughPacket<T>>(key));
 		}
 	}
 }

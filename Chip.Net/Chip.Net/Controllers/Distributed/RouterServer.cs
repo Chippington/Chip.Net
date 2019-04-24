@@ -197,13 +197,23 @@ namespace Chip.Net.Controllers.Distributed
 			var shard = RouteShard<PassthroughPacket<T>>(key);
 
 			user.Receive += (e) => {
-				var s = Shards[e.Data.RecipientId];
-				shard.Send(new OutgoingMessage(e.Data, GetNetUser(s)));
+				if(e.Data.RecipientId == 0) {
+					foreach (var sh in Shards)
+						shard.Send(new OutgoingMessage(e.Data, GetNetUser(sh)));
+				} else {
+					var s = Shards[e.Data.RecipientId];
+					shard.Send(new OutgoingMessage(e.Data, GetNetUser(s)));
+				}
 			};
 
 			shard.Receive += (e) => {
-				var u = Users[e.Data.RecipientId];
-				user.Send(new OutgoingMessage(e.Data, GetNetUser(u)));
+				if (e.Data.RecipientId == 0) {
+					foreach (var us in Users)
+						user.Send(new OutgoingMessage(e.Data, GetNetUser(us)));
+				} else {
+					var u = Users[e.Data.RecipientId];
+					user.Send(new OutgoingMessage(e.Data, GetNetUser(u)));
+				}
 			};
 		}
 

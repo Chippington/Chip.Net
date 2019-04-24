@@ -84,9 +84,17 @@ namespace Chip.Net.Testbed {
 		}
 	}
 
-	public class Router : RouterServer<RouterModel, ShardModel, UserModel> { }
-	public class Shard : ShardClient<RouterModel, ShardModel, UserModel> { }
-	public class User : UserClient<RouterModel, ShardModel, UserModel> { }
+	public class Router : RouterServer<RouterModel, ShardModel, UserModel> {
+
+	}
+
+	public class Shard : ShardClient<RouterModel, ShardModel, UserModel> {
+		public DistributedChannel<TestPacket> Channel { get; set; }
+	}
+
+	public class User : UserClient<RouterModel, ShardModel, UserModel> {
+		public DistributedChannel<TestPacket> Channel { get; set; }
+	}
 
 	class Program {
 		
@@ -100,6 +108,8 @@ namespace Chip.Net.Testbed {
 
 			Router router = new Router();
 			router.InitializeServer(ctx, new DirectServerProvider(), 11111, new DirectServerProvider(), 11112);
+			router.PassthroughRoute<TestPacket>();
+
 			router.StartShardServer();
 			router.StartUserServer();
 
@@ -109,6 +119,9 @@ namespace Chip.Net.Testbed {
 				c.Port = 11111;
 
 				sh.InitializeClient(c, new DirectClientProvider());
+				sh.Channel = sh.RouteUser<TestPacket>();
+				sh.Channel.Receive += (e) => { Console.WriteLine("Recv" + e.Data.Data); };
+
 				sh.StartClient();
 				return sh;
 			};
@@ -119,6 +132,9 @@ namespace Chip.Net.Testbed {
 				c.Port = 11112;
 
 				us.InitializeClient(c, new DirectClientProvider());
+				us.Channel = us.RouteShard<TestPacket>();
+				us.Channel.Receive += (e) => { Console.WriteLine("Recv " + e.Data.Data); };
+
 				us.StartClient();
 				return us;
 			};
@@ -126,13 +142,18 @@ namespace Chip.Net.Testbed {
 			List<Shard> shards = new List<Shard>();
 			List<User> users = new List<User>();
 
+
 			for (int i = 0; i < 5; i++)
 				shards.Add(makeShard());
 
 			for (int i = 0; i < 5; i++)
 				users.Add(makeUser());
 
-			while(true) {
+			users.First().Channel.Send(new TestPacket() {
+				Data = 10112
+			});
+
+			while (true) {
 				router.UpdateServer();
 				foreach (var s in shards) s.UpdateClient();
 				foreach (var u in users) u.UpdateClient();
