@@ -33,8 +33,18 @@ namespace Chip.Net.Controllers.Distributed
 			Source.Send(new OutgoingMessage<PassthroughPacket<T>>(new PassthroughPacket<T>(data, shard)));
 		}
 
+		public void Send(T data, IEnumerable<IShardModel> shards) {
+			foreach (var sh in shards)
+				Send(data, sh);
+		}
+
 		public void Send(T data, IUserModel user) {
 			Source.Send(new OutgoingMessage<PassthroughPacket<T>>(new PassthroughPacket<T>(data, user)));
+		}
+
+		public void Send(T data, IEnumerable<IUserModel> Users) {
+			foreach (var us in Users)
+				Send(data, us);
 		}
 	}
 }

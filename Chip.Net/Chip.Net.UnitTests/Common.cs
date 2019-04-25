@@ -64,7 +64,7 @@ namespace Chip.Net.UnitTests {
 		public string data { get; set; }
 
 		public TestPacket() {
-			data = "";
+			data = Guid.NewGuid().ToString();
 		}
 
 		public override void WriteTo(DataBuffer buffer) {
