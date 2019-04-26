@@ -28,6 +28,9 @@ namespace Chip.Net.Controllers.Distributed
 		public abstract MessageChannel<T> CreateShardChannel<T>(string key = null) where T : Packet;
 
 		public abstract void CreatePassthrough<T>(string key = null) where T : Packet;
+
+		public abstract NetUser GetNetUserFromShard(short id);
+		public abstract NetUser GetNetUserFromUser(short id);
 	}
 
 	public class RouterServer<TRouter, TShard, TUser> : RouterServer
@@ -270,6 +273,14 @@ namespace Chip.Net.Controllers.Distributed
 				return null;
 
 			return userToNetUser[user];
+		}
+
+		public override NetUser GetNetUserFromShard(short id) {
+			return shardToNetUser[Shards[id]];
+		}
+
+		public override NetUser GetNetUserFromUser(short id) {
+			return userToNetUser[Users[id]];
 		}
 
 		public void Shutdown()

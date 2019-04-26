@@ -11,10 +11,10 @@ namespace Chip.Net.Controllers.Distributed.Services.ModelTracking
     {
 		public ModelTrackerCollection<TModel> Models { get; set; }
 
-		private MessageChannel<AddModel> ShardAddModel;
-		private MessageChannel<RemoveModel> ShardRemoveModel;
-		private MessageChannel<UpdateModel> ShardUpdateModel;
-		private MessageChannel<UpdateSet> ShardUpdateSet;
+		private ShardChannel<AddModel> ShardAddModel;
+		private ShardChannel<RemoveModel> ShardRemoveModel;
+		private ShardChannel<UpdateModel> ShardUpdateModel;
+		private ShardChannel<UpdateSet> ShardUpdateSet;
 
 		private MessageChannel<AddModel> UserAddModel;
 		private MessageChannel<RemoveModel> UserRemoveModel;

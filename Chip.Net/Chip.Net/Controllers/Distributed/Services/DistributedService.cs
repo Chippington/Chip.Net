@@ -56,17 +56,134 @@ namespace Chip.Net.Controllers.Distributed.Services
 			Passthrough,
 		}
 
-		public MessageChannel<T> CreateShardChannel<T>(string key = null) where T : Packet {
-			if (IsShard) {
-				return ShardController.Router.Route<T>(key);
+
+
+
+
+		public class ShardChannel<T> where T : Packet {
+			private MessageChannel<T> shardRawChannel;
+			private MessageChannel<PassthroughPacket<T>> shardChannel;
+			private MessageChannel<PassthroughPacket<T>> userChannel;
+
+			public EventHandler<T> Receive { get; set; }
+
+			public void Send(T data) {
+				if (shardRawChannel != null) {
+					if (userChannel != null) {
+						//is router
+						shardRawChannel.Send(new OutgoingMessage<T>(data));
+					} else {
+						//is shard
+						shardRawChannel.Send(new OutgoingMessage<T>(data));
+					}
+				} else if (userChannel != null) {
+					//is user
+					userChannel.Send(new OutgoingMessage<PassthroughPacket<T>>(new PassthroughPacket<T>(data)));
+				}
 			}
 
-			if (IsRouter) {
-				return RouterController.CreateShardChannel<T>(key);
+			public void Send(T data, IShardModel recipient) {
+				this.Send(data, recipient.Id);
+			}
+
+			private void Send(T data, int recipient) {
+				if (shardRawChannel != null) {
+					if (userChannel != null) {
+						//is router
+						shardRawChannel.Send(new OutgoingMessage<T>(data));
+					} else {
+						//is shard
+						shardRawChannel.Send(new OutgoingMessage<T>(data));
+					}
+				} else if (userChannel != null) {
+					//is user
+					userChannel.Send(new OutgoingMessage<PassthroughPacket<T>>(new PassthroughPacket<T>(data)));
+				}
+			}
+
+			public ShardChannel(MessageChannel<PassthroughPacket<T>> userChannel) {
+				this.userChannel = userChannel;
+				//is user, no receive
+			}
+
+			public ShardChannel(MessageChannel<T> shardRawChannel, MessageChannel<PassthroughPacket<T>> shardChannel) {
+				this.shardRawChannel = shardRawChannel;
+				this.shardChannel = shardChannel;
+				//is shard
+
+				this.shardRawChannel.Receive += (e) => {
+					Receive?.Invoke(this, e.Data);
+				};
+
+				this.shardChannel.Receive += (e) => {
+					Receive?.Invoke(this, e.Data.Data);
+				};
+			}
+
+			public ShardChannel(Func<short, NetUser> netUserResolver, MessageChannel<T> shardRawChannel, MessageChannel<PassthroughPacket<T>> shardChannel, MessageChannel<PassthroughPacket<T>> userChannel) {
+				this.shardRawChannel = shardRawChannel;
+				this.shardChannel = shardChannel;
+				this.userChannel = userChannel;
+
+				//receive raw: resend to all
+				this.shardRawChannel.Receive += (e) => {
+					Send(e.Data);
+				};
+
+				this.shardChannel.Receive += (e) => {
+					Send(e.Data.Data, e.Data.RecipientId);
+				};
+
+				this.userChannel.Receive += (e) => {
+					Send(e.Data.Data, e.Data.RecipientId);
+				};
+			}
+		}
+
+		public ShardChannel<T> CreateShardChannel<T>(string key = null) where T : Packet {
+			if(IsUser) {
+				var userChannel = UserController.Router.Route<PassthroughPacket<T>>(key);
+				return new ShardChannel<T>(
+					userChannel);
+			}
+
+			if (IsShard) {
+				var shardRawChannel = ShardController.Router.Route<T>(key);
+				var shardChannel = ShardController.Router.Route<PassthroughPacket<T>>(key);
+
+				return new ShardChannel<T>(
+					shardRawChannel,
+					shardChannel);
+			}
+
+			if(IsRouter) {
+				var shardRawChannel = RouterController.ShardController.Router.Route<T>(key);
+				var shardChannel = RouterController.ShardController.Router.Route<PassthroughPacket<T>>(key);
+				var userChannel = RouterController.UserController.Router.Route<PassthroughPacket<T>>(key);
+
+				return new ShardChannel<T>((id) => RouterController.GetNetUserFromShard(id),
+					shardRawChannel,
+					shardChannel,
+					userChannel);
 			}
 
 			return null;
 		}
+
+
+
+
+		//public MessageChannel<T> CreateShardChannel<T>(string key = null) where T : Packet {
+		//	if (IsShard) {
+		//		return ShardController.Router.Route<T>(key);
+		//	}
+
+		//	if (IsRouter) {
+		//		return RouterController.CreateShardChannel<T>(key);
+		//	}
+
+		//	return null;
+		//}
 
 		public MessageChannel<T> CreateUserChannel<T>(string key = null) where T : Packet {
 			if (IsUser) {
