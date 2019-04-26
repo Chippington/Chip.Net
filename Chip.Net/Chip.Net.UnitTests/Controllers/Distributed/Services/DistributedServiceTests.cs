@@ -187,6 +187,15 @@ namespace Chip.Net.UnitTests.Controllers.Distributed.Services
 			}
 		}
 
+		public class TestDistributedService : DistributedService {
+			public ShardChannel<TestPacket> ShardChannel { get; set; }
+
+			protected override void InitializeDistributedService() {
+				base.InitializeDistributedService();
+
+				ShardChannel = CreateShardChannel<TestPacket>();
+			}
+		}
 
 		public RouterServer<TestRouterModel, TestShardModel, TestUserModel> Router { get; set; }
 		public List<ShardClient<TestRouterModel, TestShardModel, TestUserModel>> Shards { get; set; }
@@ -200,6 +209,7 @@ namespace Chip.Net.UnitTests.Controllers.Distributed.Services
 			ctx.IPAddress = Name;
 			ctx.Port = Port;
 
+			ctx.Services.Register<TestDistributedService>();
 			ctx.Packets.Register<TestPacket>();
 
 			return ctx;
@@ -367,17 +377,67 @@ namespace Chip.Net.UnitTests.Controllers.Distributed.Services
 
 		[TestMethod]
 		public void DistributedService_RouterServer_SendToShard_PacketReceived() {
-			
+			var routerShardSvc = Router.ShardController.Context.Services.Get<TestDistributedService>();
+			var routerUserSvc = Router.UserController.Context.Services.Get<TestDistributedService>();
+			var user = Users.First();
+			var shard = Shards.First();
+			var usvc = user.Context.Services.Get<TestDistributedService>();
+			var ssvc = shard.Context.Services.Get<TestDistributedService>();
+			var pck = new TestPacket();
+
+			bool recv = false;
+			ssvc.ShardChannel.Receive += (s, e) => {
+				recv = true;
+			};
+
+			usvc.ShardChannel.Send(pck, shard.Model);
+			Assert.IsTrue(recv);
 		}
 
 		[TestMethod]
 		public void DistributedService_RouterServer_SendToAllShards_PacketsReceived() {
-			
+			var routerShardSvc = Router.ShardController.Context.Services.Get<TestDistributedService>();
+			var routerUserSvc = Router.UserController.Context.Services.Get<TestDistributedService>();
+			var user = Users.First();
+			var shard = Shards.First();
+			var usvc = user.Context.Services.Get<TestDistributedService>();
+			var ssvc = shard.Context.Services.Get<TestDistributedService>();
+			var pck = new TestPacket();
+
+			int recv = 0;
+			foreach(var sh in Shards) {
+				sh.Context.Services.Get<TestDistributedService>().ShardChannel.Receive += (s, e) => {
+					recv++;
+				};
+			}
+
+			usvc.ShardChannel.Send(pck);
+			Assert.IsTrue(recv == Shards.Count);
 		}
 
 		[TestMethod]
 		public void DistributedService_RouterServer_SendToAllShards_ExcludingOne_PacketsReceived() {
-			
+			var routerShardSvc = Router.ShardController.Context.Services.Get<TestDistributedService>();
+			var routerUserSvc = Router.UserController.Context.Services.Get<TestDistributedService>();
+			var user = Users.First();
+			var shard = Shards.First();
+			var usvc = user.Context.Services.Get<TestDistributedService>();
+			var ssvc = shard.Context.Services.Get<TestDistributedService>();
+			var pck = new TestPacket();
+
+			int recv = 0;
+			foreach (var sh in Shards) {
+				sh.Context.Services.Get<TestDistributedService>().ShardChannel.Receive += (s, e) => {
+					recv++;
+				};
+			}
+
+			Router.UpdateServer();
+			foreach (var sh in Shards) sh.UpdateClient();
+			foreach (var us in Users) us.UpdateClient();
+
+			usvc.ShardChannel.Send(pck, Shards.Select(i => i.Model).Skip(1));
+			Assert.AreEqual(recv, Shards.Count - 1);
 		}
 
 		[TestMethod]

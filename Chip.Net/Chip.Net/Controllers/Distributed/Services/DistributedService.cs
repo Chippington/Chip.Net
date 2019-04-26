@@ -66,6 +66,7 @@ namespace Chip.Net.Controllers.Distributed.Services
 			private MessageChannel<PassthroughPacket<T>> userChannel;
 
 			public EventHandler<T> Receive { get; set; }
+			public Func<short, NetUser> Resolver { get; set; }
 
 			public void Send(T data) {
 				if (shardRawChannel != null) {
@@ -86,18 +87,27 @@ namespace Chip.Net.Controllers.Distributed.Services
 				this.Send(data, recipient.Id);
 			}
 
+			public void Send(T data, IEnumerable<IShardModel> recipients) {
+				foreach (var recipient in recipients)
+					this.Send(data, recipient);
+			}
+
 			private void Send(T data, int recipient) {
 				if (shardRawChannel != null) {
 					if (userChannel != null) {
 						//is router
-						shardRawChannel.Send(new OutgoingMessage<T>(data));
+						if(recipient <= 0) {
+							shardRawChannel.Send(data);
+						} else {
+							shardRawChannel.Send(data, Resolver((short)recipient));
+						}
 					} else {
 						//is shard
-						shardRawChannel.Send(new OutgoingMessage<T>(data));
+						shardChannel.Send(new OutgoingMessage<PassthroughPacket<T>>(new PassthroughPacket<T>(data, recipient)));
 					}
 				} else if (userChannel != null) {
 					//is user
-					userChannel.Send(new OutgoingMessage<PassthroughPacket<T>>(new PassthroughPacket<T>(data)));
+					userChannel.Send(new OutgoingMessage<PassthroughPacket<T>>(new PassthroughPacket<T>(data, recipient)));
 				}
 			}
 
@@ -121,6 +131,7 @@ namespace Chip.Net.Controllers.Distributed.Services
 			}
 
 			public ShardChannel(Func<short, NetUser> netUserResolver, MessageChannel<T> shardRawChannel, MessageChannel<PassthroughPacket<T>> shardChannel, MessageChannel<PassthroughPacket<T>> userChannel) {
+				this.Resolver = netUserResolver;
 				this.shardRawChannel = shardRawChannel;
 				this.shardChannel = shardChannel;
 				this.userChannel = userChannel;

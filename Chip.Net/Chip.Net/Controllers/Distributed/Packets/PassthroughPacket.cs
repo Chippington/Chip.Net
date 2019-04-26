@@ -13,8 +13,9 @@ namespace Chip.Net.Controllers.Distributed.Packets {
 			Data = Activator.CreateInstance<T>();
 		}
 
-		public PassthroughPacket(T Data) {
+		public PassthroughPacket(T Data, int recipient = -1) {
 			this.Data = Data;
+			this.RecipientId = recipient;
 		}
 
 		public PassthroughPacket(T Data, IShardModel shard) {
