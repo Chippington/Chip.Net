@@ -10,6 +10,8 @@ namespace Chip.Net.Controllers.Distributed.Services.ModelTracking
     public partial class ModelTrackerService<TModel> : DistributedService where TModel : IDistributedModel
     {
 		public ModelTrackerCollection<TModel> Models { get; set; }
+		private Func<ValidationContext, IUserModel, bool> ShardValidate;
+		private Func<ValidationContext, IUserModel, bool> UserValidate;
 
 		private ShardChannel<AddModel> ShardAddModel;
 		private ShardChannel<RemoveModel> ShardRemoveModel;
@@ -29,19 +31,67 @@ namespace Chip.Net.Controllers.Distributed.Services.ModelTracking
 			ShardUpdateModel = CreateShardChannel<UpdateModel>();
 			ShardUpdateSet = CreateShardChannel<UpdateSet>();
 
+			ShardAddModel.Receive += addModel;
+			ShardRemoveModel.Receive += removeModel;
+			ShardUpdateModel.Receive += updateModel;
+			ShardUpdateSet.Receive += updateSet;
+
 			UserAddModel = CreateUserChannel<AddModel>();
 			UserRemoveModel = CreateUserChannel<RemoveModel>();
 			UserUpdateModel = CreateUserChannel<UpdateModel>();
 			UserUpdateSet = CreateUserChannel<UpdateSet>();
+
+			UserAddModel.Receive += addModel;
+			UserRemoveModel.Receive += removeModel;
+			UserUpdateModel.Receive += updateModel;
+			UserUpdateSet.Receive += updateSet;
+
+			Models = new ModelTrackerCollection<TModel>();
+			Models.ModelAddedEvent += OnModelAdded;
+			Models.ModelRemovedEvent += OnModelRemoved;
+			Models.ModelUpdatedEvent += OnModelUpdated;
 		}
 
-		protected override void InitializeContext(NetContext context) {
-			base.InitializeContext(context);
+		public struct ValidationContext {
+			public TModel Model { get; set; }
+			public NetUser User { get; set; }
+			public ModelTrackerPacket Source { get; set; }
+		}
 
-			context.Packets.Register<AddModel>();
-			context.Packets.Register<RemoveModel>();
-			context.Packets.Register<UpdateModel>();
-			context.Packets.Register<UpdateSet>();
+		public void SetShardValidation(Func<ValidationContext, IUserModel, bool> func) {
+
+		}
+
+		public void SetUserValidation(Func<ValidationContext, IUserModel, bool> func) {
+
+		}
+
+		private void addModel(object sender, AddModel e) {
+			throw new NotImplementedException();
+		}
+
+		private void removeModel(object sender, RemoveModel e) {
+			throw new NotImplementedException();
+		}
+
+		private void updateModel(object sender, UpdateModel e) {
+			throw new NotImplementedException();
+		}
+
+		private void updateSet(object sender, UpdateSet e) {
+			throw new NotImplementedException();
+		}
+
+		private void OnModelAdded(object sender, ModelTrackerCollection<TModel>.ModelAddedEventArgs e) {
+			throw new NotImplementedException();
+		}
+
+		private void OnModelRemoved(object sender, ModelTrackerCollection<TModel>.ModelRemovedEventArgs e) {
+			throw new NotImplementedException();
+		}
+
+		private void OnModelUpdated(object sender, ModelTrackerCollection<TModel>.ModelUpdatedEventArgs e) {
+			throw new NotImplementedException();
 		}
 	}
 }
