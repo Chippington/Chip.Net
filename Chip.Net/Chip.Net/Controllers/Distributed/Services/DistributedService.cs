@@ -83,14 +83,11 @@ namespace Chip.Net.Controllers.Distributed.Services
 			public void Send(T data) {
 				if (destinationRawChannel != null) {
 					if (peerChannel != null) {
-						//is router
 						destinationRawChannel.Send(new OutgoingMessage<T>(data));
 					} else {
-						//is shard
 						destinationRawChannel.Send(new OutgoingMessage<T>(data));
 					}
 				} else if (peerChannel != null) {
-					//is user
 					peerChannel.Send(new OutgoingMessage<PassthroughPacket<T>>(new PassthroughPacket<T>(data)));
 				}
 			}
@@ -107,31 +104,26 @@ namespace Chip.Net.Controllers.Distributed.Services
 			private void Send(T data, int recipient) {
 				if (destinationRawChannel != null) {
 					if (peerChannel != null) {
-						//is router
 						if(recipient <= 0) {
 							destinationRawChannel.Send(data);
 						} else {
 							destinationRawChannel.Send(data, Resolver((short)recipient));
 						}
 					} else {
-						//is shard
 						destinationChannel.Send(new OutgoingMessage<PassthroughPacket<T>>(new PassthroughPacket<T>(data, recipient)));
 					}
 				} else if (peerChannel != null) {
-					//is user
 					peerChannel.Send(new OutgoingMessage<PassthroughPacket<T>>(new PassthroughPacket<T>(data, recipient)));
 				}
 			}
 
 			public DistributedChannel(MessageChannel<PassthroughPacket<T>> peerChannel) {
 				this.peerChannel = peerChannel;
-				//is user, no receive
 			}
 
 			public DistributedChannel(MessageChannel<T> destinationRawChannel, MessageChannel<PassthroughPacket<T>> destinationChannel) {
 				this.destinationRawChannel = destinationRawChannel;
 				this.destinationChannel = destinationChannel;
-				//is shard
 
 				this.destinationRawChannel.Receive += (e) => {
 					Receive?.Invoke(this, e.Data);
@@ -148,7 +140,6 @@ namespace Chip.Net.Controllers.Distributed.Services
 				this.destinationChannel = destinationChannel;
 				this.peerChannel = peerChannel;
 
-				//receive raw: resend to all
 				this.destinationRawChannel.Receive += (e) => {
 					Send(e.Data);
 				};
