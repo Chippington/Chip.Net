@@ -16,10 +16,10 @@ namespace Chip.Net.Controllers.Distributed.Services.ModelTracking
 		private ShardChannel<UpdateModel> ShardUpdateModel;
 		private ShardChannel<UpdateSet> ShardUpdateSet;
 
-		private MessageChannel<AddModel> UserAddModel;
-		private MessageChannel<RemoveModel> UserRemoveModel;
-		private MessageChannel<UpdateModel> UserUpdateModel;
-		private MessageChannel<UpdateSet> UserUpdateSet;
+		private UserChannel<AddModel> UserAddModel;
+		private UserChannel<RemoveModel> UserRemoveModel;
+		private UserChannel<UpdateModel> UserUpdateModel;
+		private UserChannel<UpdateSet> UserUpdateSet;
 
 		protected override void InitializeDistributedService() {
 			base.InitializeDistributedService();

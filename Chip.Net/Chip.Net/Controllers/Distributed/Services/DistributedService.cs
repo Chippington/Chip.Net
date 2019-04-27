@@ -56,103 +56,120 @@ namespace Chip.Net.Controllers.Distributed.Services
 			Passthrough,
 		}
 
+		public class ShardChannel<T> : DistributedChannel<T, IShardModel> where T : Packet {
+			public ShardChannel(MessageChannel<PassthroughPacket<T>> peerChannel) : base(peerChannel) { }
 
+			public ShardChannel(MessageChannel<T> destinationRawChannel, MessageChannel<PassthroughPacket<T>> destinationChannel) : base(destinationRawChannel, destinationChannel) { }
 
+			public ShardChannel(Func<short, NetUser> netUserResolver, MessageChannel<T> destinationRawChannel, MessageChannel<PassthroughPacket<T>> destinationChannel, MessageChannel<PassthroughPacket<T>> peerChannel) : base(netUserResolver, destinationRawChannel, destinationChannel, peerChannel) { }
+		}
 
+		public class UserChannel<T> : DistributedChannel<T, IUserModel> where T : Packet {
+			public UserChannel(MessageChannel<PassthroughPacket<T>> peerChannel) : base(peerChannel) { }
 
-		public class ShardChannel<T> where T : Packet {
-			private MessageChannel<T> shardRawChannel;
-			private MessageChannel<PassthroughPacket<T>> shardChannel;
-			private MessageChannel<PassthroughPacket<T>> userChannel;
+			public UserChannel(MessageChannel<T> destinationRawChannel, MessageChannel<PassthroughPacket<T>> destinationChannel) : base(destinationRawChannel, destinationChannel) { }
+
+			public UserChannel(Func<short, NetUser> netUserResolver, MessageChannel<T> destinationRawChannel, MessageChannel<PassthroughPacket<T>> destinationChannel, MessageChannel<PassthroughPacket<T>> peerChannel) : base(netUserResolver, destinationRawChannel, destinationChannel, peerChannel) { }
+		}
+
+		public class DistributedChannel<T, TModel> where T : Packet where TModel : IDistributedModel {
+			private MessageChannel<T> destinationRawChannel;
+			private MessageChannel<PassthroughPacket<T>> destinationChannel;
+			private MessageChannel<PassthroughPacket<T>> peerChannel;
 
 			public EventHandler<T> Receive { get; set; }
 			public Func<short, NetUser> Resolver { get; set; }
 
 			public void Send(T data) {
-				if (shardRawChannel != null) {
-					if (userChannel != null) {
+				if (destinationRawChannel != null) {
+					if (peerChannel != null) {
 						//is router
-						shardRawChannel.Send(new OutgoingMessage<T>(data));
+						destinationRawChannel.Send(new OutgoingMessage<T>(data));
 					} else {
 						//is shard
-						shardRawChannel.Send(new OutgoingMessage<T>(data));
+						destinationRawChannel.Send(new OutgoingMessage<T>(data));
 					}
-				} else if (userChannel != null) {
+				} else if (peerChannel != null) {
 					//is user
-					userChannel.Send(new OutgoingMessage<PassthroughPacket<T>>(new PassthroughPacket<T>(data)));
+					peerChannel.Send(new OutgoingMessage<PassthroughPacket<T>>(new PassthroughPacket<T>(data)));
 				}
 			}
 
-			public void Send(T data, IShardModel recipient) {
+			public void Send(T data, TModel recipient) {
 				this.Send(data, recipient.Id);
 			}
 
-			public void Send(T data, IEnumerable<IShardModel> recipients) {
+			public void Send(T data, IEnumerable<TModel> recipients) {
 				foreach (var recipient in recipients)
 					this.Send(data, recipient);
 			}
 
 			private void Send(T data, int recipient) {
-				if (shardRawChannel != null) {
-					if (userChannel != null) {
+				if (destinationRawChannel != null) {
+					if (peerChannel != null) {
 						//is router
 						if(recipient <= 0) {
-							shardRawChannel.Send(data);
+							destinationRawChannel.Send(data);
 						} else {
-							shardRawChannel.Send(data, Resolver((short)recipient));
+							destinationRawChannel.Send(data, Resolver((short)recipient));
 						}
 					} else {
 						//is shard
-						shardChannel.Send(new OutgoingMessage<PassthroughPacket<T>>(new PassthroughPacket<T>(data, recipient)));
+						destinationChannel.Send(new OutgoingMessage<PassthroughPacket<T>>(new PassthroughPacket<T>(data, recipient)));
 					}
-				} else if (userChannel != null) {
+				} else if (peerChannel != null) {
 					//is user
-					userChannel.Send(new OutgoingMessage<PassthroughPacket<T>>(new PassthroughPacket<T>(data, recipient)));
+					peerChannel.Send(new OutgoingMessage<PassthroughPacket<T>>(new PassthroughPacket<T>(data, recipient)));
 				}
 			}
 
-			public ShardChannel(MessageChannel<PassthroughPacket<T>> userChannel) {
-				this.userChannel = userChannel;
+			public DistributedChannel(MessageChannel<PassthroughPacket<T>> peerChannel) {
+				this.peerChannel = peerChannel;
 				//is user, no receive
 			}
 
-			public ShardChannel(MessageChannel<T> shardRawChannel, MessageChannel<PassthroughPacket<T>> shardChannel) {
-				this.shardRawChannel = shardRawChannel;
-				this.shardChannel = shardChannel;
+			public DistributedChannel(MessageChannel<T> destinationRawChannel, MessageChannel<PassthroughPacket<T>> destinationChannel) {
+				this.destinationRawChannel = destinationRawChannel;
+				this.destinationChannel = destinationChannel;
 				//is shard
 
-				this.shardRawChannel.Receive += (e) => {
+				this.destinationRawChannel.Receive += (e) => {
 					Receive?.Invoke(this, e.Data);
 				};
 
-				this.shardChannel.Receive += (e) => {
+				this.destinationChannel.Receive += (e) => {
 					Receive?.Invoke(this, e.Data.Data);
 				};
 			}
 
-			public ShardChannel(Func<short, NetUser> netUserResolver, MessageChannel<T> shardRawChannel, MessageChannel<PassthroughPacket<T>> shardChannel, MessageChannel<PassthroughPacket<T>> userChannel) {
+			public DistributedChannel(Func<short, NetUser> netUserResolver, MessageChannel<T> destinationRawChannel, MessageChannel<PassthroughPacket<T>> destinationChannel, MessageChannel<PassthroughPacket<T>> peerChannel) {
 				this.Resolver = netUserResolver;
-				this.shardRawChannel = shardRawChannel;
-				this.shardChannel = shardChannel;
-				this.userChannel = userChannel;
+				this.destinationRawChannel = destinationRawChannel;
+				this.destinationChannel = destinationChannel;
+				this.peerChannel = peerChannel;
 
 				//receive raw: resend to all
-				this.shardRawChannel.Receive += (e) => {
+				this.destinationRawChannel.Receive += (e) => {
 					Send(e.Data);
 				};
 
-				this.shardChannel.Receive += (e) => {
+				this.destinationChannel.Receive += (e) => {
 					Send(e.Data.Data, e.Data.RecipientId);
 				};
 
-				this.userChannel.Receive += (e) => {
+				this.peerChannel.Receive += (e) => {
 					Send(e.Data.Data, e.Data.RecipientId);
 				};
 			}
 		}
 
 		public ShardChannel<T> CreateShardChannel<T>(string key = null) where T : Packet {
-			if(IsUser) {
+			if (key == null)
+				key = "";
+
+			key = "[ShardChannel]" + key;
+
+			if (IsUser) {
 				var userChannel = UserController.Router.Route<PassthroughPacket<T>>(key);
 				return new ShardChannel<T>(
 					userChannel);
@@ -167,7 +184,7 @@ namespace Chip.Net.Controllers.Distributed.Services
 					shardChannel);
 			}
 
-			if(IsRouter) {
+			if (IsRouter) {
 				var shardRawChannel = RouterController.ShardController.Router.Route<T>(key);
 				var shardChannel = RouterController.ShardController.Router.Route<PassthroughPacket<T>>(key);
 				var userChannel = RouterController.UserController.Router.Route<PassthroughPacket<T>>(key);
@@ -181,28 +198,36 @@ namespace Chip.Net.Controllers.Distributed.Services
 			return null;
 		}
 
+		public UserChannel<T> CreateUserChannel<T>(string key = null) where T : Packet {
+			if (key == null)
+				key = "";
 
+			key = "[UserChannel]" + key;
 
-
-		//public MessageChannel<T> CreateShardChannel<T>(string key = null) where T : Packet {
-		//	if (IsShard) {
-		//		return ShardController.Router.Route<T>(key);
-		//	}
-
-		//	if (IsRouter) {
-		//		return RouterController.CreateShardChannel<T>(key);
-		//	}
-
-		//	return null;
-		//}
-
-		public MessageChannel<T> CreateUserChannel<T>(string key = null) where T : Packet {
 			if (IsUser) {
-				return UserController.Router.Route<T>(key);
+				var userRawChannel = UserController.Router.Route<T>(key);
+				var userChannel = UserController.Router.Route<PassthroughPacket<T>>(key);
+
+				return new UserChannel<T>(
+					userRawChannel,
+					userChannel);
+			}
+
+			if (IsShard) {
+				var shardChannel = ShardController.Router.Route<PassthroughPacket<T>>(key);
+				return new UserChannel<T>(
+					shardChannel);
 			}
 
 			if (IsRouter) {
-				return RouterController.CreateUserChannel<T>(key);
+				var userRawChannel = RouterController.UserController.Router.Route<T>(key);
+				var userChannel = RouterController.UserController.Router.Route<PassthroughPacket<T>>(key);
+				var shardChannel = RouterController.ShardController.Router.Route<PassthroughPacket<T>>(key);
+
+				return new UserChannel<T>((id) => RouterController.GetNetUserFromUser(id),
+					userRawChannel,
+					userChannel,
+					shardChannel);
 			}
 
 			return null;
