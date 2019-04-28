@@ -23,8 +23,11 @@ namespace Chip.Net.Controllers.Distributed.Services.ModelTracking
 		private UserChannel<UpdateModel> UserUpdateModel;
 		private UserChannel<UpdateSet> UserUpdateSet;
 
+		private bool SendMessages;
+
 		protected override void InitializeDistributedService() {
 			base.InitializeDistributedService();
+			SendMessages = true;
 
 			ShardAddModel = CreateShardChannel<AddModel>();
 			ShardRemoveModel = CreateShardChannel<RemoveModel>();
@@ -67,31 +70,63 @@ namespace Chip.Net.Controllers.Distributed.Services.ModelTracking
 		}
 
 		private void addModel(object sender, AddModel e) {
-			throw new NotImplementedException();
+			SendMessages = false;
+			e.Model.Id = e.Id;
+			Models.Add(e.Model, e.Id, false);
+			SendMessages = true;
 		}
 
 		private void removeModel(object sender, RemoveModel e) {
-			throw new NotImplementedException();
+			SendMessages = false;
+			Models.Remove(e.Id, false);
+			SendMessages = true;
 		}
 
 		private void updateModel(object sender, UpdateModel e) {
-			throw new NotImplementedException();
+			SendMessages = false;
+			Models.Update(e.Id, e.Model, false);
+			SendMessages = true;
 		}
 
 		private void updateSet(object sender, UpdateSet e) {
-			throw new NotImplementedException();
+			SendMessages = false;
+			foreach(var m in e.Models) {
+				updateModel(sender, new UpdateModel() { Id = m.Id, Model = m });
+			}
+			SendMessages = true;
 		}
 
 		private void OnModelAdded(object sender, ModelTrackerCollection<TModel>.ModelAddedEventArgs e) {
-			throw new NotImplementedException();
+			if (SendMessages == false) return;
+
+			AddModel m = new AddModel();
+			m.Id = e.Model.Id;
+			m.Model = e.Model;
+
+			ShardAddModel.Send(m);
+			UserAddModel.Send(m);
 		}
 
 		private void OnModelRemoved(object sender, ModelTrackerCollection<TModel>.ModelRemovedEventArgs e) {
-			throw new NotImplementedException();
+			if (SendMessages == false) return;
+
+			RemoveModel m = new RemoveModel();
+			m.Id = e.Model.Id;
+			m.Model = e.Model;
+
+			ShardRemoveModel.Send(m);
+			UserRemoveModel.Send(m);
 		}
 
 		private void OnModelUpdated(object sender, ModelTrackerCollection<TModel>.ModelUpdatedEventArgs e) {
-			throw new NotImplementedException();
+			if (SendMessages == false) return;
+
+			UpdateModel m = new UpdateModel();
+			m.Id = e.UpdatedModel.Id;
+			m.Model = e.UpdatedModel;
+
+			ShardUpdateModel.Send(m);
+			UserUpdateModel.Send(m);
 		}
 	}
 }

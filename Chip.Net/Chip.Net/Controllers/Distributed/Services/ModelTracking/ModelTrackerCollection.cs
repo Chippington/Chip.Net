@@ -56,29 +56,30 @@ namespace Chip.Net.Controllers.Distributed.Services.ModelTracking
 			nextId = 1;
 		}
 
-		public void Add(TModel item) {
+		public void Add(TModel item, bool invokeEvent = true) {
 			if (Disposed) throw new Exception("Collection is disposed.");
 
 			item.Id = GetNextId();
 			Add(item, item.Id);
 		}
 
-		private void Add(TModel item, int id) {
+		public void Add(TModel item, int id, bool invokeEvent = true) {
 			if (Disposed) throw new Exception("Collection is disposed.");
 
 			item.Id = id;
 			modelMap[item.Id] = item;
 
-			ModelAddedEvent?.Invoke(this, new ModelAddedEventArgs() {
-				Model = item,
-			});
+			if(invokeEvent)
+				ModelAddedEvent?.Invoke(this, new ModelAddedEventArgs() {
+					Model = item,
+				});
 
 			while (nextId < id)
 				if (modelMap.ContainsKey(nextId) == false)
 					RecycleId(nextId++);
 		}
 
-		public void Update(int itemId, TModel item) {
+		public void Update(int itemId, TModel item, bool invokeEvent = true) {
 			if (Disposed) throw new Exception("Collection is disposed.");
 
 			if (itemId != item.Id)
@@ -90,10 +91,11 @@ namespace Chip.Net.Controllers.Distributed.Services.ModelTracking
 				var old = modelMap[itemId];
 				modelMap[itemId] = item;
 
-				ModelUpdatedEvent?.Invoke(this, new ModelUpdatedEventArgs() {
-					OldModel = old,
-					UpdatedModel = item,
-				});
+				if(invokeEvent)
+					ModelUpdatedEvent?.Invoke(this, new ModelUpdatedEventArgs() {
+						OldModel = old,
+						UpdatedModel = item,
+					});
 			} else {
 				Add(item, itemId);
 			}
@@ -138,7 +140,7 @@ namespace Chip.Net.Controllers.Distributed.Services.ModelTracking
 			return false;
 		}
 
-		public bool Remove(int itemId) {
+		public bool Remove(int itemId, bool invokeEvent = true) {
 			if (Disposed) throw new Exception("Collection is disposed.");
 
 			TModel m = default(TModel);
@@ -148,7 +150,7 @@ namespace Chip.Net.Controllers.Distributed.Services.ModelTracking
 			var r = modelMap.Remove(itemId);
 			if (r) RecycleId(itemId);
 
-			if(m != null)
+			if(m != null && invokeEvent)
 				ModelRemovedEvent?.Invoke(this, new ModelRemovedEventArgs() {
 					Model = m,
 				});
@@ -172,6 +174,10 @@ namespace Chip.Net.Controllers.Distributed.Services.ModelTracking
 			modelMap = null;
 			availableIds = null;
 			Disposed = true;
+		}
+
+		public void Add(TModel item) {
+			this.Add(item, false);
 		}
 	}
 }
