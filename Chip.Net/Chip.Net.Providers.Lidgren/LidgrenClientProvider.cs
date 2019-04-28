@@ -75,6 +75,8 @@ namespace Chip.Net.Providers.Lidgren {
 				client.Disconnect("Disconnecting");
 				client.Shutdown("Disconnecting");
 				client = null;
+
+				this.UserDisconnected?.Invoke(this, new ProviderUserEventArgs());
 			}
 		}
 	}
