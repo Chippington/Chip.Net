@@ -10,7 +10,7 @@ namespace Chip.Net.Providers
 	}
 
 	public class ProviderDataEventArgs {
-		public ProviderDataEventArgs(object userKey,  bool receiving, DataBuffer data, int byteCount = 0) {
+		public ProviderDataEventArgs(object userKey, bool receiving, DataBuffer data, int byteCount = 0) {
 			this.Receiving = receiving;
 			this.ByteCount = byteCount;
 			this.UserKey = userKey;

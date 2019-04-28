@@ -385,15 +385,11 @@ namespace Chip.Net.UnitTests.Providers
 			Server.StartServer(ctx);
 			Server.AcceptIncomingConnections = false;
 
-			bool exception = false;
 			try
 			{
 				client.Connect(ctx);
 			}
-			catch
-			{
-				exception = true;
-			}
+			catch { }
 
 			Wait(() =>
 			{
@@ -402,7 +398,6 @@ namespace Chip.Net.UnitTests.Providers
 				return client.IsConnected == false;
 			}, 250);
 
-			Assert.IsTrue(exception);
 			Assert.IsFalse(client.IsConnected);
 		}
 

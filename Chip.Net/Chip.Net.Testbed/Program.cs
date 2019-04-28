@@ -196,10 +196,11 @@ namespace Chip.Net.Testbed {
 				users.Add(makeUser());
 
 			var svc = users.First().Context.Services.Get<Distributed>();
-			var svc2 = shards.First().Context.Services.Get<ModelTrackerService<TestDistModel>>();
+			var svc2 = router.ShardController.Context.Services.Get<ModelTrackerService<TestDistModel>>();
 
+			for(int i = 0; i < 100; i++)
 			svc2.Models.Add(new TestDistModel() {
-				Data = "Hello world",
+				Data = "Hello world " + i.ToString(),
 			});
 
 			//svc.Channel.Send(new TestPacket() {

@@ -10,22 +10,23 @@ namespace Chip.Net.Providers.Lidgren {
 		public EventHandler<ProviderUserEventArgs> UserDisconnected { get; set; }
 
 
-		public EventHandler<ProviderDataEventArgs> DataSent { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-		public EventHandler<ProviderDataEventArgs> DataReceived { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+		public EventHandler<ProviderDataEventArgs> DataSent { get; set; }
+		public EventHandler<ProviderDataEventArgs> DataReceived { get; set; }
 
 		public bool AcceptIncomingConnections { get; set; }
 		public bool IsActive { get; private set; }
 
 		private NetServer server;
 		private List<NetConnection> connections;
-		private Queue<Tuple<object, DataBuffer>> incoming;
+		private int maxConnections = -1;
 
 		public void StartServer(NetContext context) {
-			incoming = new Queue<Tuple<object, DataBuffer>>();
+			AcceptIncomingConnections = true;
 
 			NetPeerConfiguration config = new NetPeerConfiguration(context.ApplicationName);
 			config.Port = context.Port;
 			config.MaximumConnections = context.MaxConnections;
+			maxConnections = context.MaxConnections + 2;
 
 			connections = new List<NetConnection>();
 			server = new NetServer(config);
@@ -41,10 +42,14 @@ namespace Chip.Net.Providers.Lidgren {
 						Console.WriteLine(inc.SenderEndPoint.ToString() + " Status: " + inc.SenderConnection.Status.ToString());
 						switch (inc.SenderConnection.Status) {
 							case NetConnectionStatus.Connected:
-								connections.Add(inc.SenderConnection);
-								UserConnected?.Invoke(this, new ProviderUserEventArgs() {
-									UserKey = inc.SenderConnection,
-								});
+								if(connections.Count >= maxConnections || AcceptIncomingConnections == false) {
+									inc.SenderConnection.Disconnect("Server full");
+								} else {
+									connections.Add(inc.SenderConnection);
+									UserConnected?.Invoke(this, new ProviderUserEventArgs() {
+										UserKey = inc.SenderConnection,
+									});
+								}
 								break;
 
 							case NetConnectionStatus.Disconnected:
@@ -58,7 +63,7 @@ namespace Chip.Net.Providers.Lidgren {
 
 					case NetIncomingMessageType.Data:
 						var bytes = inc.ReadBytes(inc.LengthBytes);
-						incoming.Enqueue(new Tuple<object, DataBuffer>(inc.SenderConnection, new DataBuffer(bytes)));
+						DataReceived?.Invoke(this, new ProviderDataEventArgs(inc.SenderConnection, true, new DataBuffer(bytes), inc.LengthBytes));
 						break;
 
 					case NetIncomingMessageType.Error:
@@ -76,27 +81,6 @@ namespace Chip.Net.Providers.Lidgren {
 			return connections;
 		}
 
-		public IEnumerable<Tuple<object, DataBuffer>> GetIncomingMessages() {
-			var ret = incoming;
-			incoming = new Queue<Tuple<object, DataBuffer>>();
-			return ret;
-		}
-
-		public void SendMessage(DataBuffer data, object excludeKey = null) {
-			if (server == null)
-				return;
-
-			var bytes = data.ToBytes();
-			foreach (var client in connections) {
-				if (client == excludeKey)
-					continue;
-
-				NetOutgoingMessage outmsg = server.CreateMessage();
-				outmsg.Write(bytes);
-				client.SendMessage(outmsg, NetDeliveryMethod.ReliableSequenced, 0);
-			}
-		}
-
 		public void SendMessage(object recipientKey, DataBuffer data) {
 			if (server == null)
 				return;
@@ -110,6 +94,8 @@ namespace Chip.Net.Providers.Lidgren {
 			NetOutgoingMessage outmsg = server.CreateMessage();
 			outmsg.Write(bytes);
 			client.SendMessage(outmsg, NetDeliveryMethod.ReliableSequenced, 0);
+
+			DataSent?.Invoke(this, new ProviderDataEventArgs(recipientKey, true, data, data.GetLength()));
 		}
 
 		public void DisconnectUser(object userKey) {

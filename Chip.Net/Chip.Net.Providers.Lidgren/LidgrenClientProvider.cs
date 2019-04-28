@@ -9,8 +9,8 @@ namespace Chip.Net.Providers.Lidgren {
 		public EventHandler<ProviderUserEventArgs> UserConnected { get; set; }
 		public EventHandler<ProviderUserEventArgs> UserDisconnected { get; set; }
 
-		public EventHandler<ProviderDataEventArgs> DataSent { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-		public EventHandler<ProviderDataEventArgs> DataReceived { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+		public EventHandler<ProviderDataEventArgs> DataSent { get; set; }
+		public EventHandler<ProviderDataEventArgs> DataReceived { get; set; }
 
 		public bool IsConnected => client == null ? false : client.ConnectionStatus == NetConnectionStatus.Connected;
 
@@ -20,7 +20,9 @@ namespace Chip.Net.Providers.Lidgren {
 			NetPeerConfiguration config = new NetPeerConfiguration(context.ApplicationName);
 			client = new NetClient(config);
 			client.Start();
-			client.Connect(context.IPAddress, context.Port);
+			var nc = client.Connect(context.IPAddress, context.Port);
+
+
 		}
 
 		public void Dispose() {
@@ -33,6 +35,8 @@ namespace Chip.Net.Providers.Lidgren {
 				NetOutgoingMessage outmsg = client.CreateMessage();
 				outmsg.Write(data.ToBytes());
 				client.SendMessage(outmsg, NetDeliveryMethod.ReliableSequenced);
+
+				DataSent?.Invoke(this, new ProviderDataEventArgs(null, false, data, data.GetLength()));
 			}
 		}
 

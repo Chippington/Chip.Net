@@ -5,9 +5,6 @@
     </HiddenComponentWarnings>
     <IgnoredTests>
       <FixtureTestSelector>
-        <FixtureName>Chip.Net.UnitTests.Providers.LidgrenProviderTests</FixtureName>
-      </FixtureTestSelector>
-      <FixtureTestSelector>
         <FixtureName>Chip.Net.UnitTests.Providers.PipeProviderTests</FixtureName>
       </FixtureTestSelector>
       <FixtureTestSelector>
