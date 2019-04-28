@@ -21,6 +21,7 @@ using Chip.Net.Controllers.Distributed;
 using Chip.Net.Providers.Direct;
 using Chip.Net.Controllers.Distributed.Services;
 using Chip.Net.Controllers.Distributed.Services.ModelTracking;
+using Chip.Net.Providers.Lidgren;
 
 namespace Chip.Net.Testbed {
 	public class TestPacket : Packet {
@@ -146,6 +147,7 @@ namespace Chip.Net.Testbed {
 
 		static void Main(string[] args) {
 			NetContext ctx = new NetContext();
+			ctx.ApplicationName = "Testbed";
 			ctx.Port = 11111;
 			ctx.MaxConnections = 10;
 			ctx.IPAddress = "localhost";
@@ -154,7 +156,7 @@ namespace Chip.Net.Testbed {
 			ctx.Services.Register<ModelTrackerService<TestDistModel>>();
 
 			Router router = new Router();
-			router.InitializeServer(ctx, new DirectServerProvider(), 11111, new DirectServerProvider(), 11112);
+			router.InitializeServer(ctx, new LidgrenServerProvider(), 11111, new LidgrenServerProvider(), 11112);
 			router.CreatePassthrough<TestPacket>();
 
 			router.StartShardServer();
@@ -165,7 +167,7 @@ namespace Chip.Net.Testbed {
 				var c = ctx.Clone();
 				c.Port = 11111;
 
-				sh.InitializeClient(c, new DirectClientProvider());
+				sh.InitializeClient(c, new LidgrenClientProvider());
 				sh.Channel = sh.CreateUserChannel<TestPacket>();
 				sh.Channel.Receive += (e) => { Console.WriteLine("Recv" + e.Data.Data); };
 
@@ -178,7 +180,7 @@ namespace Chip.Net.Testbed {
 				var c = ctx.Clone();
 				c.Port = 11112;
 
-				us.InitializeClient(c, new DirectClientProvider());
+				us.InitializeClient(c, new LidgrenClientProvider());
 				us.Channel = us.CreateShardChannel<TestPacket>();
 				us.Channel.Receive += (e) => { Console.WriteLine("Recv " + e.Data.Data); };
 
@@ -207,11 +209,13 @@ namespace Chip.Net.Testbed {
 			//	Data = 10112
 			//});
 
+			var t = Environment.TickCount;
 			while (true) {
 				router.UpdateServer();
 				foreach (var s in shards) s.UpdateClient();
 				foreach (var u in users) u.UpdateClient();
 
+				if(Environment.TickCount - t > 300)
 				System.Threading.Thread.Sleep(10);
 			}
 		}
