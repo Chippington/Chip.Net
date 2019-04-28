@@ -20,6 +20,7 @@ using Chip.Net.Controllers.Distributed.Models;
 using Chip.Net.Controllers.Distributed;
 using Chip.Net.Providers.Direct;
 using Chip.Net.Controllers.Distributed.Services;
+using Chip.Net.Controllers.Distributed.Services.ModelTracking;
 
 namespace Chip.Net.Testbed {
 	public class TestPacket : Packet {
@@ -125,6 +126,21 @@ namespace Chip.Net.Testbed {
 		}
 	}
 
+	public class TestDistModel : IDistributedModel {
+		public int Id { get; set; }
+		public string Data { get; set; }
+
+		public void ReadFrom(DataBuffer buffer) {
+			Id = buffer.ReadInt32();
+			Data = buffer.ReadString();
+		}
+
+		public void WriteTo(DataBuffer buffer) {
+			buffer.Write((int)Id);
+			buffer.Write((string)Data);
+		}
+	}
+
 	class Program {
 		
 
@@ -135,6 +151,7 @@ namespace Chip.Net.Testbed {
 			ctx.IPAddress = "localhost";
 			ctx.Services.Register<UserListService>();
 			ctx.Services.Register<Distributed>();
+			ctx.Services.Register<ModelTrackerService<TestDistModel>>();
 
 			Router router = new Router();
 			router.InitializeServer(ctx, new DirectServerProvider(), 11111, new DirectServerProvider(), 11112);
@@ -179,10 +196,15 @@ namespace Chip.Net.Testbed {
 				users.Add(makeUser());
 
 			var svc = users.First().Context.Services.Get<Distributed>();
+			var svc2 = shards.First().Context.Services.Get<ModelTrackerService<TestDistModel>>();
 
-			svc.Channel.Send(new TestPacket() {
-				Data = 10112
+			svc2.Models.Add(new TestDistModel() {
+				Data = "Hello world",
 			});
+
+			//svc.Channel.Send(new TestPacket() {
+			//	Data = 10112
+			//});
 
 			while (true) {
 				router.UpdateServer();
