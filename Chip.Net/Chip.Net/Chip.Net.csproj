@@ -5,4 +5,14 @@
     <Version>1.0.1</Version>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Compile Remove="Controllers\Distributed\Services\Regions\RegionService.Shard.cs" />
+    <Compile Remove="Controllers\Distributed\Services\Regions\RegionService.User.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Controllers\Distributed\Services\Regions\RegionService.Shard.cs" />
+    <None Include="Controllers\Distributed\Services\Regions\RegionService.User.cs" />
+  </ItemGroup>
+
 </Project>
