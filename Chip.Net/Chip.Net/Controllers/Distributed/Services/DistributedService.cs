@@ -266,14 +266,19 @@ namespace Chip.Net.Controllers.Distributed.Services
 			InitializeDistributedService();
 		}
 
-		public virtual void StartService() {
-		}
+		public virtual void StartService() { }
 
-		public virtual void StopService() {
-		}
+		public virtual void StopService() { }
 
 		public virtual void UpdateService() {
+			if (IsRouter) UpdateRouter();
+			if (IsShard) UpdateShard();
+			if (IsUser) UpdateUser();
 		}
+
+		protected virtual void UpdateRouter() { }
+		protected virtual void UpdateShard() { }
+		protected virtual void UpdateUser() { }
 
 		public void Dispose() {
 			Disposed = true;
