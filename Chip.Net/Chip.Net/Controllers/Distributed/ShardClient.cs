@@ -29,9 +29,6 @@ namespace Chip.Net.Controllers.Distributed
 			context.Packets.Register<SendToShardPacket>();
 			context.Packets.Register<SendToUserPacket>();
 
-			context.Services.Register<ModelTrackerService<TShard>>();
-			context.Services.Register<ModelTrackerService<TUser>>();
-
 			base.InitializeClient(context, provider);
 			ShardSetModel = CreateRouterChannel<SetShardModelPacket<TShard>>();
 			ShardSetModel.Receive += SetShardModel;

@@ -80,9 +80,6 @@ namespace Chip.Net.Controllers.Distributed
 			INetServerProvider userProvider, int userPort) {
 			Context = context;
 
-			context.Services.Register<ModelTrackerService<TShard>>();
-			context.Services.Register<ModelTrackerService<TUser>>();
-
 			shardToNetUser = new Dictionary<TShard, NetUser>();
 			userToNetUser = new Dictionary<TUser, NetUser>();
 
