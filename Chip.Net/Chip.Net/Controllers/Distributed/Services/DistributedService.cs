@@ -72,6 +72,27 @@ namespace Chip.Net.Controllers.Distributed.Services
 			public UserChannel(Func<short, NetUser> netUserResolver, MessageChannel<T> destinationRawChannel, MessageChannel<PassthroughPacket<T>> destinationChannel, MessageChannel<PassthroughPacket<T>> peerChannel) : base(netUserResolver, destinationRawChannel, destinationChannel, peerChannel) { }
 		}
 
+		public class RouterChannel<T> where T : Packet {
+			public MessageChannel<T> Source { get; set; }
+			public MessageChannel<T> Shard { get; set; }
+			public MessageChannel<T> User { get; set; }
+
+			public RouterChannel(MessageChannel<T> source) {
+				this.Source = source;
+			}
+
+			public RouterChannel(MessageChannel<T> shard, MessageChannel<T> user) {
+				this.Shard = shard;
+				this.User = user;
+			}
+
+			public void Send(T data) {
+				if (Source != null) Source.Send(data);
+				if (Shard != null) Shard.Send(data);
+				if (User != null) User.Send(data);
+			}
+		}
+
 		public class DistributedChannel<T, TModel> where T : Packet where TModel : IDistributedModel {
 			private MessageChannel<T> destinationRawChannel;
 			private MessageChannel<PassthroughPacket<T>> destinationChannel;
@@ -224,7 +245,24 @@ namespace Chip.Net.Controllers.Distributed.Services
 			return null;
 		}
 
+		public RouterChannel<T> CreateRouterChannel<T>(string key = null) where T : Packet {
+			if(IsRouter) {
+				var sh = ShardController.Router.Route<T>(key);
+				var us = UserController.Router.Route<T>(key);
 
+				return new RouterChannel<T>(sh, us);
+			}
+
+			if (IsShard) {
+				return new RouterChannel<T>(ShardController.Router.Route<T>(key));
+			}
+
+			if(IsUser) {
+				return new RouterChannel<T>(UserController.Router.Route<T>(key));
+			}
+
+			return null;
+		}
 
 		public DistributedChannel<T> CreatePassthrough<T>(string key = null) where T : Packet {
 			if(IsClient) {
