@@ -3,6 +3,7 @@ using Chip.Net.Controllers.Distributed.Services.RFC;
 using Chip.Net.Data;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace Chip.Net.Controllers.Distributed.Services.ModelTracking
@@ -53,6 +54,25 @@ namespace Chip.Net.Controllers.Distributed.Services.ModelTracking
 			Models.ModelAddedEvent += OnModelAdded;
 			Models.ModelRemovedEvent += OnModelRemoved;
 			Models.ModelUpdatedEvent += OnModelUpdated;
+
+			if(IsRouter) {
+				RouterController.ShardController.NetUserConnected += OnShardConnected;
+				RouterController.UserController.NetUserConnected += OnUserConnected;
+			}
+		}
+
+		private void OnShardConnected(object sender, NetEventArgs e) {
+			ShardUpdateSet.Send(new UpdateSet() {
+				Models = this.Models.ToList(),
+				ModelCount = this.Models.Count,
+			}, RouterController.GetShard(e.User));
+		}
+
+		private void OnUserConnected(object sender, NetEventArgs e) {
+			UserUpdateSet.Send(new UpdateSet() {
+				Models = this.Models.ToList(),
+				ModelCount = this.Models.Count,
+			}, RouterController.GetUser(e.User));
 		}
 
 		public struct ValidationContext {

@@ -31,6 +31,12 @@ namespace Chip.Net.Controllers.Distributed
 
 		public abstract NetUser GetNetUserFromShard(short id);
 		public abstract NetUser GetNetUserFromUser(short id);
+
+		public abstract IShardModel GetShard(short id);
+		public abstract IUserModel GetUser(short id);
+
+		public abstract IShardModel GetShard(NetUser user);
+		public abstract IUserModel GetUser(NetUser user);
 	}
 
 	public class RouterServer<TRouter, TShard, TUser> : RouterServer
@@ -143,14 +149,14 @@ namespace Chip.Net.Controllers.Distributed
 		}
 
 		private void OnShardDisconnected(object sender, NetEventArgs e) {
-			var shard = GetShard(e.User);
+			var shard = GetShardModel(e.User);
 			Shards.Remove(shard);
 
 			ShardDisconnectedEvent?.Invoke(this, shard);
 		}
 
 		private void OnShardDataReceived(object sender, NetEventArgs e) {
-			var shard = GetShard(e.User);
+			var shard = GetShardModel(e.User);
 
 			ShardDataReceivedEvent?.Invoke(this, new ShardDataEventArgs()
 			{
@@ -242,7 +248,7 @@ namespace Chip.Net.Controllers.Distributed
 			user.SetLocal<TShard>(UK_Shard, shardModel);
 		}
 
-		public TShard GetShard(NetUser user)
+		public TShard GetShardModel(NetUser user) 
 		{
 			return user.GetLocal<TShard>(UK_Shard);
 		}
@@ -291,6 +297,22 @@ namespace Chip.Net.Controllers.Distributed
 
 		public void Dispose() {
 			Shutdown();
+		}
+
+		public override IShardModel GetShard(short id) {
+			return Shards[id];
+		}
+
+		public override IUserModel GetUser(short id) {
+			return Users[id];
+		}
+
+		public override IShardModel GetShard(NetUser user) {
+			return GetShardModel(user);
+		}
+
+		public override IUserModel GetUser(NetUser user) {
+			return GetUserModel(user);
 		}
 	}
 }
