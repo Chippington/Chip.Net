@@ -1,5 +1,4 @@
 ﻿using Chip.Net.Controllers.Distributed.Models;
-using Chip.Net.Controllers.Distributed.Services.RFC;
 using Chip.Net.Data;
 using System;
 using System.Collections.Generic;
