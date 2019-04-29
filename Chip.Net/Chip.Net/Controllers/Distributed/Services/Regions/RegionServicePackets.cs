@@ -10,6 +10,12 @@ namespace Chip.Net.Controllers.Distributed.Services.Regions
 		public class FocusPacket : Packet {
 			public TFocus Focus { get; set; }
 
+			public FocusPacket() { }
+
+			public FocusPacket(TFocus focus) {
+				this.Focus = focus;
+			}
+
 			public override void WriteTo(DataBuffer buffer) {
 				base.WriteTo(buffer);
 				Focus.WriteTo(buffer);
@@ -19,6 +25,27 @@ namespace Chip.Net.Controllers.Distributed.Services.Regions
 				base.ReadFrom(buffer);
 				this.Focus = Activator.CreateInstance<TFocus>();
 				this.Focus.ReadFrom(buffer);
+			}
+		}
+
+		public class RegionPacket : Packet {
+			public TRegion Region { get; set; }
+
+			public RegionPacket() { }
+
+			public RegionPacket(TRegion region) {
+				this.Region = region;
+			}
+
+			public override void WriteTo(DataBuffer buffer) {
+				base.WriteTo(buffer);
+				Region.WriteTo(buffer);
+			}
+
+			public override void ReadFrom(DataBuffer buffer) {
+				base.ReadFrom(buffer);
+				this.Region = Activator.CreateInstance<TRegion>();
+				this.Region.ReadFrom(buffer);
 			}
 		}
 	}
