@@ -82,11 +82,11 @@ namespace Chip.Net.Controllers.Distributed.Services.ModelTracking
 		}
 
 		public void SetShardValidation(Func<ValidationContext, IUserModel, bool> func) {
-
+			this.ShardValidate = func;
 		}
 
 		public void SetUserValidation(Func<ValidationContext, IUserModel, bool> func) {
-
+			this.UserValidate = func;
 		}
 
 		private void addModel(object sender, AddModel e) {

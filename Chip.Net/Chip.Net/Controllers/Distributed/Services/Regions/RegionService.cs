@@ -10,7 +10,7 @@ namespace Chip.Net.Controllers.Distributed.Services.Regions
 		where TRegion : IRegionModel 
 		where TFocus : IDistributedModel {
 
-		TRegion Resolve(TFocus focus);
+		IEnumerable<TRegion> Resolve(TFocus focus);
 	}
 
 	public partial class RegionService<TRegion, TFocus> : DistributedService 
@@ -31,15 +31,18 @@ namespace Chip.Net.Controllers.Distributed.Services.Regions
 		public UserChannel<RegionPacket> UserRemoveRegion { get; private set; }
 		public UserChannel<RegionPacket> UserUpdateRegion { get; private set; }
 
-		public ModelTrackerCollection<TFocus> FocusModels;
+		public UserChannel<FocusPacket> UserSetFocus { get; private set; }
+		public UserChannel<FocusPacket> UserUpdateFocus { get; private set; }
+
+		public Dictionary<IUserModel, TFocus> FocusMap;
 
 		public RegionService(IRegionResolver<TRegion, TFocus> resolver) {
-			this.FocusModels = new ModelTrackerCollection<TFocus>();
 			this.Resolver = resolver;
 		}
 
 		protected override void InitializeDistributedService() {
 			base.InitializeDistributedService();
+			if (IsUser == false) this.FocusMap = new Dictionary<IUserModel, TFocus>();
 
 			this.ShardAddFocus = CreateShardChannel<FocusPacket>("add");
 			this.ShardRemoveFocus = CreateShardChannel<FocusPacket>("remove");
@@ -52,6 +55,9 @@ namespace Chip.Net.Controllers.Distributed.Services.Regions
 			this.UserAddRegion = CreateUserChannel<RegionPacket>("add");
 			this.UserRemoveRegion = CreateUserChannel<RegionPacket>("remove");
 			this.UserUpdateRegion = CreateUserChannel<RegionPacket>("update");
+
+			this.UserSetFocus = CreateUserChannel<FocusPacket>("set");
+			this.UserUpdateFocus = CreateUserChannel<FocusPacket>("update");
 		}
 	}
 }

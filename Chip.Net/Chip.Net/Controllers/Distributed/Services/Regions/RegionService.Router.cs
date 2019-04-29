@@ -9,13 +9,31 @@ namespace Chip.Net.Controllers.Distributed.Services.Regions
 	public partial class RegionService<TRegion, TFocus> : DistributedService
 		where TRegion : IRegionModel
 		where TFocus : IDistributedModel {
-
+		
 		public override void InitializeRouter() {
 			base.InitializeRouter();
 
-			FocusModels.ModelAddedEvent += Router_OnFocusAdded;
-			FocusModels.ModelUpdatedEvent += Router_OnFocusUpdated;
-			FocusModels.ModelRemovedEvent += Router_OnFocusRemoved;
+			this.ShardUpdateFocus.Receive += OnShardUpdateFocus;
+			this.ShardUpdateRegion.Receive += OnShardUpdateRegion;
+
+			this.UserSetFocus.Receive += OnUserSetFocus;
+			this.UserUpdateFocus.Receive += OnUserUpdateFocus;
+		}
+
+		private void OnUserUpdateFocus(object sender, FocusPacket e) {
+			throw new NotImplementedException();
+		}
+
+		private void OnUserSetFocus(object sender, FocusPacket e) {
+			throw new NotImplementedException();
+		}
+
+		private void OnShardUpdateRegion(object sender, RegionPacket e) {
+			throw new NotImplementedException();
+		}
+
+		private void OnShardUpdateFocus(object sender, FocusPacket e) {
+			throw new NotImplementedException();
 		}
 
 		protected override void UpdateRouter() {
