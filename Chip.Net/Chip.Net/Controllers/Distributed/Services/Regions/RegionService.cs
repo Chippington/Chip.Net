@@ -23,9 +23,13 @@ namespace Chip.Net.Controllers.Distributed.Services.Regions
 		public ShardChannel<FocusPacket> ShardRemoveFocus { get; private set; }
 		public ShardChannel<FocusPacket> ShardUpdateFocus { get; private set; }
 
-		public UserChannel<FocusPacket> UserAddFocus { get; private set; }
-		public UserChannel<FocusPacket> UserRemoveFocus { get; private set; }
-		public UserChannel<FocusPacket> UserUpdateFocus { get; private set; }
+		public ShardChannel<RegionPacket> ShardAddRegion { get; private set; }
+		public ShardChannel<RegionPacket> ShardRemoveRegion { get; private set; }
+		public ShardChannel<RegionPacket> ShardUpdateRegion { get; private set; }
+
+		public UserChannel<RegionPacket> UserAddRegion { get; private set; }
+		public UserChannel<RegionPacket> UserRemoveRegion { get; private set; }
+		public UserChannel<RegionPacket> UserUpdateRegion { get; private set; }
 
 		public ModelTrackerCollection<TFocus> FocusModels;
 
@@ -41,9 +45,13 @@ namespace Chip.Net.Controllers.Distributed.Services.Regions
 			this.ShardRemoveFocus = CreateShardChannel<FocusPacket>("remove");
 			this.ShardUpdateFocus = CreateShardChannel<FocusPacket>("update");
 
-			this.UserAddFocus = CreateUserChannel<FocusPacket>("add");
-			this.UserRemoveFocus = CreateUserChannel<FocusPacket>("remove");
-			this.UserUpdateFocus = CreateUserChannel<FocusPacket>("update");
+			this.ShardAddRegion = CreateShardChannel<RegionPacket>("add");
+			this.ShardRemoveRegion = CreateShardChannel<RegionPacket>("remove");
+			this.ShardUpdateRegion = CreateShardChannel<RegionPacket>("update");
+
+			this.UserAddRegion = CreateUserChannel<RegionPacket>("add");
+			this.UserRemoveRegion = CreateUserChannel<RegionPacket>("remove");
+			this.UserUpdateRegion = CreateUserChannel<RegionPacket>("update");
 		}
 	}
 }
