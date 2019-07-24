@@ -18,7 +18,7 @@ namespace Chip.Net.Providers.Sockets
 		private object LockObject = new object();
 		private Socket Connection;
 
-		public void Connect(NetContext context) {
+		public void Connect(INetContext context) {
 			IPHostEntry ipHostInfo = Dns.GetHostEntry(context.IPAddress);
 			IPAddress ipAddress = ipHostInfo.AddressList[0];
 			IPEndPoint localEndPoint = new IPEndPoint(ipAddress, context.Port);

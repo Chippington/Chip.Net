@@ -10,15 +10,15 @@ using System.Text;
 namespace Chip.Net.UnitTests.Services
 {
     public class NetServiceBaseTests<TService>
-		where TService : INetService
+		where TService : class, INetService
     {
 		public BasicServer Server { get; set; }
 		public BasicClient Client { get; set; }
 		public TService ServerService { get; set; }
 		public TService ClientService { get; set; }
 
-		public virtual NetContext GetContext(string ip, int port) {
-			NetContext ret = new NetContext();
+		public virtual INetContext GetContext(string ip, int port) {
+			INetContext ret = new NetContext();
 			ret.Services.Register<TService>();
 
 			ret.IPAddress = "localhost";

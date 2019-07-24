@@ -15,10 +15,10 @@ namespace Chip.Net.Controllers
 		EventHandler<NetEventArgs> PacketReceived { get; set; }
 		EventHandler<NetEventArgs> PacketSent { get; set; }
 
-		NetContext Context { get; }
+		INetContext Context { get; }
 		bool IsActive { get; }
 
-		void InitializeServer(NetContext context, INetServerProvider provider);
+		void InitializeServer(INetContext context, INetServerProvider provider);
 		void StartServer();
 		void StopServer();
 		void UpdateServer();

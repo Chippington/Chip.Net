@@ -22,7 +22,7 @@ namespace Chip.Net.Services.NetTime {
 		MessageChannel<P_SetNetTime> ChSetNetTime;
 		MessageChannel<P_GetNetTime> ChGetNetTime;
 
-		public override void InitializeService(NetContext context) {
+		public override void InitializeService(INetContext context) {
 			base.InitializeService(context);
 			clientTimer = new Stopwatch();
 			serverTimer = new Stopwatch();

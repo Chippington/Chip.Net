@@ -48,7 +48,7 @@ namespace Chip.Net.Providers.TCP
 		private byte[] message;
 		private int port;
 
-		public void StartServer(NetContext context) {
+		public void StartServer(INetContext context) {
 			this.maxConnections = context.MaxConnections;
 			this.port = context.Port;
 

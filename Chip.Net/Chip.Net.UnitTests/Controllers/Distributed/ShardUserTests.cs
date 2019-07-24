@@ -34,7 +34,7 @@ namespace Chip.Net.UnitTests.Controllers.Distributed
 
 		[TestInitialize]
 		public void Initialize() {
-			NetContext ctx = new NetContext();
+			INetContext ctx = new NetContext();
 			ctx.IPAddress = Guid.NewGuid().ToString();
 			ctx.Port = 0;
 

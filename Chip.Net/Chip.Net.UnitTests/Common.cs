@@ -26,7 +26,7 @@ namespace Chip.Net.UnitTests {
 			Disposed = true;
 		}
 
-		public override void InitializeService(NetContext context) {
+		public override void InitializeService(INetContext context) {
 			base.InitializeService(context);
 			outQueue = new Queue<Packet>();
 			Initialized = true;

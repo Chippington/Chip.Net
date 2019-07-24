@@ -16,7 +16,7 @@ namespace Chip.Net.Providers.Lidgren {
 
 		private NetClient client;
 
-		public void Connect(NetContext context) {
+		public void Connect(INetContext context) {
 			NetPeerConfiguration config = new NetPeerConfiguration(context.ApplicationName);
 			client = new NetClient(config);
 			client.Start();

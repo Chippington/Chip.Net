@@ -31,7 +31,7 @@ namespace Chip.Net.Providers.Direct
 		public EventHandler<ProviderDataEventArgs> DataSent { get; set; }
 		public EventHandler<ProviderDataEventArgs> DataReceived { get; set; }
 
-		public void StartServer(NetContext context)
+		public void StartServer(INetContext context)
 		{
 			var key = context.IPAddress + ":" + context.Port;
 			lock (Servers) {

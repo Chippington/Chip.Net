@@ -45,8 +45,8 @@ namespace Chip.Net.UnitTests.Controllers.Distributed.Services
 			} catch { }
 		}
 
-		private NetContext GetContext() {
-			NetContext ctx = new NetContext();
+		private INetContext GetContext() {
+			INetContext ctx = new NetContext();
 			ctx.Services.Register<TestService>();
 			return ctx;
 		}
@@ -204,8 +204,8 @@ namespace Chip.Net.UnitTests.Controllers.Distributed.Services
 		public int ShardCount { get; set; } = 5;
 		public int UserCount { get; set; } = 5;
 
-		public NetContext GetContext(string Name, int Port) {
-			NetContext ctx = new NetContext();
+		public INetContext GetContext(string Name, int Port) {
+			INetContext ctx = new NetContext();
 			ctx.IPAddress = Name;
 			ctx.Port = Port;
 

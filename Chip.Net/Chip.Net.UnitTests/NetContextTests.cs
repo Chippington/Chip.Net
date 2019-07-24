@@ -23,9 +23,9 @@ namespace Chip.Net.UnitTests
 
 		public class TestData { public string Data { get; set; } }
 
-		private NetContext CreateContext()
+		private INetContext CreateContext()
 		{
-			NetContext ctx = new NetContext();
+			INetContext ctx = new NetContext();
 			ctx.ApplicationName = Guid.NewGuid().ToString();
 			ctx.IPAddress = "localhost";
 			ctx.MaxConnections = 10;

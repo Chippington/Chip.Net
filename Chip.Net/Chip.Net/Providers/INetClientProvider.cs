@@ -13,7 +13,7 @@ namespace Chip.Net.Providers {
 
 		bool IsConnected { get; }
 
-		void Connect(NetContext context);
+		void Connect(INetContext context);
 		void Disconnect();
 		void UpdateClient();
 		void SendMessage(DataBuffer data);

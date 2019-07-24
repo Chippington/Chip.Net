@@ -14,14 +14,14 @@ namespace Chip.Net.UnitTests.Controllers.Distributed
 		private RouterServer<TestRouterModel, TestShardModel, TestUserModel> Router;
 
 		string guid = null;
-		private NetContext _cache;
-		protected virtual NetContext CreateContext() {
+		private INetContext _cache;
+		protected virtual INetContext CreateContext() {
 			if (_cache != null)
 				return _cache;
 
 			if (guid == null) guid = Guid.NewGuid().ToString();
 
-			NetContext ctx = this.Context;
+			INetContext ctx = this.Context;
 			ctx.ApplicationName = guid;
 			ctx.IPAddress = guid;
 			ctx.Port = 0;

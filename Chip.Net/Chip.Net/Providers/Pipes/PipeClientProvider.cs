@@ -15,7 +15,7 @@ namespace Chip.Net.Providers.Pipes
 
 		public bool IsConnected => throw new NotImplementedException();
 
-		public void Connect(NetContext context)
+		public void Connect(INetContext context)
 		{
 			throw new NotImplementedException();
 		}

@@ -41,7 +41,7 @@ namespace Chip.Net.Providers.Pipes
 			throw new NotImplementedException();
 		}
 
-		public void StartServer(NetContext context)
+		public void StartServer(INetContext context)
 		{
 			throw new NotImplementedException();
 		}

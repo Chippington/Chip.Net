@@ -14,7 +14,7 @@ namespace Chip.Net.Providers {
 		bool IsActive { get; }
 		bool AcceptIncomingConnections { get; set; }
 
-		void StartServer(NetContext context);
+		void StartServer(INetContext context);
 		void StopServer();
 		void UpdateServer();
 

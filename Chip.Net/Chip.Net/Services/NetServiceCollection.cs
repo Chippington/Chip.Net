@@ -69,7 +69,7 @@ namespace Chip.Net.Services {
 			return idToService[id];
 		}
 
-		public void InitializeServices(NetContext context)
+		public void InitializeServices(INetContext context)
 		{
 			for (int i = 0; i < services.Count; i++)
 				services[i].InitializeService(context);

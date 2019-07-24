@@ -15,12 +15,12 @@ namespace Chip.Net.Services
 		public INetServerController Server { get; set; }
 		public INetClientController Client { get; set; }
 
-		protected NetContext Context { get; private set; }
+		protected INetContext Context { get; private set; }
 
 		private object LockObject = new object();
 		private List<Tuple<DateTime, Action>> scheduledEvents;
 
-		public virtual void InitializeService(NetContext context) {
+		public virtual void InitializeService(INetContext context) {
 			Context = context;
 			scheduledEvents = new List<Tuple<DateTime, Action>>();
 

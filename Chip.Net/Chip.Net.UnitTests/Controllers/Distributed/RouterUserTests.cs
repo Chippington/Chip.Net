@@ -34,7 +34,7 @@ namespace Chip.Net.UnitTests.Controllers.Distributed
 			Router.UpdateServer();
 		}
 
-		protected override NetContext CreateContext() {
+		protected override INetContext CreateContext() {
 			var ctx = base.CreateContext();
 			ctx.Port = 1;
 			return ctx;

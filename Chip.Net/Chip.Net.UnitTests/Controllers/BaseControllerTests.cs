@@ -33,8 +33,8 @@ namespace Chip.Net.UnitTests.Controllers {
 			}
 		}
 
-		private NetContext _context;
-		public NetContext Context {
+		private INetContext _context;
+		public INetContext Context {
 			get {
 				_context = new NetContext();
 				_context.IPAddress = "127.0.0.1";

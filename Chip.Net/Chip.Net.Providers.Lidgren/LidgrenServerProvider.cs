@@ -20,7 +20,7 @@ namespace Chip.Net.Providers.Lidgren {
 		private List<NetConnection> connections;
 		private int maxConnections = -1;
 
-		public void StartServer(NetContext context) {
+		public void StartServer(INetContext context) {
 			AcceptIncomingConnections = true;
 
             NetPeerConfiguration config = new NetPeerConfiguration(context.ApplicationName) {
