@@ -20,7 +20,7 @@ namespace Chip.Net.Providers.Lidgren {
 			NetPeerConfiguration config = new NetPeerConfiguration(context.ApplicationName);
 			client = new NetClient(config);
 			client.Start();
-			client.Connect(context.IPAddress, context.Port);
+			var nc = client.Connect(context.IPAddress, context.Port);
 		}
 
 		public void Dispose() {

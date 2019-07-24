@@ -92,15 +92,15 @@ namespace Chip.Net.Services {
 				services[i].StopService();
 		}
 
-		public void Register<T>() where T : INetService {
+		public void Register<T>(T inst = null) where T : class, INetService {
 			if (serviceTypeSet.Contains(typeof(T)) == false) {
 				serviceTypeSet.Add(typeof(T));
-				activationMap[typeof(T)] = () => Activator.CreateInstance<T>();
+				activationMap[typeof(T)] = () => inst != null ? inst : Activator.CreateInstance<T>();
 				ServiceTypes = serviceTypeSet.ToList().AsReadOnly();
 			}
 		}
 
-		public void Configure<T>(Action<T> config) where T : INetService {
+		public void Configure<T>(Action<T> config) where T : class, INetService {
 			if (configMap.ContainsKey(typeof(T)))
 				throw new Exception("NetService already has configuration set.");
 
