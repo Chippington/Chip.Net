@@ -27,7 +27,7 @@ namespace Chip.Net.Data {
 		public MessageEvent Receive { get; set; }
 
 		public MessageChannel(PacketRouter parent, string key)
-			: base(parent, typeof(T).ToString() + "_" + key, typeof(T)) { }
+			: base(parent, key, typeof(T)) { }
 
 		public override void Handle(IncomingMessage message) {
 			Receive?.Invoke(message.AsGeneric<T>());
@@ -120,11 +120,14 @@ namespace Chip.Net.Data {
 			});
 		}
 
-		public virtual MessageChannel<T> Route<T>(string key = null) where T : Packet {
+		public virtual MessageChannel<T> Route<T>(string key = null, bool usePrefix = true) where T : Packet {
 			if (key == null)
 				key = "";
 
-			if (Parent != null) {
+            if (usePrefix)
+                key = typeof(T).ToString() + "_" + key;
+
+            if (Parent != null) {
 				return Parent.Route<T>(Prefix + key);
 			}
 
