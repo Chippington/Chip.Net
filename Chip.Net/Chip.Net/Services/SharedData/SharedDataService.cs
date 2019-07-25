@@ -21,7 +21,7 @@ namespace Chip.Net.Services.SharedData
 
 		public bool NoDelay { get; set; } = true;
 
-		public override void InitializeService(NetContext context) {
+		public override void InitializeService(INetContext context) {
 			base.InitializeService(context);
 			buffer = new DataBuffer();
 

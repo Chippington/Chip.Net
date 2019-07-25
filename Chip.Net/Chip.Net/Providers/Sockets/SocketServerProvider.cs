@@ -53,7 +53,7 @@ namespace Chip.Net.Providers.Sockets {
 
 		}
 
-		public void StartServer(NetContext context) {
+		public void StartServer(INetContext context) {
 			IPHostEntry ipHostInfo = Dns.GetHostEntry("localhost");
 			IPAddress ipAddress = ipHostInfo.AddressList[0];
 			IPEndPoint localEndPoint = new IPEndPoint(ipAddress, context.Port);

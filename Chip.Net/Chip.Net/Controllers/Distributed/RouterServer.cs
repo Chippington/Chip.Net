@@ -20,8 +20,8 @@ namespace Chip.Net.Controllers.Distributed
 		public BasicServer ShardController { get; protected set; }
 		public BasicServer UserController { get; protected set; }
 
-		public NetContext ShardContext { get; protected set; }
-		public NetContext UserContext { get; protected set; }
+		public INetContext ShardContext { get; protected set; }
+		public INetContext UserContext { get; protected set; }
 
 		public abstract MessageChannel<T> CreateUserChannel<T>(string key = null) where T : Packet;
 
@@ -71,7 +71,7 @@ namespace Chip.Net.Controllers.Distributed
 
 		public TRouter Model { get; private set; }
 
-		private NetContext Context;
+		private INetContext Context;
 		private Dictionary<TShard, NetUser> shardToNetUser;
 		private Dictionary<TUser, NetUser> userToNetUser;
 
@@ -81,7 +81,7 @@ namespace Chip.Net.Controllers.Distributed
 		private MessageChannel<SetShardModelPacket<TShard>> ShardSetModel;
 		private MessageChannel<SetUserModelPacket<TUser>> UserSetModel;
 
-		public void InitializeServer(NetContext context, 
+		public void InitializeServer(INetContext context, 
 			INetServerProvider shardProvider, int shardPort, 
 			INetServerProvider userProvider, int userPort) {
 			Context = context;

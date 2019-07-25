@@ -36,13 +36,13 @@ namespace Chip.Net.Controllers.Distributed.Services
 		public bool Initialized { get; private set; }
 		public bool Disposed { get; private set; }
 
-		protected virtual void GlobalInitialize(NetContext context) { }
+		protected virtual void GlobalInitialize(INetContext context) { }
 
 		protected virtual void InitializeDistributedService() { }
 
-		protected virtual void InitializeContext(NetContext context) { }
+		protected virtual void InitializeContext(INetContext context) { }
 
-		public void InitializeService(NetContext context) {
+		public void InitializeService(INetContext context) {
 			InitializeContext(context);
 			if (Initialized == false) {
 				GlobalInitialize(context);

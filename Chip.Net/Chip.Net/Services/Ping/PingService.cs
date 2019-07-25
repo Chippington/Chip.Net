@@ -16,7 +16,7 @@ namespace Chip.Net.Services.Ping {
 
 		private MessageChannel<P_Ping> ChPing;
 
-		public override void InitializeService(NetContext context) {
+		public override void InitializeService(INetContext context) {
 			base.InitializeService(context);
 			connectedUsers = new HashSet<NetUser>();
 			context.Packets.Register<P_Ping>();

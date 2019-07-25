@@ -146,7 +146,7 @@ namespace Chip.Net.Testbed {
 		
 
 		static void Main(string[] args) {
-			NetContext ctx = new NetContext();
+			INetContext ctx = new NetContext();
 			ctx.ApplicationName = "Testbed";
 			ctx.Port = 11111;
 			ctx.MaxConnections = 10;

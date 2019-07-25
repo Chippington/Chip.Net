@@ -12,7 +12,7 @@ namespace Chip.Net.Services {
 		bool IsServer { get; set; }
 		bool IsClient { get; set; }
 
-		void InitializeService(NetContext context);
+		void InitializeService(INetContext context);
 		void StartService();
 		void StopService();
 		void UpdateService();

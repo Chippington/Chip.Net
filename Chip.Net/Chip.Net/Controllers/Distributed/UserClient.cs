@@ -22,7 +22,7 @@ namespace Chip.Net.Controllers.Distributed {
 		public TUser Model { get; private set; }
 		private MessageChannel<SetUserModelPacket<TUser>> UserSetModel;
 
-		public override void InitializeClient(NetContext context, INetClientProvider provider) {
+		public override void InitializeClient(INetContext context, INetClientProvider provider) {
 			context.Packets.Register<SetShardModelPacket<TShard>>();
 			context.Packets.Register<SetUserModelPacket<TUser>>();
 			context.Packets.Register<SendToShardPacket>();

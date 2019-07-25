@@ -37,7 +37,7 @@ namespace Chip.Net.Providers.Direct
 			DataReceived?.Invoke(this, new ProviderDataEventArgs(null, true, b, buffer.GetLength()));
 		}
 
-		public void Connect(NetContext context)
+		public void Connect(INetContext context)
 		{
 			var server = DirectServerProvider.GetServer(context.IPAddress, context.Port);
 			if (server == null) {

@@ -43,7 +43,7 @@ namespace Chip.Net.Services.RFC {
 			clTypeMap = new Dictionary<byte, Type[]>();
 		}
 
-		public override void InitializeService(NetContext context) {
+		public override void InitializeService(INetContext context) {
 			base.InitializeService(context);
 			context.Packets.Register<RFCExecute>();
 			ChRFCExecute = Router.Route<RFCExecute>();

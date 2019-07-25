@@ -14,7 +14,7 @@ namespace Chip.Net.Controllers.Basic
 		public EventHandler<NetEventArgs> PacketReceived { get; set; }
 		public EventHandler<NetEventArgs> PacketSent { get; set; }
 
-		public NetContext Context { get; protected set; }
+		public INetContext Context { get; protected set; }
 		public PacketRouter Router { get; protected set; }
 
 		public bool IsInitialized { get; private set; }
@@ -28,7 +28,7 @@ namespace Chip.Net.Controllers.Basic
 		private int nextUserId;
 		private bool disposed;
 
-		public virtual void InitializeServer(NetContext context, INetServerProvider provider) {
+		public virtual void InitializeServer(INetContext context, INetServerProvider provider) {
 			if (IsInitialized)
 				throw new Exception("Server already initialized");
 

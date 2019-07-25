@@ -14,7 +14,7 @@ namespace Chip.Net.Providers.UDP
 
 		public bool IsConnected => throw new NotImplementedException();
 
-		public void Connect(NetContext context) {
+		public void Connect(INetContext context) {
 			throw new NotImplementedException();
 		}
 

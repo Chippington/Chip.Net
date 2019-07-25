@@ -20,13 +20,14 @@ namespace Chip.Net.Providers.Lidgren {
 		private List<NetConnection> connections;
 		private int maxConnections = -1;
 
-		public void StartServer(NetContext context) {
+		public void StartServer(INetContext context) {
 			AcceptIncomingConnections = true;
 
-			NetPeerConfiguration config = new NetPeerConfiguration(context.ApplicationName);
-			config.Port = context.Port;
-			config.MaximumConnections = context.MaxConnections;
-			maxConnections = context.MaxConnections + 2;
+            NetPeerConfiguration config = new NetPeerConfiguration(context.ApplicationName) {
+                Port = context.Port,
+                MaximumConnections = context.MaxConnections
+            };
+            maxConnections = context.MaxConnections + 2;
 
 			connections = new List<NetConnection>();
 			server = new NetServer(config);
@@ -85,12 +86,11 @@ namespace Chip.Net.Providers.Lidgren {
 			if (server == null)
 				return;
 
-			var client = recipientKey as NetConnection;
-			if (client == null) {
-				throw new ArgumentException("Recipient key cannot be null");
-			}
+            if (!(recipientKey is NetConnection client)) {
+                throw new ArgumentException("Recipient key cannot be null");
+            }
 
-			var bytes = data.ToBytes();
+            var bytes = data.ToBytes();
 			NetOutgoingMessage outmsg = server.CreateMessage();
 			outmsg.Write(bytes);
 			client.SendMessage(outmsg, NetDeliveryMethod.ReliableSequenced, 0);
@@ -99,11 +99,10 @@ namespace Chip.Net.Providers.Lidgren {
 		}
 
 		public void DisconnectUser(object userKey) {
-			var connection = userKey as NetConnection;
-			if (connection != null) {
-				connection.Disconnect("Disconnected by server");
-			}
-		}
+            if (userKey is NetConnection connection) {
+                connection.Disconnect("Disconnected by server");
+            }
+        }
 
 		public void StopServer() {
 			if (server != null) {

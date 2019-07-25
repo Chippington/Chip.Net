@@ -82,9 +82,9 @@ namespace Chip.Net.UnitTests.Providers
 			return Activator.CreateInstance<TClient>();
 		}
 
-		protected NetContext CreateContext()
+		protected INetContext CreateContext()
 		{
-			NetContext ctx = new NetContext();
+			INetContext ctx = new NetContext();
 			ctx.ApplicationName = "TestApp";
 			ctx.IPAddress = "localhost";
 			ctx.Port = Common.Port;

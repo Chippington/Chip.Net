@@ -16,7 +16,7 @@ namespace Chip.Net.Providers.TCP {
 		private TcpClient client;
 		private byte[] message;
 
-		public void Connect(NetContext context) {
+		public void Connect(INetContext context) {
 			if(IsConnected) {
 				Disconnect();
 			}

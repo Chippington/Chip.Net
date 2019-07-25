@@ -20,7 +20,7 @@ namespace Chip.Net.Services.UserList {
 		private Action<NetUser> ClRemoveUser;
 		private Action<List<NetUser>> ClSetUserList;
 
-		public override void InitializeService(NetContext context) {
+		public override void InitializeService(INetContext context) {
 			base.InitializeService(context);
 			userList = new List<NetUser>();
 			UserList = userList.AsReadOnly();
