@@ -36,9 +36,12 @@ namespace Chip.Net.Services.NetTime {
 
 			ChSetNetTime = Router.Route<P_SetNetTime>();
 			ChGetNetTime = Router.Route<P_GetNetTime>();
+
+            ChSetNetTime.Receive += OnSetNetTime;
+            ChGetNetTime.Receive += OnGetNetTime;
 		}
 
-		private void OnSetNetTime(IncomingMessage<P_SetNetTime> obj) {
+        private void OnSetNetTime(IncomingMessage<P_SetNetTime> obj) {
 			var svNetTime = obj.Data.NetTime;
 			var diff = pingTimer.Elapsed.TotalSeconds;
 			svNetTime += diff / 2d;
