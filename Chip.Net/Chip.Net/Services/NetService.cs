@@ -24,8 +24,8 @@ namespace Chip.Net.Services
 			Context = context;
 			scheduledEvents = new List<Tuple<DateTime, Action>>();
 
-			if (IsClient) Router = new PacketRouter(Client.Router, GetType().FullName.ToString());
-			if (IsServer) Router = new PacketRouter(Server.Router, GetType().FullName.ToString());
+			if (IsClient) Router = new PacketRouter(Client.Router, GetRouterPrefix());
+			if (IsServer) Router = new PacketRouter(Server.Router, GetRouterPrefix());
 		}
 
 		public virtual void StartService() {
@@ -60,5 +60,9 @@ namespace Chip.Net.Services
 			var endt = DateTime.Now.Add(new TimeSpan(0, 0, 0, 0, milliseconds));
 			scheduledEvents.Add(new Tuple<DateTime, Action>(endt, action));
 		}
+
+        protected virtual string GetRouterPrefix() {
+            return GetType().Name + "___";
+        }
 	}
 }
