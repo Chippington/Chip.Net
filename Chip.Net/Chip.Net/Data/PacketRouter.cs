@@ -6,6 +6,12 @@ using System.Linq;
 using System.Text;
 
 namespace Chip.Net.Data {
+    public enum Times
+    {
+        Once,
+        Always,
+    }
+
 	public class MessageChannel {
 		protected PacketRouter Parent;
 
@@ -26,11 +32,29 @@ namespace Chip.Net.Data {
 		public delegate void MessageEvent(IncomingMessage<T> incoming);
 		public MessageEvent Receive { get; set; }
 
+        private List<(Func<IncomingMessage<T>, bool> matchFunc, Times repeatTimes, MessageEvent evnt)> callbacks;
+
 		public MessageChannel(PacketRouter parent, string key)
-			: base(parent, key, typeof(T)) { }
+			: base(parent, key, typeof(T)) {
+            callbacks = new List<(Func<IncomingMessage<T>, bool> matchFunc, Times repeatTimes, MessageEvent evnt)>();
+        }
 
 		public override void Handle(IncomingMessage message) {
-			Receive?.Invoke(message.AsGeneric<T>());
+            var msg = message.AsGeneric<T>();
+            Receive?.Invoke(msg);
+
+            if (callbacks.Count == 0)
+                return;
+
+            for(int i = callbacks.Count - 1; i >= 0; i--) {
+                var evnt = callbacks[i];
+                if(evnt.matchFunc == null || evnt.matchFunc(msg)) {
+                    evnt.evnt.Invoke(msg);
+
+                    if(evnt.repeatTimes == Times.Once)
+                        callbacks.RemoveAt(i);
+                }
+            }
 		}
 
 		public void Send(T data) {
@@ -48,10 +72,14 @@ namespace Chip.Net.Data {
 		public void Send(OutgoingMessage<T> message) {
 			Parent.Send(this, message);
 		}
-	}
 
-	public class RouterPacket {
-		public byte[] Bytes { get; set; }
+        public void Subscribe(
+            MessageEvent eventHandler, 
+            Func<IncomingMessage<T>, bool> matchFunc = null, 
+            Times repeatEvent = Times.Once) {
+
+            callbacks.Add((matchFunc, repeatEvent, eventHandler));
+        }
 	}
 
 	public class PacketRouter {
