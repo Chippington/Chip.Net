@@ -143,9 +143,9 @@ namespace Chip.Net.Controllers.Distributed
 			SetShard(e.User, shard);
 			ShardConnectedEvent?.Invoke(this, shard);
 
-			ShardSetModel.Send(new SetShardModelPacket<TShard>() {
+			ShardSetModel.Send(e.User, new SetShardModelPacket<TShard>() {
 				Model = shard
-			}, e.User);
+			});
 		}
 
 		private void OnShardDisconnected(object sender, NetEventArgs e) {
@@ -172,9 +172,9 @@ namespace Chip.Net.Controllers.Distributed
 			SetUserModel(e.User, user);
 			UserConnectedEvent?.Invoke(this, user);
 
-			UserSetModel.Send(new SetUserModelPacket<TUser>() {
+			UserSetModel.Send(e.User, new SetUserModelPacket<TUser>() {
 				Model = user,
-			}, e.User);
+			});
 		}
 
 		private void OnUserDisconnected(object sender, NetEventArgs e) {

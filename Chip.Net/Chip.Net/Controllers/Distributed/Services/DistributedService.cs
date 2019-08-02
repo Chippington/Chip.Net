@@ -128,7 +128,7 @@ namespace Chip.Net.Controllers.Distributed.Services
 						if(recipient <= 0) {
 							destinationRawChannel.Send(data);
 						} else {
-							destinationRawChannel.Send(data, Resolver((short)recipient));
+							destinationRawChannel.Send(Resolver((short)recipient), data);
 						}
 					} else {
 						destinationChannel.Send(new OutgoingMessage<PassthroughPacket<T>>(new PassthroughPacket<T>(data, recipient)));

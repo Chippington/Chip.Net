@@ -37,11 +37,11 @@ namespace Chip.Net.Data {
 			this.Send(new OutgoingMessage<T>(data));
 		}
 
-		public void Send(T data, NetUser recipient) {
+		public void Send(NetUser recipient, T data) {
 			this.Send(new OutgoingMessage<T>(data, recipient));
 		}
 
-		public void Send(T data, IEnumerable<NetUser> recipients) {
+		public void Send(IEnumerable<NetUser> recipients, T data) {
 			this.Send(new OutgoingMessage<T>(data, recipients));
 		}
 
