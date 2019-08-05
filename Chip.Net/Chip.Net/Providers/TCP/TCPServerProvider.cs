@@ -118,6 +118,9 @@ namespace Chip.Net.Providers.TCP
 					buff.Seek(0);
 					while (buff.GetPosition() < buff.GetLength()) {
 						var size = buff.ReadInt16();
+                        if (size == 0)
+                            break;
+
 						byte[] d = new byte[size];
 						buff.ReadBytes(d, 0, d.Length);
 

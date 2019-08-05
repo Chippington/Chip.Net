@@ -179,6 +179,15 @@ namespace Chip.Net.Data
 			for (int i = 0; i < source.Length; i++)
 				Write((byte)source[i]);
 		}
+
+        /// <summary>
+        /// Writes a guid to the buffer.
+        /// </summary>
+        /// <param name="source"></param>
+        public void Write(Guid source) {
+            for (int i = 0; i < 16; i++)
+                this.Write((byte)source.ToByteArray()[i]);
+        }
 		#endregion
 
 		#region Reading
@@ -301,6 +310,18 @@ namespace Chip.Net.Data
 		public string ReadString() {
 			return reader.ReadString();
 		}
+
+        /// <summary>
+        /// Reads a guid from the buffer.
+        /// </summary>
+        /// <returns></returns>
+        public Guid ReadGuid() {
+            byte[] bytes = new byte[16];
+            for (int i = 0; i < bytes.Length; i++)
+                bytes[i] = this.ReadByte();
+
+            return new Guid(bytes);
+        }
 		#endregion
 
 		#region Peeking

@@ -107,7 +107,8 @@ namespace Chip.Net.Data {
 			provider.DataReceived += OnDataReceived;
 			SendAction = (u, d) => {
 				if (u == null) {
-					foreach (var user in cont.GetUsers())
+                    var users = cont.GetUsers().ToList();
+                    foreach (var user in users)
 						prov.SendMessage(user.UserKey, d);
 
 					return;
