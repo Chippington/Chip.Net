@@ -33,6 +33,7 @@ namespace Chip.Net.Data {
 		public MessageEvent Receive { get; set; }
 
         private List<(Func<IncomingMessage<T>, bool> matchFunc, Times repeatTimes, MessageEvent evnt)> callbacks;
+        public EventHandler<OutgoingMessage<T>> MessageSentEvent { get; set; }
 
 		public MessageChannel(PacketRouter parent, string key)
 			: base(parent, key, typeof(T)) {
@@ -41,6 +42,7 @@ namespace Chip.Net.Data {
 
 		public override void Handle(IncomingMessage message) {
             var msg = message.AsGeneric<T>();
+            msg.Route = this.Key;
             Receive?.Invoke(msg);
 
             if (callbacks.Count == 0)
@@ -70,8 +72,10 @@ namespace Chip.Net.Data {
 		}
 
 		public void Send(OutgoingMessage<T> message) {
+            message.Route = this.Key;
 			Parent.Send(this, message);
-		}
+            this.MessageSentEvent?.Invoke(this, message);
+        }
 
         public void Subscribe(
             MessageEvent eventHandler, 
