@@ -205,7 +205,7 @@ namespace Chip.Net.Data {
 			if(message.Recipients != null && message.Recipients.Count() > 0) {
 				foreach (var u in message.Recipients)
 					SendAction.Invoke(u, buffer);
-			} else {
+			} else if(message.Recipients == null) {
 				SendAction(null, buffer);
 			}
 		}
